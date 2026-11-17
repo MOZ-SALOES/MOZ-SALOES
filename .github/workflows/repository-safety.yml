@@ -1,0 +1,45 @@
+name: Repository safety checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safety:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify project reference
+        shell: bash
+        run: grep -F 'project_id = "wmcypueuaszizekaljok"' supabase/config.toml
+
+      - name: Keep recovery notes out of executable migrations
+        shell: bash
+        run: |
+          if find supabase/migrations -type f -path '*/reconstructed/*' 2>/dev/null | grep -q .; then
+            echo "ERROR: reconstructed recovery notes must never be placed in supabase/migrations/"
+            exit 1
+          fi
+          while IFS= read -r file; do
+            grep -q 'NAO E A FONTE SQL ORIGINAL' "$file" || {
+              echo "ERROR: missing reconstruction warning in $file"
+              exit 1
+            }
+          done < <(find supabase/recovery/reconstructed -type f -name '*.sql' | sort)
+
+      - name: Verify required recovery records
+        shell: bash
+        run: |
+          test -f supabase/recovery/reconstructed/20261104173058_beauty_map_initial_foundation.sql
+          test -f supabase/recovery/reconstructed/20261104173116_beauty_map_security_hardening.sql
+          test -f supabase/recovery/reconstructed/20261104173620_beauty_map_payments_and_admin_wallet.sql
+          test -f supabase/recovery/reconstructed/20261104173626_beauty_map_payment_backend_privileges.sql
+          test -f supabase/recovery/reconstructed/20261104173745_beauty_map_manual_mpesa_emola_withdrawal_preferences.sql
