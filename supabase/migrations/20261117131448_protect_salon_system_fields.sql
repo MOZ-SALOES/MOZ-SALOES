@@ -1,0 +1,37 @@
+-- Protect system-managed salon columns from owner-side updates.
+-- Applied to the existing Supabase project; do not replay the historical migrations.
+
+create or replace function private.guard_salon_admin_fields()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  caller_is_admin boolean;
+begin
+  select exists (
+    select 1
+    from public.admin_users a
+    where a.user_id = (select auth.uid())
+  )
+  into caller_is_admin;
+
+  if not caller_is_admin and (
+    new.id is distinct from old.id
+    or new.owner_id is distinct from old.owner_id
+    or new.publication_status is distinct from old.publication_status
+    or new.is_featured is distinct from old.is_featured
+    or new.average_rating is distinct from old.average_rating
+    or new.review_count is distinct from old.review_count
+    or new.slug is distinct from old.slug
+    or new.created_at is distinct from old.created_at
+  ) then
+    raise exception 'Apenas o administrador pode alterar campos internos do salão (identidade, proprietário, publicação, destaque, avaliações ou slug).';
+  end if;
+
+  return new;
+end;
+$function$;
+
+revoke all on function private.guard_salon_admin_fields() from public, anon, authenticated;
