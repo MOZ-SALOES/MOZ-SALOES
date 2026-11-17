@@ -1,0 +1,12 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
+
+# Local build/dependency outputs
+node_modules/
+dist/
+build/
+.DS_Store
