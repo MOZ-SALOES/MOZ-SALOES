@@ -21,13 +21,19 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.card{background:white;border:1px solid #e1e7f0;border-radius:16px;padding:18px;min-width:0}.card h3{margin:0 0 7px;color:#102b63;font-size:1.1rem}.pill{display:inline-block;background:#edf4ff;color:#24558e;border-radius:99px;padding:5px 9px;font-size:.75rem;margin:0 5px 6px 0}
 .card p{color:#65738a;line-height:1.5;font-size:.9rem;margin:8px 0}.card .price{font-weight:800;color:#173d70}.card a{color:#145ca8;text-decoration:none;font-weight:700;font-size:.9rem}
 .empty{grid-column:1/-1;text-align:center;padding:35px 20px;background:white;border:1px dashed #cbd5e1;border-radius:16px;color:#64748b}
+.admin-wrap{max-width:560px;margin:30px auto;background:#fff;border:1px solid #e1e7f0;border-radius:18px;padding:22px;box-shadow:0 12px 35px #102b6310}
+.admin-wrap h2{margin:0 0 8px;color:#102b63}.admin-wrap p{color:#64748b;line-height:1.5}
+.admin-form{display:grid;gap:12px}.admin-form label{font-size:.88rem;font-weight:700;color:#34445f}.admin-form input{display:block;width:100%;padding:13px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px}
+.admin-message{padding:11px 13px;border-radius:10px;background:#edf4ff;color:#204c80;font-size:.9rem;line-height:1.45;margin-top:12px}
+.admin-message.error{background:#fff0f0;color:#9c2525}.admin-message.success{background:#eaf8f0;color:#17623b}
+[hidden]{display:none!important}
 footer{max-width:1120px;margin:35px auto;padding:0 18px 35px;color:#7a879a;font-size:.82rem}
 @media(max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.filters .btn{grid-column:1/-1}.grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){header{align-items:flex-start}header a{font-size:.78rem;padding:8px}.grid{grid-template-columns:1fr}.search{padding:13px}.section-head{align-items:start;flex-direction:column}}
 </style>
 </head>
 <body>
-<header><div><div class="brand">BEAUTY <span>MAP</span> MOZ 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div><a href="#saloes">Explorar salões</a></header>
+<header><div><div class="brand">BEAUTY <span>MAP</span> MOZ 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div><nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#admin" id="adminNav">Administração</a></nav></header>
 <main>
 <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
 <section class="search" aria-label="Pesquisar salões"><div class="filters">
@@ -37,13 +43,92 @@ footer{max-width:1120px;margin:35px auto;padding:0 18px 35px;color:#7a879a;font-
 <button class="btn" id="searchBtn">Pesquisar</button>
 </div><div class="status"><span class="dot" id="dot"></span><strong id="status">A ligar à plataforma…</strong><span id="detail"></span></div></section>
 <section id="saloes"><div class="section-head"><div><h2>Salões disponíveis</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
+<section id="adminSection" class="admin-wrap" hidden>
+  <h2>Acesso administrativo</h2>
+  <p>Área reservada à administração do BEAUTY MAP MOZ. Preenche apenas o nome e o email autorizados. Os restantes dados não são necessários.</p>
+  <form id="adminLoginForm" class="admin-form">
+    <label>Nome do administrador
+      <input id="adminName" name="name" type="text" value="Silda" autocomplete="name" required>
+    </label>
+    <label>Email autorizado
+      <input id="adminEmail" name="email" type="email" value="miltonjustino888@gmail.com" autocomplete="email" required>
+    </label>
+    <button class="btn" id="adminSubmit" type="submit">Enviar link seguro de acesso</button>
+  </form>
+  <div id="adminMessage" class="admin-message" role="status" hidden></div>
+  <div id="adminDashboard" hidden>
+    <div class="status"><span class="dot ok"></span><strong>Sessão administrativa autenticada</strong></div>
+    <p>Bem-vinda, Silda. A identidade foi confirmada pelo Supabase.</p>
+    <p class="muted">O acesso está protegido. Os módulos de gestão serão ligados a esta sessão administrativa.</p>
+    <button class="btn" id="adminLogout" type="button">Terminar sessão</button>
+  </div>
+</section>
 </main>
 <footer>BEAUTY MAP MOZ · Descobre beleza com confiança.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL="https://wmcypueuaszizekaljok.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_2S18WQ7OF51dVWNMI487UQ_xXbWN2qi";
 // A chave publishable é pública por concepção. A autorização dos registos é feita pelas políticas RLS.
 const headers={apikey:SUPABASE_PUBLISHABLE_KEY};
+const ADMIN_EMAIL="miltonjustino888@gmail.com";
+const supabaseAuth=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+function adminMessage(message,type="info"){
+ const box=$("adminMessage");box.textContent=message;box.className="admin-message"+(type==="error"?" error":type==="success"?" success":"");box.hidden=false;
+}
+function openAdminSection(){
+ $("adminSection").hidden=false;
+ $("adminSection").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function showAdminSession(isAdmin){
+ $("adminLoginForm").hidden=isAdmin;
+ $("adminDashboard").hidden=!isAdmin;
+}
+async function verifyAdminSession(session){
+ if(!session?.user){showAdminSession(false);return;}
+ const {data,error}=await supabaseAuth.from("admin_users").select("user_id,email").eq("user_id",session.user.id).maybeSingle();
+ if(error||!data||String(data.email).toLowerCase()!==ADMIN_EMAIL){
+   await supabaseAuth.auth.signOut();
+   showAdminSession(false);
+   adminMessage("Esta conta não está autorizada para administrar a plataforma.", "error");
+   return;
+ }
+ showAdminSession(true);
+ $("adminSection").hidden=false;
+ if(location.hash!=="#admin") history.replaceState(null,"",location.pathname+location.search+"#admin");
+}
+$("adminNav").addEventListener("click",()=>{openAdminSection();});
+$("adminLoginForm").addEventListener("submit",async event=>{
+ event.preventDefault();
+ const name=$("adminName").value.trim();
+ const email=$("adminEmail").value.trim().toLowerCase();
+ if(name.toLocaleLowerCase("pt")!=="silda"||email!==ADMIN_EMAIL){
+   adminMessage("Os dados não correspondem ao administrador autorizado.", "error");return;
+ }
+ if(location.protocol==="file:"){
+   adminMessage("O acesso por email só pode ser concluído depois de publicar o site num endereço HTTPS autorizado no Supabase.", "error");return;
+ }
+ const button=$("adminSubmit");button.disabled=true;button.textContent="A enviar…";
+ try{
+   const redirectTo=location.origin+location.pathname;
+   const {error}=await supabaseAuth.auth.signInWithOtp({
+     email,
+     options:{shouldCreateUser:true,emailRedirectTo:redirectTo,data:{full_name:name}}
+   });
+   if(error)throw error;
+   adminMessage("Pedido enviado. Abre a caixa de entrada de "+email+" e clica no link seguro do Supabase para concluir o acesso.", "success");
+ }catch(error){
+   adminMessage("Não foi possível enviar o link: "+(error.message||"erro de autenticação"),"error");
+ }finally{
+   button.disabled=false;button.textContent="Enviar link seguro de acesso";
+ }
+});
+$("adminLogout").addEventListener("click",async()=>{
+ await supabaseAuth.auth.signOut();showAdminSession(false);adminMessage("Sessão terminada com segurança.","success");
+});
+supabaseAuth.auth.onAuthStateChange((_event,session)=>{verifyAdminSession(session);});
+supabaseAuth.auth.getSession().then(({data})=>verifyAdminSession(data.session));
+if(location.hash==="#admin")$("adminSection").hidden=false;
 const state={salons:[],services:[],categories:[],regions:[]};
 const $=id=>document.getElementById(id);
 async function api(table,query){
