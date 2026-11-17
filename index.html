@@ -1,71 +1,103 @@
 <!doctype html>
 <html lang="pt-MZ">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#102b63">
-  <title>MOZ SALÕES — Directório de Salões de Moçambique</title>
-  <style>
-    :root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#17233b;background:#f4f7fc}
-    *{box-sizing:border-box}body{margin:0}.top{background:#102b63;color:white;padding:22px max(20px,calc((100% - 1080px)/2))}
-    .brand{font-weight:850;font-size:1.35rem;letter-spacing:.04em}.tag{opacity:.85;margin-top:5px}
-    main{max-width:1080px;margin:42px auto;padding:0 20px}.hero{background:white;border:1px solid #e1e8f2;border-radius:20px;padding:30px;box-shadow:0 12px 35px #18345d0c}
-    h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.08;margin:0 0 14px;color:#102b63}.lead{font-size:1.05rem;line-height:1.65;color:#52617a;max-width:650px}
-    .status{margin-top:25px;padding:15px 17px;border-radius:12px;background:#eef3fb;color:#263c62;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .dot{width:10px;height:10px;border-radius:50%;background:#d49a28}.dot.ok{background:#15945c}.dot.err{background:#c33}
-    .data{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:20px}
-    .item{background:#fff;border:1px solid #e1e8f2;border-radius:14px;padding:18px}.num{font-size:1.8rem;font-weight:800;color:#102b63}.muted{color:#66758d;font-size:.92rem}
-    footer{max-width:1080px;margin:24px auto;padding:0 20px 40px;color:#758198;font-size:.85rem}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b63">
+<title>BEAUTY MAP MOZ — Encontra salões em Moçambique</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#17233b;background:#f5f7fb;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}
+header{background:#102b63;color:#fff;padding:18px max(18px,calc((100% - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-weight:900;font-size:1.15rem;letter-spacing:.04em}.brand span{color:#8fc5ff}.tag{font-size:.82rem;opacity:.8;margin-top:3px}
+header a{color:#fff;text-decoration:none;border:1px solid #ffffff70;border-radius:10px;padding:10px 13px;font-size:.88rem}
+main{max-width:1120px;margin:34px auto;padding:0 18px}.hero{background:linear-gradient(125deg,#102b63,#174b91);color:white;border-radius:22px;padding:clamp(24px,5vw,48px);overflow:hidden}
+.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.72rem;font-weight:800;color:#b9d9ff}
+h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700px}.hero p{color:#dceaff;max-width:650px;line-height:1.6;margin:0}
+.search{background:white;border:1px solid #e1e7f0;border-radius:18px;padding:18px;margin-top:-22px;position:relative;box-shadow:0 12px 35px #102b6312}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px}.filters input,.filters select{min-width:0;width:100%;padding:13px;border:1px solid #d9e1ed;border-radius:10px;background:white;color:#17233b}
+.btn{border:0;border-radius:10px;padding:12px 18px;background:#1761b1;color:white;font-weight:750;cursor:pointer}.btn:hover{background:#104b8c}
+.status{display:flex;align-items:center;gap:9px;color:#64748b;font-size:.86rem;margin-top:13px}.dot{width:9px;height:9px;border-radius:50%;background:#d39b2a}.dot.ok{background:#15945c}.dot.err{background:#c33}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:32px 0 15px}.section-head h2{margin:0;color:#102b63;font-size:1.45rem}.muted{color:#68778e;font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.card{background:white;border:1px solid #e1e7f0;border-radius:16px;padding:18px;min-width:0}.card h3{margin:0 0 7px;color:#102b63;font-size:1.1rem}.pill{display:inline-block;background:#edf4ff;color:#24558e;border-radius:99px;padding:5px 9px;font-size:.75rem;margin:0 5px 6px 0}
+.card p{color:#65738a;line-height:1.5;font-size:.9rem;margin:8px 0}.card .price{font-weight:800;color:#173d70}.card a{color:#145ca8;text-decoration:none;font-weight:700;font-size:.9rem}
+.empty{grid-column:1/-1;text-align:center;padding:35px 20px;background:white;border:1px dashed #cbd5e1;border-radius:16px;color:#64748b}
+footer{max-width:1120px;margin:35px auto;padding:0 18px 35px;color:#7a879a;font-size:.82rem}
+@media(max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.filters .btn{grid-column:1/-1}.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){header{align-items:flex-start}header a{font-size:.78rem;padding:8px}.grid{grid-template-columns:1fr}.search{padding:13px}.section-head{align-items:start;flex-direction:column}}
+</style>
 </head>
 <body>
-  <header class="top"><div class="brand">MOZ SALÕES 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></header>
-  <main>
-    <section class="hero">
-      <h1>Encontra o salão certo, perto de ti.</h1>
-      <p class="lead">Descobre salões, serviços, preços e localização em Moçambique. Esta primeira versão está a verificar a ligação segura à base de dados.</p>
-      <div class="status"><span id="dot" class="dot"></span><strong id="connection">A verificar ligação ao Supabase…</strong><span id="detail" class="muted"></span></div>
-      <div class="data">
-        <div class="item"><div id="categories" class="num">—</div><div class="muted">Categorias disponíveis</div></div>
-        <div class="item"><div id="regions" class="num">—</div><div class="muted">Regiões cadastradas</div></div>
-      </div>
-    </section>
-  </main>
-  <footer>MOZ SALÕES · Compra perto. Descobre beleza com confiança.</footer>
-  <script>
-    // Chave publishable/anon: concebida para uso no frontend. Nunca colocar aqui service_role ou secret keys.
-    const SUPABASE_URL = "https://wmcypueuaszizekaljok.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_2S18WQ7OF51dVWNMI487UQ_xXbWN2qi";
-    const headers = { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY };
-    async function countRows(table, query) {
-      const response = await fetch(SUPABASE_URL + "/rest/v1/" + table + "?" + query, {
-        headers: {...headers, Prefer:"count=exact", Range:"0-0"}
-      });
-      if (!response.ok) throw new Error(table + ": HTTP " + response.status);
-      const range = response.headers.get("content-range") || "*/0";
-      return Number(range.split("/")[1]) || 0;
-    }
-    async function connect() {
-      const dot = document.getElementById("dot");
-      const label = document.getElementById("connection");
-      const detail = document.getElementById("detail");
-      try {
-        const [categories, regions] = await Promise.all([
-          countRows("categories", "select=id&is_active=eq.true"),
-          countRows("location_regions", "select=id")
-        ]);
-        document.getElementById("categories").textContent = categories;
-        document.getElementById("regions").textContent = regions;
-        dot.className = "dot ok";
-        label.textContent = "Ligação ao Supabase estabelecida";
-        detail.textContent = "Dados públicos recebidos com sucesso.";
-      } catch (error) {
-        dot.className = "dot err";
-        label.textContent = "Não foi possível consultar a base de dados";
-        detail.textContent = error.message;
-      }
-    }
-    connect();
-  </script>
-</body>
-</html>
+<header><div><div class="brand">BEAUTY <span>MAP</span> MOZ 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div><a href="#saloes">Explorar salões</a></header>
+<main>
+<section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
+<section class="search" aria-label="Pesquisar salões"><div class="filters">
+<input id="q" type="search" placeholder="Pesquisar por nome ou serviço…" aria-label="Pesquisar por nome ou serviço">
+<select id="province" aria-label="Filtrar por província"><option value="">Todas as províncias</option></select>
+<select id="category" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+<button class="btn" id="searchBtn">Pesquisar</button>
+</div><div class="status"><span class="dot" id="dot"></span><strong id="status">A ligar à plataforma…</strong><span id="detail"></span></div></section>
+<section id="saloes"><div class="section-head"><div><h2>Salões disponíveis</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
+</main>
+<footer>BEAUTY MAP MOZ · Descobre beleza com confiança.</footer>
+<script>
+const SUPABASE_URL="https://wmcypueuaszizekaljok.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_2S18WQ7OF51dVWNMI487UQ_xXbWN2qi";
+// A chave publishable é pública por concepção. A autorização dos registos é feita pelas políticas RLS.
+const headers={apikey:SUPABASE_PUBLISHABLE_KEY};
+const state={salons:[],services:[],categories:[],regions:[]};
+const $=id=>document.getElementById(id);
+async function api(table,query){
+ const response=await fetch(SUPABASE_URL+"/rest/v1/"+table+"?"+query,{headers});
+ if(!response.ok)throw new Error(table+" — HTTP "+response.status);
+ return response.json();
+}
+function safe(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function populate(select,items){for(const item of items){const option=document.createElement("option");option.value=item.value;option.textContent=item.label;select.appendChild(option);}}
+function render(){
+ const term=$("q").value.trim().toLocaleLowerCase("pt");
+ const province=$("province").value,category=$("category").value;
+ const filtered=state.salons.filter(s=>{
+  const services=state.services.filter(x=>x.salon_id===s.id);
+  const text=[s.name,s.description,s.province_name,s.district_name,s.city_name,s.neighborhood,...services.map(x=>x.name)].join(" ").toLocaleLowerCase("pt");
+  return (!term||text.includes(term))&&(!province||s.province_name===province)&&(!category||services.some(x=>x.category_id===category));
+ });
+ $("count").textContent=filtered.length+" salão(ões) encontrado(s)";
+ if(!filtered.length){$("results").innerHTML='<div class="empty"><strong>Não encontrámos salões com estes filtros.</strong><br><span class="muted">Experimenta outra pesquisa ou volta mais tarde. Novos salões serão apresentados aqui após aprovação.</span></div>';return;}
+ $("results").innerHTML=filtered.map(s=>{
+  const services=state.services.filter(x=>x.salon_id===s.id);
+  const tags=services.slice(0,3).map(x=>'<span class="pill">'+safe(x.name)+'</span>').join("");
+  const prices=services.filter(x=>x.price_mzn!==null).map(x=>Number(x.price_mzn));
+  const price=prices.length?'A partir de '+Math.min(...prices).toLocaleString("pt-MZ")+' MT':'Preços sob consulta';
+  const place=[s.neighborhood,s.city_name,s.district_name,s.province_name].filter(Boolean).join(", ");
+  const phone=s.whatsapp||s.phone||"";
+  const contact=phone?'<a href="https://wa.me/'+safe(phone.replace(/\D/g,""))+'" target="_blank" rel="noopener">Contactar pelo WhatsApp</a>':'<span class="muted">Contacto não disponível</span>';
+  const map=s.google_maps_url?'<a href="'+safe(s.google_maps_url)+'" target="_blank" rel="noopener">Ver localização</a>':"";
+  return '<article class="card"><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||"Moçambique")+'</div><p>'+safe(s.description||"Salão de beleza. Consulta os serviços disponíveis.")+'</p><div>'+tags+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(map?' · '+map:"")+'</p></article>';
+ }).join("");
+}
+async function init(){
+ try{
+  const [categories,regions,salons,services]=await Promise.all([
+   api("categories","select=id,name&is_active=eq.true&order=display_order.asc"),
+   api("location_regions","select=id,name&region_type=eq.province&order=name.asc"),
+   api("salons","select=id,name,description,phone,whatsapp,province_name,district_name,city_name,neighborhood,google_maps_url&publication_status=eq.active&order=name.asc"),
+   api("services","select=salon_id,category_id,name,price_mzn&is_active=eq.true")
+  ]);
+  state.categories=categories;state.regions=regions;state.salons=salons;state.services=services;
+  populate($("category"),categories.map(x=>({value:x.id,label:x.name})));
+  populate($("province"),regions.map(x=>({value:x.name,label:x.name})));
+  $("dot").className="dot ok";$("status").textContent="Ligação ao Supabase estabelecida";$("detail").textContent="Dados carregados com sucesso.";
+  render();
+ }catch(error){
+  $("dot").className="dot err";$("status").textContent="Não foi possível carregar o directório";$("detail").textContent=error.message;
+  $("count").textContent="A ligação precisa de ser verificada";
+  $("results").innerHTML='<div class="empty">O directório não conseguiu carregar os dados. Tenta actualizar a página mais tarde.</div>';
+ }
+}
+$("searchBtn").addEventListener("click",render);
+$("q").addEventListener("input",render);
+$("province").addEventListener("change",render);
+$("category").addEventListener("change",render);
+init();
+</script>
+</body></html>
