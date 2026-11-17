@@ -1,0 +1,41 @@
+name: Supabase schema backup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schema-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required secret
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::Create the SUPABASE_DB_URL repository secret before running this workflow."
+            exit 1
+          fi
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Export schema only (read-only)
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f schema.sql
+
+      - name: Upload schema artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beauty-map-moz-schema-${{ github.run_number }}
+          path: schema.sql
+          if-no-files-found: error
+          retention-days: 7
