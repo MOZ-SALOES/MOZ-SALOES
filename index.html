@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-MZ">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#102b63">
+  <title>MOZ SALÕES — Directório de Salões de Moçambique</title>
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#17233b;background:#f4f7fc}
+    *{box-sizing:border-box}body{margin:0}.top{background:#102b63;color:white;padding:22px max(20px,calc((100% - 1080px)/2))}
+    .brand{font-weight:850;font-size:1.35rem;letter-spacing:.04em}.tag{opacity:.85;margin-top:5px}
+    main{max-width:1080px;margin:42px auto;padding:0 20px}.hero{background:white;border:1px solid #e1e8f2;border-radius:20px;padding:30px;box-shadow:0 12px 35px #18345d0c}
+    h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.08;margin:0 0 14px;color:#102b63}.lead{font-size:1.05rem;line-height:1.65;color:#52617a;max-width:650px}
+    .status{margin-top:25px;padding:15px 17px;border-radius:12px;background:#eef3fb;color:#263c62;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .dot{width:10px;height:10px;border-radius:50%;background:#d49a28}.dot.ok{background:#15945c}.dot.err{background:#c33}
+    .data{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:20px}
+    .item{background:#fff;border:1px solid #e1e8f2;border-radius:14px;padding:18px}.num{font-size:1.8rem;font-weight:800;color:#102b63}.muted{color:#66758d;font-size:.92rem}
+    footer{max-width:1080px;margin:24px auto;padding:0 20px 40px;color:#758198;font-size:.85rem}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="brand">MOZ SALÕES 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></header>
+  <main>
+    <section class="hero">
+      <h1>Encontra o salão certo, perto de ti.</h1>
+      <p class="lead">Descobre salões, serviços, preços e localização em Moçambique. Esta primeira versão está a verificar a ligação segura à base de dados.</p>
+      <div class="status"><span id="dot" class="dot"></span><strong id="connection">A verificar ligação ao Supabase…</strong><span id="detail" class="muted"></span></div>
+      <div class="data">
+        <div class="item"><div id="categories" class="num">—</div><div class="muted">Categorias disponíveis</div></div>
+        <div class="item"><div id="regions" class="num">—</div><div class="muted">Regiões cadastradas</div></div>
+      </div>
+    </section>
+  </main>
+  <footer>MOZ SALÕES · Compra perto. Descobre beleza com confiança.</footer>
+  <script>
+    // Chave publishable/anon: concebida para uso no frontend. Nunca colocar aqui service_role ou secret keys.
+    const SUPABASE_URL = "https://wmcypueuaszizekaljok.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_2S18WQ7OF51dVWNMI487UQ_xXbWN2qi";
+    const headers = { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY };
+    async function countRows(table, query) {
+      const response = await fetch(SUPABASE_URL + "/rest/v1/" + table + "?" + query, {
+        headers: {...headers, Prefer:"count=exact", Range:"0-0"}
+      });
+      if (!response.ok) throw new Error(table + ": HTTP " + response.status);
+      const range = response.headers.get("content-range") || "*/0";
+      return Number(range.split("/")[1]) || 0;
+    }
+    async function connect() {
+      const dot = document.getElementById("dot");
+      const label = document.getElementById("connection");
+      const detail = document.getElementById("detail");
+      try {
+        const [categories, regions] = await Promise.all([
+          countRows("categories", "select=id&is_active=eq.true"),
+          countRows("location_regions", "select=id")
+        ]);
+        document.getElementById("categories").textContent = categories;
+        document.getElementById("regions").textContent = regions;
+        dot.className = "dot ok";
+        label.textContent = "Ligação ao Supabase estabelecida";
+        detail.textContent = "Dados públicos recebidos com sucesso.";
+      } catch (error) {
+        dot.className = "dot err";
+        label.textContent = "Não foi possível consultar a base de dados";
+        detail.textContent = error.message;
+      }
+    }
+    connect();
+  </script>
+</body>
+</html>
