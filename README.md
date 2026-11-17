@@ -35,3 +35,13 @@ validá-lo numa base isolada e criar uma nova linha de migrações controlada.
 | 20261117131448 | protect_salon_system_fields |
 
 A última versão acima é a migração de protecção dos campos internos dos salões.
+
+## Integração Supabase e GitHub
+
+- `supabase/config.toml` identifica o projecto Supabase correcto.
+- `.github/workflows/repository-safety.yml` verifica a estrutura e protege os ficheiros de recuperação contra execução acidental.
+- `.github/workflows/supabase-schema-backup.yml` permite exportar manualmente um snapshot somente de leitura do esquema actual.
+
+Para activar o backup, adicionar o segredo `SUPABASE_DB_URL` em **Settings → Secrets and variables → Actions**. Copiar a connection string em Supabase → Connect. Nunca colocar a password no código ou no chat.
+
+Não existe deploy automático para produção: as cinco migrações SQL originais continuam indisponíveis e as reconstruções não são executáveis. A base de dados não foi alterada por esta preparação.
