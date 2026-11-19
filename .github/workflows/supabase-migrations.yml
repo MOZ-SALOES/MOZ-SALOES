@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           missing=0
-          for version in 20261104173058 20261104173116 20261104173620 20261104173626 20261104173745; do
+          for version in 20261116142902 20261116142926 20261116143053 20261116143243 20261116145347 20261116145917 20261116150303 20261116150701; do
             if ! compgen -G "supabase/migrations/${version}_*.sql" > /dev/null; then
               echo "::warning::Missing historical migration source for version ${version}."
               missing=1
@@ -53,7 +53,7 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Deployment blocked to prevent migration-history drift. Restore all five original SQL files or establish and verify a proper baseline first."
+            echo "::warning::Deployment blocked to prevent migration-history drift. Restore all eight SQL files recovered from the remote migration records before deploying."
           fi
 
       - name: Install Supabase CLI
@@ -73,19 +73,19 @@ jobs:
         if: steps.credentials.outputs.ready == 'true' && steps.history.outputs.ready == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase migration list --linked
+        run: supabase migration list --remote
 
       - name: Apply pending migrations
         if: steps.credentials.outputs.ready == 'true' && steps.history.outputs.ready == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase db push --linked --yes
+        run: supabase db push --remote --yes
 
       - name: Verify migration history after deployment
         if: steps.credentials.outputs.ready == 'true' && steps.history.outputs.ready == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase migration list --linked
+        run: supabase migration list --remote
 
       - name: Report deployment safely blocked
         if: steps.credentials.outputs.ready != 'true' || steps.history.outputs.ready != 'true'
