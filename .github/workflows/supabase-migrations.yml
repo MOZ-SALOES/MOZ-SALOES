@@ -89,4 +89,4 @@ jobs:
 
       - name: Report deployment safely blocked
         if: steps.credentials.outputs.ready != 'true' || steps.history.outputs.ready != 'true'
-        run: echo "Deployment was not attempted. This is intentional until credentials and the complete migration baseline are available."
+        run: echo "Deployment was not attempted because required GitHub Actions secrets are missing or the migration baseline is incomplete."
