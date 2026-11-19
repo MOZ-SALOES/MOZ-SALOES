@@ -67,7 +67,7 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase link --project-ref wmcypueuaszizekaljok --password "$SUPABASE_DB_PASSWORD"
+        run: supabase link --project-ref wxwbxvvjsgmsrukdfmzq --password "$SUPABASE_DB_PASSWORD"
 
       - name: Check migration state before applying
         if: steps.credentials.outputs.ready == 'true' && steps.history.outputs.ready == 'true'
