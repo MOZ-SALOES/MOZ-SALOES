@@ -1,6 +1,6 @@
-# Supabase — BEAUTY MAP MOZ
+# Supabase — MOZ-SALOES
 
-Project ref: `wmcypueuaszizekaljok`
+Project ref: `wxwbxvvjsgmsrukdfmzq`
 Region: London (`eu-west-2`)
 Database: PostgreSQL 17
 
@@ -44,14 +44,14 @@ Then open **Actions → Supabase schema backup → Run workflow**. If the secret
 
 ## Local CLI configuration
 
-The file `config.toml` already points to project `wmcypueuaszizekaljok`.
+The file `config.toml` already points to project `wxwbxvvjsgmsrukdfmzq`.
 
 After installing the Supabase CLI on a trusted computer:
 
 ```sh
 supabase --version
 supabase login
-supabase link --project-ref wmcypueuaszizekaljok
+supabase link --project-ref wxwbxvvjsgmsrukdfmzq
 supabase migration list
 ```
 
