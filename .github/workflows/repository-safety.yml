@@ -19,7 +19,7 @@ jobs:
 
       - name: Verify project reference
         shell: bash
-        run: grep -F 'project_id = "wmcypueuaszizekaljok"' supabase/config.toml
+        run: grep -F 'project_id = "wxwbxvvjsgmsrukdfmzq"' supabase/config.toml
 
       - name: Keep recovery notes out of executable migrations
         shell: bash
