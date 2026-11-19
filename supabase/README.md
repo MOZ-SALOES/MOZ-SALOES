@@ -7,14 +7,15 @@ Database: PostgreSQL 17
 ## Verified live status
 
 - Project status: active and healthy.
-- Six migration versions are recorded by the remote database.
-- The five original SQL sources dated 2026-11-04 are unavailable.
+- Eight migration versions are recorded by the remote database (2026-11-16).
+- All eight SQL migration files have been restored to `supabase/migrations/` from the exact SQL statements retained in `supabase_migrations.schema_migrations`.
+- An incompatible, unapplied draft migration dated 2026-11-17 was moved to `supabase/recovery/quarantine/` with a `.disabled` extension; it is not executable.
 - The security advisor returned no lints at the last check.
 - Performance advisor warnings include unused indexes and multiple permissive RLS policies. Do not remove indexes or rewrite policies solely to silence these notices; review them after real workload data exists.
 
 ## Migration history recovery
 
-The files in `supabase/recovery/reconstructed/` are documentary reconstructions based on the current database catalog. They are not the original SQL files and are not executable migrations.
+The files in `supabase/migrations/` are the eight migration sources recovered from the active project's remote migration records. The files in `supabase/recovery/reconstructed/` remain documentary reconstructions based on the current database catalog; they are not executable migrations.
 
 Do not:
 - move recovery files into `supabase/migrations/`;
@@ -52,10 +53,10 @@ After installing the Supabase CLI on a trusted computer:
 supabase --version
 supabase login
 supabase link --project-ref wxwbxvvjsgmsrukdfmzq
-supabase migration list
+supabase migration list --remote
 ```
 
-Do not run `supabase db push` until a verified migration baseline exists.
+The remote migration baseline is now restored locally. Before deploying any new migration, review its SQL and verify it against a backup and a test environment. The quarantined draft is not part of the baseline.
 
 ## Secrets and browser safety
 
