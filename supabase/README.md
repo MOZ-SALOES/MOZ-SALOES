@@ -43,6 +43,15 @@ To activate the backup workflow, add this one repository secret:
 
 Then open **Actions → Supabase schema backup → Run workflow**. If the secret is missing or invalid, the workflow will stop rather than change the database.
 
+## Migration deployment secrets
+
+The migration workflow requires these repository secrets under **Settings → Secrets and variables → Actions**:
+
+- `SUPABASE_ACCESS_TOKEN`: a Supabase personal access token.
+- `SUPABASE_DB_PASSWORD`: the database password for this project.
+
+Add them directly in GitHub. Never paste either value into chat or commit them to the repository. Until both are configured, the migration workflow deliberately skips all deployment commands.
+
 ## Local CLI configuration
 
 The file `config.toml` already points to project `wxwbxvvjsgmsrukdfmzq`.
