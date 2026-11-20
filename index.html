@@ -48,7 +48,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 <body>
 <header>
  <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
- <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Sou proprietário</a></nav>
+ <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a></nav>
 </header>
 <main>
  <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
@@ -87,14 +87,14 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
  </section>
 
  <section id="ownerSection" class="owner-wrap" hidden>
-  <h2>Área do proprietário</h2>
-  <p>Regista o teu salão, gere a publicação e escolhe um plano. O pagamento só será confirmado depois da validação do Pagar.</p>
+  <h2>Conta MOZ SALÕES</h2>
+  <p>Cria uma conta simples para entrar na plataforma. Podes explorar os salões sem registar um salão. Se mais tarde quiseres divulgar o teu negócio, encontrarás essa opção dentro da tua conta.</p>
   <div class="owner-auth-switch" role="group" aria-label="Tipo de acesso">
    <button class="btn" id="ownerLoginMode" type="button" aria-pressed="true">Entrar na minha conta</button>
    <button class="btn" id="ownerRegisterMode" type="button" style="background:#64748b" aria-pressed="false">Criar uma conta</button>
   </div>
   <form id="ownerLoginForm" class="owner-form">
-   <label class="wide" id="ownerFullNameWrap" hidden>Nome completo<input id="ownerFullName" type="text" autocomplete="name" placeholder="Nome completo"></label>
+   <label class="wide" id="ownerFullNameWrap" hidden>Nome (opcional)<input id="ownerFullName" type="text" autocomplete="name" placeholder="O teu nome"></label>
    <label class="wide">Email<input id="ownerEmail" type="email" autocomplete="email" placeholder="O teu email" required></label>
    <label class="wide">Palavra-passe<input id="ownerPassword" type="password" autocomplete="current-password" minlength="8" placeholder="Mínimo de 8 caracteres" required></label>
    <div class="owner-actions wide"><button class="btn" id="ownerLoginBtn" type="submit">Entrar</button></div>
@@ -108,7 +108,12 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
   <div id="ownerMessage" class="owner-message" role="status" hidden></div>
   <div id="ownerDashboard" class="owner-panel" hidden>
    <div class="owner-card"><div class="status"><span class="dot ok"></span><strong id="ownerIdentity">Conta autenticada</strong></div><p class="owner-muted">Apenas os salões pertencentes à tua conta aparecem nesta área.</p></div>
-   <div id="ownerRegistration" class="owner-card">
+   <div id="ownerStartCard" class="owner-card" hidden>
+    <h3>A tua conta está pronta</h3>
+    <p>Não precisas de registar um salão para usar a plataforma. Podes continuar a explorar os salões e, quando quiseres divulgar o teu negócio, inicia o registo aqui.</p>
+    <div class="owner-actions"><button class="btn" id="ownerStartSalonBtn" type="button">Publicar o meu salão</button><button class="btn" id="ownerExploreBtn" type="button" style="background:#64748b">Continuar a explorar</button></div>
+   </div>
+   <div id="ownerRegistration" class="owner-card" hidden>
     <h3>Registar o meu salão</h3><p>Preenche os dados básicos. O salão ficará pendente de aprovação antes de aparecer no directório.</p>
     <form id="salonRegisterForm" class="owner-form">
      <label>Nome do salão<input name="name" required maxlength="100" placeholder="Ex.: Salão Beleza"></label>
@@ -293,7 +298,8 @@ async function loadOwnerDashboard(session){
   ownerPlans=plans||[];
   const salonSelect=$('ownerSalon');salonSelect.innerHTML='';
   (salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name+' — '+s.status;salonSelect.appendChild(o);});
-  $('ownerRegistration').hidden=(salons||[]).length>0;
+  $('ownerRegistration').hidden=true;
+   $('ownerStartCard').hidden=(salons||[]).length>0;
   $('ownerPaymentCard').hidden=!(salons||[]).length;
   const planSelect=$('ownerPlan');planSelect.innerHTML='';
   ownerPlans.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' — '+Number(p.price_mzn).toLocaleString('pt-MZ')+' MT';planSelect.appendChild(o);});
@@ -302,17 +308,19 @@ async function loadOwnerDashboard(session){
   const salonIds=(salons||[]).map(x=>x.id);let paymentQuery=supabaseClient.from('payments').select('id,salon_id,amount_mzn,status,provider,provider_reference,created_at,metadata').order('created_at',{ascending:false}).limit(50);paymentQuery=salonIds.length?paymentQuery.or('payer_id.eq.'+session.user.id+',salon_id.in.('+salonIds.join(',')+')'):paymentQuery.eq('payer_id',session.user.id);const {data:payments,error:paymentsError}=await paymentQuery;
   if(paymentsError)throw paymentsError;
   $('ownerPayments').innerHTML=(payments||[]).length?(payments||[]).map(p=>'<div class="owner-row"><div><strong>'+safe(Number(p.amount_mzn).toLocaleString('pt-MZ')+' MT')+'</strong><div class="owner-muted">'+safe(p.provider||'')+' · '+safe(p.created_at?new Date(p.created_at).toLocaleString('pt-MZ'):'')+'</div></div><div><strong>'+safe(p.status)+'</strong><div class="owner-muted">'+safe(p.metadata?.plan_name||'')+'</div></div></div>').join(''):'<span class="owner-muted">Ainda não existem pagamentos.</span>';
-  if((salons||[]).length)ownerMessage('Os teus salões e planos foram carregados. Escolhe um salão e inicia a cobrança quando estiveres pronto.','success');
-  else ownerMessage('A tua conta está pronta. Regista primeiro o teu salão para poderes escolher um plano.','info');
+  if((salons||[]).length)ownerMessage('O teu salão está registado. Se ainda não pagaste a taxa, a publicação mantém-se pendente. Podes iniciar o pagamento quando estiveres pronto.','info');
+  else ownerMessage('A tua conta está pronta. Não precisas de registar um salão para explorar o directório.','success');
  }catch(error){ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
+ $('ownerStartSalonBtn').addEventListener('click',()=>{$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
+ $('ownerExploreBtn').addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
 let ownerAuthMode='login';
 function setOwnerAuthMode(mode){
  ownerAuthMode=mode;
  const registering=mode==='register';
  $('ownerFullNameWrap').hidden=!registering;
- $('ownerFullName').required=registering;
+ $('ownerFullName').required=false;
  $('ownerPassword').autocomplete=registering?'new-password':'current-password';
  $('ownerLoginBtn').textContent=registering?'Criar conta':'Entrar';
  $('ownerForgotWrap').hidden=registering;
@@ -338,10 +346,10 @@ $('ownerLoginForm').addEventListener('submit',async event=>{
  const button=$('ownerLoginBtn');button.disabled=true;button.textContent=ownerAuthMode==='register'?'A criar conta…':'A entrar…';
  try{
   if(ownerAuthMode==='register'){
-   const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:fullName},emailRedirectTo:location.origin+location.pathname+'#owner'}});
+   const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:fullName||''},emailRedirectTo:location.origin+location.pathname+'#owner'}});
    if(error)throw error;
-   if(!data.session)ownerMessage('A conta foi criada. Se a confirmação de email ainda estiver activa na Supabase, será necessário confirmar o email antes de entrar.','success');
-   else ownerMessage('Conta criada com sucesso. Já podes registar o teu salão.','success');
+   if(!data.session)ownerMessage('A conta foi criada. Se a confirmação de email estiver activa, confirma o email para poderes entrar. Não precisas de registar um salão.','success');
+   else {await loadOwnerDashboard(data.session);ownerMessage('Conta criada com sucesso. Podes explorar os salões sem preencher mais dados. Se quiseres publicar o teu salão, escolhe essa opção dentro da conta.','success');}
   }else{
    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
    if(error)throw error;
@@ -389,7 +397,7 @@ $('salonRegisterForm').addEventListener('submit',async event=>{
   const payload={owner_id:ownerSession.user.id,name,slug,phone,whatsapp:phone,province:String(fd.get('province')).trim(),district:String(fd.get('district')).trim(),city:String(fd.get('city')||'').trim()||null,neighborhood:String(fd.get('neighborhood')||'').trim()||null,address:String(fd.get('address')||'').trim()||null,description:String(fd.get('description')||'').trim()||null};
   const {error}=await supabaseClient.from('salons').insert(payload);if(error)throw error;
   form.reset();await loadOwnerDashboard(ownerSession);
-  ownerMessage('Salão registado com sucesso. O estado inicial é PENDENTE e aguarda aprovação administrativa.','success');
+  ownerMessage('Salão registado. O estado inicial é PENDENTE. Se não pagares a taxa agora, continuará pendente; poderás voltar à tua conta para iniciar o pagamento mais tarde. A publicação também depende da aprovação administrativa.','success');
  }catch(error){ownerMessage('Não foi possível registar o salão: '+(error.message||'erro desconhecido'),'error');}
  finally{btn.disabled=false;btn.textContent='Registar salão';}
 });
