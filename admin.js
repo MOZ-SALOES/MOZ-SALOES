@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const db=window.supabase.createClient('https://wxwbxvvjsgmsrukdfmzq.supabase.co','sb_publishable_W7Kyr0OpmOnGqApgnK8Oyg_uyT7RiXB');
+const db=window.supabaseClient||window.supabase.createClient('https://wxwbxvvjsgmsrukdfmzq.supabase.co','sb_publishable_W7Kyr0OpmOnGqApgnK8Oyg_uyT7RiXB');
 const root=document.getElementById('adminApp');if(!root)return;
 const tabs=[['home','Resumo'],['salons','Salões'],['users','Utilizadores'],['categories','Categorias'],['services','Serviços'],['plans','Planos e taxas'],['subs','Assinaturas'],['payments','Pagamentos'],['wallet','Carteira'],['promos','Promoções'],['reviews','Avaliações'],['reports','Denúncias'],['messages','Mensagens'],['settings','Configurações'],['logs','Actividades']];
 const names={profiles:'users',salons:'salons',categories:'categories',services:'services',subscription_plans:'plans',subscriptions:'subs',payments:'payments',wallet_transactions:'wallet',promotions:'promos',reviews:'reviews',reports:'reports',inquiries:'messages',admin_settings:'settings',audit_logs:'logs'};
