@@ -206,9 +206,12 @@ function ownerMessage(message,type='info'){
  const box=$('ownerMessage');box.textContent=message;
  box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;
 }
-function openOwnerSection(){
+async function openOwnerSection(){
  $('ownerSection').hidden=false;
  $('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});
+ if(ownerSession?.user){await loadOwnerDashboard(ownerSession);return;}
+ const {data}=await supabaseClient.auth.getSession();
+ if(data?.session && String(data.session.user?.email||'').toLowerCase()!==ADMIN_EMAIL)await loadOwnerDashboard(data.session);
 }
 function ownerPhone(value){
  let digits=String(value||'').replace(/\\D/g,'');
@@ -228,7 +231,10 @@ async function loadOwnerDashboard(session){
   ]);
   if(profileError)throw profileError;if(salonError)throw salonError;if(planError)throw planError;
   if(profile?.role==='admin'){
-   $('ownerIdentity').textContent='Esta conta tem acesso administrativo. Usa o painel Administração.';
+   $('ownerIdentity').textContent='Esta conta é de administração. Usa o painel Administração para gerir a plataforma.';
+   $('ownerRegistration').hidden=true;$('ownerPaymentCard').hidden=true;
+   $('ownerPayments').innerHTML='<span class="owner-muted">A área do proprietário não está disponível para a conta administrativa.</span>';
+   return;
   }
   ownerPlans=plans||[];
   const salonSelect=$('ownerSalon');salonSelect.innerHTML='';
