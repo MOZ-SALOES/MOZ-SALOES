@@ -72,7 +72,11 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <label>Email
     <input id="adminEmail" name="email" type="email" autocomplete="email" placeholder="O teu email" required>
    </label>
-   <button class="btn" id="adminSubmit" type="submit">Enviar link seguro de acesso</button>
+   <label>Palavra-passe
+    <input id="adminPassword" name="password" type="password" autocomplete="current-password" placeholder="A tua palavra-passe" required>
+   </label>
+   <button class="btn" id="adminSubmit" type="submit">Entrar no painel</button>
+   <button class="btn secondary" id="adminForgotPassword" type="button">Esqueci-me da palavra-passe</button>
   </form>
   <div id="adminMessage" class="admin-message" role="status" hidden></div>
   <div id="adminDashboard" hidden>
@@ -198,17 +202,29 @@ $('adminLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
  const name=$('adminName').value.trim().toLocaleLowerCase('pt');
  const email=$('adminEmail').value.trim().toLowerCase();
- if(name!=='silda'||!email){adminMessage('Introduz o nome e o email da conta administradora.','error');return;}
- if(location.protocol==='file:'){adminMessage('O acesso por email exige que o site esteja publicado num endereço HTTPS autorizado no Supabase.','error');return;}
- const button=$('adminSubmit');button.disabled=true;button.textContent='A enviar…';
+ const password=$('adminPassword').value;
+ if(name!=='silda'||!email||!password){adminMessage('Confirma o nome, email e palavra-passe da conta administradora.','error');return;}
+ if(location.protocol==='file:'){adminMessage('O acesso exige que o site esteja publicado num endereço HTTPS autorizado no Supabase.','error');return;}
+ const button=$('adminSubmit');button.disabled=true;button.textContent='A verificar…';
  try{
-  const redirectTo=location.origin+location.pathname;
-  const {error}=await supabaseClient.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:redirectTo}});
+  const {error}=await supabaseClient.auth.signInWithPassword({email,password});
   if(error)throw error;
-  adminMessage('Se os dados estiverem correctos, o link seguro será enviado para o email indicado. Abre-o neste dispositivo para confirmar o acesso.','success');
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  await verifyAdminSession(session);
  }catch(error){
-  adminMessage('Não foi possível enviar o link: '+(error.message||'erro de autenticação'),'error');
- }finally{button.disabled=false;button.textContent='Enviar link seguro de acesso';}
+  adminMessage('Não foi possível entrar: '+(error.message||'confirma o email e a palavra-passe'),'error');
+ }finally{button.disabled=false;button.textContent='Entrar no painel';}
+});
+$('adminForgotPassword').addEventListener('click',async()=>{
+ const email=$('adminEmail').value.trim().toLowerCase();
+ if(!email){adminMessage('Introduz primeiro o email da conta administradora.','error');return;}
+ const button=$('adminForgotPassword');button.disabled=true;
+ try{
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  if(error)throw error;
+  adminMessage('Se a conta existir, receberás um email para definir uma nova palavra-passe. Usa esse link apenas para recuperar o acesso.','success');
+ }catch(error){adminMessage('Não foi possível enviar a recuperação: '+(error.message||'erro de autenticação'),'error');}
+ finally{button.disabled=false;}
 });
 $('adminLogout').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();
