@@ -214,7 +214,7 @@ async function openOwnerSection(){
  if(data?.session && String(data.session.user?.email||'').toLowerCase()!==ADMIN_EMAIL)await loadOwnerDashboard(data.session);
 }
 function ownerPhone(value){
- let digits=String(value||'').replace(/\\D/g,'');
+ let digits=String(value||'').replace(/\D/g,'');
  if(digits.length===9&&digits.startsWith('8'))digits='258'+digits;
  return digits;
 }
@@ -270,8 +270,8 @@ $('salonRegisterForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!ownerSession?.user){ownerMessage('Entra primeiro na tua conta.','error');return;}
  const form=event.currentTarget,fd=new FormData(form),name=String(fd.get('name')||'').trim();
  const phone=ownerPhone(fd.get('phone'));
- if(!/^2588[2-7]\\d{7}$/.test(phone)){ownerMessage('Indica um número moçambicano válido, por exemplo 82xxxxxxx.','error');return;}
- const slug=name.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
+ if(!/^2588[2-7]\d{7}$/.test(phone)){ownerMessage('Indica um número moçambicano válido, por exemplo 82xxxxxxx.','error');return;}
+ const slug=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
  const btn=$('salonRegisterBtn');btn.disabled=true;btn.textContent='A registar…';
  try{
   const payload={owner_id:ownerSession.user.id,name,slug,phone,whatsapp:phone,province:String(fd.get('province')).trim(),district:String(fd.get('district')).trim(),city:String(fd.get('city')||'').trim()||null,neighborhood:String(fd.get('neighborhood')||'').trim()||null,address:String(fd.get('address')||'').trim()||null,description:String(fd.get('description')||'').trim()||null};
@@ -287,7 +287,7 @@ $('ownerPaymentForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!ownerSession?.user){ownerMessage('Entra primeiro na tua conta.','error');return;}
  const salonId=$('ownerSalon').value,planId=$('ownerPlan').value,method=$('ownerMethod').value,payerPhone=ownerPhone($('ownerPayerPhone').value);
  if(!salonId||!planId){ownerMessage('Selecciona o salão e o plano.','error');return;}
- if(!/^2588[2-7]\\d{7}$/.test(payerPhone)){ownerMessage('Indica um número moçambicano válido para pagamento.','error');return;}
+ if(!/^2588[2-7]\d{7}$/.test(payerPhone)){ownerMessage('Indica um número moçambicano válido para pagamento.','error');return;}
  if(!ownerRequestId)ownerRequestId=crypto.randomUUID();
  const btn=$('ownerPayBtn');btn.disabled=true;btn.textContent='A iniciar…';
  try{
