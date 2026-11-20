@@ -64,8 +64,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
   <div id="adminDashboard" hidden>
    <div class="status"><span class="dot ok"></span><strong>Sessão administrativa autenticada</strong></div>
    <p id="adminWelcome">A identidade foi confirmada pelo Supabase.</p>
-   <p class="muted">A sessão está protegida pela autenticação e pelas políticas RLS. Os módulos de gestão serão ligados a esta sessão administrativa.</p>
-   <button class="btn" id="adminLogout" type="button">Terminar sessão</button>
+   <div id="adminApp"></div>
   </div>
  </section>
 </main>
@@ -106,7 +105,10 @@ async function verifyAdminSession(session){
   return;
  }
  showAdminSession(true);
+ window.mozAdminReady=true;
  $('adminWelcome').textContent='Bem-vinda, '+(data.full_name||ADMIN_NAME)+'. A identidade foi confirmada pelo Supabase.';
+ if(window.initAdminPanel)window.initAdminPanel();
+ window.dispatchEvent(new Event('moz-admin-ready'));
  $('adminSection').hidden=false;
  if(location.hash!=='#admin')history.replaceState(null,'',location.pathname+location.search+'#admin');
 }
@@ -209,5 +211,6 @@ $('province').addEventListener('change',render);
 $('category').addEventListener('change',render);
 init();
 </script>
+<script src="./admin.js"></script>
 </body>
 </html>
