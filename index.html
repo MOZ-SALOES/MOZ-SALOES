@@ -48,7 +48,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 <body>
 <header>
  <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
- <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Sou proprietário</a><a href="#admin" id="adminNav">Administração</a></nav>
+ <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Sou proprietário</a></nav>
 </header>
 <main>
  <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
@@ -66,10 +66,8 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
   <h2>Acesso administrativo</h2>
   <p>Área reservada à administração do MOZ SALÕES. O acesso é confirmado pela conta autenticada e pela função de administrador na base de dados.</p>
   <form id="adminLoginForm" class="admin-form">
-   <label>Email do administrador
-    <input id="adminEmail" name="email" type="email" value="miltonjustino888@gmail.com" autocomplete="email" required>
-   </label>
-   <button class="btn" id="adminSubmit" type="submit">Enviar link seguro de acesso</button>
+   <p>O link seguro será enviado apenas para a caixa de correio da conta administradora autorizada.</p>
+   <button class="btn" id="adminSubmit" type="submit">Enviar link seguro para a conta administradora</button>
   </form>
   <div id="adminMessage" class="admin-message" role="status" hidden></div>
   <div id="adminDashboard" hidden>
@@ -180,21 +178,20 @@ async function verifyAdminSession(session){
  $('adminSection').hidden=false;
  if(location.hash!=='#admin')history.replaceState(null,'',location.pathname+location.search+'#admin');
 }
-$('adminNav').addEventListener('click',openAdminSection);
+// A entrada administrativa não é apresentada na navegação pública. Aceder pelo endereço reservado #admin.
 $('adminLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
- const email=$('adminEmail').value.trim().toLowerCase();
- if(email!==ADMIN_EMAIL){adminMessage('Este email não está autorizado para administrar a plataforma.','error');return;}
+ const email=ADMIN_EMAIL;
  if(location.protocol==='file:'){adminMessage('O acesso por email exige que o site esteja publicado num endereço HTTPS autorizado no Supabase.','error');return;}
  const button=$('adminSubmit');button.disabled=true;button.textContent='A enviar…';
  try{
   const redirectTo=location.origin+location.pathname;
   const {error}=await supabaseClient.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:redirectTo}});
   if(error)throw error;
-  adminMessage('Link de acesso enviado para '+email+'. Abre o email e confirma o acesso.','success');
+  adminMessage('Se o serviço de autenticação estiver disponível, o link será enviado para a caixa de correio da conta administradora. Abre-o neste dispositivo para confirmar o acesso.','success');
  }catch(error){
   adminMessage('Não foi possível enviar o link: '+(error.message||'erro de autenticação'),'error');
- }finally{button.disabled=false;button.textContent='Enviar link seguro de acesso';}
+ }finally{button.disabled=false;button.textContent='Enviar link seguro para a conta administradora';}
 });
 $('adminLogout').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();
