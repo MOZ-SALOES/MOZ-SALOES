@@ -32,12 +32,22 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 [hidden]{display:none!important}footer{max-width:1120px;margin:35px auto;padding:0 18px 35px;color:#7a879a;font-size:.82rem}
 @media(max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters input,.filters .btn{grid-column:1/-1}.grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){header{align-items:flex-start}header a{font-size:.78rem;padding:8px}.grid{grid-template-columns:1fr}.search{padding:13px}.section-head{align-items:start;flex-direction:column}}
-</style>
+
+.owner-wrap{max-width:760px;margin:30px auto;background:#fff;border:1px solid #e1e7f0;border-radius:18px;padding:22px;box-shadow:0 12px 35px #102b6310}
+.owner-wrap h2,.owner-wrap h3{color:#102b63;margin-top:0}.owner-wrap p{color:#64748b;line-height:1.5}
+.owner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.owner-form label{font-size:.88rem;font-weight:700;color:#34445f}.owner-form input,.owner-form select{display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;background:#fff}
+.owner-form .wide{grid-column:1/-1}.owner-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.owner-panel{display:grid;gap:16px}.owner-card{border:1px solid #e1e7f0;border-radius:14px;padding:16px}.owner-card h3{margin:0 0 10px}.owner-list{display:grid;gap:9px}.owner-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;background:#f6f8fc;border-radius:10px}
+.owner-message{padding:11px 13px;border-radius:10px;background:#edf4ff;color:#204c80;font-size:.9rem;line-height:1.45;margin-top:12px}.owner-message.error{background:#fff0f0;color:#9c2525}.owner-message.success{background:#eaf8f0;color:#17623b}
+.owner-muted{font-size:.82rem;color:#64748b}.owner-price{font-weight:800;color:#102b63}.owner-divider{border:0;border-top:1px solid #e1e7f0;margin:16px 0}
+@media(max-width:560px){.owner-form{grid-template-columns:1fr}.owner-form .wide{grid-column:auto}.owner-row{align-items:flex-start;flex-direction:column}}
+\n</style>
 </head>
 <body>
 <header>
  <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
- <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#admin" id="adminNav">Administração</a></nav>
+ <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Sou proprietário</a><a href="#admin" id="adminNav">Administração</a></nav>
 </header>
 <main>
  <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
@@ -133,16 +143,125 @@ $('adminLogout').addEventListener('click',async()=>{
  showAdminSession(false);adminMessage('Sessão terminada com segurança.','success');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT')showAdminSession(false);
- if(event==='SIGNED_IN')window.setTimeout(()=>verifyAdminSession(session),0);
+ if(event==='SIGNED_OUT'){showAdminSession(false);ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
+ if(event==='SIGNED_IN')window.setTimeout(()=>{
+  if(String(session?.user?.email||'').toLowerCase()===ADMIN_EMAIL){if(location.hash==='#admin')verifyAdminSession(session);}
+  else if(location.hash==='#owner')loadOwnerDashboard(session);
+ },0);
 });
 supabaseClient.auth.getSession().then(({data,error})=>{
  if(error)adminMessage('Não foi possível verificar a sessão: '+error.message,'error');
- else verifyAdminSession(data.session);
+ else if(data.session){
+  if(String(data.session.user?.email||'').toLowerCase()===ADMIN_EMAIL)verifyAdminSession(data.session);
+  else if(location.hash==='#owner')loadOwnerDashboard(data.session);
+ }
 });
 if(location.hash==='#admin')$('adminSection').hidden=false;
+if(location.hash==='#owner')$('ownerSection').hidden=false;
 
-function populate(select,items){
+
+let ownerSession=null, ownerRequestId=null, ownerPlans=[];
+function ownerMessage(message,type='info'){
+ const box=$('ownerMessage');box.textContent=message;
+ box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;
+}
+function openOwnerSection(){
+ $('ownerSection').hidden=false;
+ $('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function ownerPhone(value){
+ let digits=String(value||'').replace(/\\D/g,'');
+ if(digits.length===9&&digits.startsWith('8'))digits='258'+digits;
+ return digits;
+}
+async function loadOwnerDashboard(session){
+ if(!session?.user)return;
+ ownerSession=session;$('ownerSection').hidden=false;
+ $('ownerLoginForm').hidden=true;$('ownerDashboard').hidden=false;
+ $('ownerIdentity').textContent='Sessão: '+(session.user.email||'proprietário');
+ try{
+  const [{data:profile,error:profileError},{data:salons,error:salonError},{data:plans,error:planError}]=await Promise.all([
+   supabaseClient.from('profiles').select('id,full_name,role').eq('id',session.user.id).maybeSingle(),
+   supabaseClient.from('salons').select('id,name,status,province,district').eq('owner_id',session.user.id).order('created_at',{ascending:false}),
+   supabaseClient.from('subscription_plans').select('id,name,duration_days,price_mzn').eq('active',true).order('duration_days')
+  ]);
+  if(profileError)throw profileError;if(salonError)throw salonError;if(planError)throw planError;
+  if(profile?.role==='admin'){
+   $('ownerIdentity').textContent='Esta conta tem acesso administrativo. Usa o painel Administração.';
+  }
+  ownerPlans=plans||[];
+  const salonSelect=$('ownerSalon');salonSelect.innerHTML='';
+  (salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name+' — '+s.status;salonSelect.appendChild(o);});
+  $('ownerRegistration').hidden=(salons||[]).length>0;
+  $('ownerPaymentCard').hidden=!(salons||[]).length;
+  const planSelect=$('ownerPlan');planSelect.innerHTML='';
+  ownerPlans.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' — '+Number(p.price_mzn).toLocaleString('pt-MZ')+' MT';planSelect.appendChild(o);});
+  if(!ownerPlans.length){$('ownerPayBtn').disabled=true;ownerMessage('Não há planos activos disponíveis. Contacta a administração.','error');}
+  else $('ownerPayBtn').disabled=false;
+  const {data:payments,error:paymentsError}=await supabaseClient.from('payments').select('id,amount_mzn,status,provider,provider_reference,created_at,metadata').eq('payer_id',session.user.id).order('created_at',{ascending:false}).limit(15);
+  if(paymentsError)throw paymentsError;
+  $('ownerPayments').innerHTML=(payments||[]).length?(payments||[]).map(p=>'<div class="owner-row"><div><strong>'+safe(Number(p.amount_mzn).toLocaleString('pt-MZ')+' MT')+'</strong><div class="owner-muted">'+safe(p.provider||'')+' · '+safe(p.created_at?new Date(p.created_at).toLocaleString('pt-MZ'):'')+'</div></div><div><strong>'+safe(p.status)+'</strong><div class="owner-muted">'+safe(p.metadata?.plan_name||'')+'</div></div></div>').join(''):'<span class="owner-muted">Ainda não existem pagamentos.</span>';
+  if((salons||[]).length)ownerMessage('Os teus salões e planos foram carregados. Escolhe um salão e inicia a cobrança quando estiveres pronto.','success');
+  else ownerMessage('A tua conta está pronta. Regista primeiro o teu salão para poderes escolher um plano.','info');
+ }catch(error){ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
+}
+$('ownerNav').addEventListener('click',openOwnerSection);
+$('ownerLoginForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const email=$('ownerEmail').value.trim().toLowerCase(),fullName=$('ownerFullName').value.trim();
+ if(!email||!fullName){ownerMessage('Preenche o email e o nome.','error');return;}
+ const button=$('ownerLoginBtn');button.disabled=true;button.textContent='A enviar…';
+ try{
+  const redirectTo=location.origin+location.pathname+'#owner';
+  const {error}=await supabaseClient.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:redirectTo,data:{full_name:fullName}}});
+  if(error)throw error;
+  ownerMessage('Enviámos um link seguro para '+email+'. Abre o email no mesmo dispositivo para entrar na área do proprietário.','success');
+ }catch(error){ownerMessage('Não foi possível enviar o link: '+(error.message||'erro de autenticação'),'error');}
+ finally{button.disabled=false;button.textContent='Enviar link seguro de acesso';}
+});
+$('salonRegisterForm').addEventListener('submit',async event=>{
+ event.preventDefault();if(!ownerSession?.user){ownerMessage('Entra primeiro na tua conta.','error');return;}
+ const form=event.currentTarget,fd=new FormData(form),name=String(fd.get('name')||'').trim();
+ const phone=ownerPhone(fd.get('phone'));
+ if(!/^2588[2-7]\\d{7}$/.test(phone)){ownerMessage('Indica um número moçambicano válido, por exemplo 82xxxxxxx.','error');return;}
+ const slug=name.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
+ const btn=$('salonRegisterBtn');btn.disabled=true;btn.textContent='A registar…';
+ try{
+  const payload={owner_id:ownerSession.user.id,name,slug,phone,whatsapp:phone,province:String(fd.get('province')).trim(),district:String(fd.get('district')).trim(),city:String(fd.get('city')||'').trim()||null,neighborhood:String(fd.get('neighborhood')||'').trim()||null,address:String(fd.get('address')||'').trim()||null,description:String(fd.get('description')||'').trim()||null};
+  const {error}=await supabaseClient.from('salons').insert(payload);if(error)throw error;
+  form.reset();await loadOwnerDashboard(ownerSession);
+  ownerMessage('Salão registado com sucesso. O estado inicial é PENDENTE e aguarda aprovação administrativa.','success');
+ }catch(error){ownerMessage('Não foi possível registar o salão: '+(error.message||'erro desconhecido'),'error');}
+ finally{btn.disabled=false;btn.textContent='Registar salão';}
+});
+$('ownerPaymentForm').addEventListener('input',()=>{ownerRequestId=null;});
+$('ownerPaymentForm').addEventListener('change',()=>{ownerRequestId=null;});
+$('ownerPaymentForm').addEventListener('submit',async event=>{
+ event.preventDefault();if(!ownerSession?.user){ownerMessage('Entra primeiro na tua conta.','error');return;}
+ const salonId=$('ownerSalon').value,planId=$('ownerPlan').value,method=$('ownerMethod').value,payerPhone=ownerPhone($('ownerPayerPhone').value);
+ if(!salonId||!planId){ownerMessage('Selecciona o salão e o plano.','error');return;}
+ if(!/^2588[2-7]\\d{7}$/.test(payerPhone)){ownerMessage('Indica um número moçambicano válido para pagamento.','error');return;}
+ if(!ownerRequestId)ownerRequestId=crypto.randomUUID();
+ const btn=$('ownerPayBtn');btn.disabled=true;btn.textContent='A iniciar…';
+ try{
+  const {data,error}=await supabaseClient.functions.invoke('pagar-create-payment',{body:{salonId,planId,method,payerPhone,requestId:ownerRequestId}});
+  if(error){
+   let detail=error.message||'Não foi possível iniciar o pagamento.';
+   try{const payload=await error.context.json();if(payload?.error)detail=payload.error;}catch{}
+   throw new Error(detail);
+  }
+  ownerRequestId=null;
+  ownerMessage('Pedido enviado ao Pagar. Estado recebido: '+(data.status||'PROCESSING')+'. Isto ainda não confirma o pagamento; aguarda a confirmação automática do provedor. Referência: '+(data.reference||data.providerPaymentId||'—'),'success');
+  await loadOwnerDashboard(ownerSession);
+ }catch(error){ownerMessage((error.message||'Falha ao iniciar o pagamento')+'. Se o resultado ficou incerto, tenta novamente sem alterar os dados para reutilizar o mesmo pedido.','error');}
+ finally{btn.disabled=false;btn.textContent='Iniciar pagamento';}
+});
+$('ownerRefreshBtn').addEventListener('click',()=>loadOwnerDashboard(ownerSession));
+$('ownerLogoutBtn').addEventListener('click',async()=>{
+ const {error}=await supabaseClient.auth.signOut();if(error){ownerMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
+ ownerSession=null;ownerRequestId=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;ownerMessage('Sessão terminada.','success');
+});
+\nfunction populate(select,items){
  for(const item of items){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;select.appendChild(option);}
 }
 function normalizeMozPhone(value){
