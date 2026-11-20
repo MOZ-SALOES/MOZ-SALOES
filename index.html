@@ -164,7 +164,7 @@ function adminMessage(message,type='info'){
 function openAdminSection(){
  $('ownerSection').hidden=true;
  $('adminSection').hidden=false;
- if(location.hash!=='#admin')history.replaceState(null,'',location.pathname+location.search+'#admin');
+ if(location.hash!=='#silda-acesso')history.replaceState(null,'',location.pathname+location.search+'#silda-acesso');
  $('adminSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function showAdminSession(isAdmin){
@@ -185,9 +185,9 @@ async function verifyAdminSession(session){
  $('adminWelcome').textContent='Bem-vinda, '+(data.full_name||ADMIN_NAME)+'. A identidade foi confirmada pelo Supabase.';
  window.dispatchEvent(new Event('moz-admin-ready'));
  $('adminSection').hidden=false;
- if(location.hash!=='#admin')history.replaceState(null,'',location.pathname+location.search+'#admin');
+ if(location.hash!=='#silda-acesso')history.replaceState(null,'',location.pathname+location.search+'#silda-acesso');
 }
-// A entrada administrativa não é apresentada na navegação pública. Aceder pelo endereço reservado #admin.
+// A entrada administrativa não é apresentada na navegação pública. Aceder pelo endereço reservado #silda-acesso.
 $('adminLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
  const name=$('adminName').value.trim().toLocaleLowerCase('pt');
@@ -212,7 +212,7 @@ $('adminLogout').addEventListener('click',async()=>{
 supabaseClient.auth.onAuthStateChange((event,session)=>{
  if(event==='SIGNED_OUT'){showAdminSession(false);ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
  if(event==='SIGNED_IN')window.setTimeout(()=>{
-  if(String(session?.user?.email||'').toLowerCase()===ADMIN_EMAIL){if(location.hash==='#admin')verifyAdminSession(session);}
+  if(String(session?.user?.email||'').toLowerCase()===ADMIN_EMAIL){if(location.hash==='#silda-acesso')verifyAdminSession(session);}
   else if(location.hash==='#owner')loadOwnerDashboard(session);
  },0);
 });
@@ -223,7 +223,7 @@ supabaseClient.auth.getSession().then(({data,error})=>{
   else if(location.hash==='#owner')loadOwnerDashboard(data.session);
  }
 });
-if(location.hash==='#admin')$('adminSection').hidden=false;
+if(location.hash==='#silda-acesso')$('adminSection').hidden=false;
 if(location.hash==='#owner')$('ownerSection').hidden=false;
 
 
