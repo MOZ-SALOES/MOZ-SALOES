@@ -42,7 +42,8 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .owner-message{padding:11px 13px;border-radius:10px;background:#edf4ff;color:#204c80;font-size:.9rem;line-height:1.45;margin-top:12px}.owner-message.error{background:#fff0f0;color:#9c2525}.owner-message.success{background:#eaf8f0;color:#17623b}
 .owner-muted{font-size:.82rem;color:#64748b}.owner-price{font-weight:800;color:#102b63}.owner-divider{border:0;border-top:1px solid #e1e7f0;margin:16px 0}
 @media(max-width:560px){.owner-form{grid-template-columns:1fr}.owner-form .wide{grid-column:auto}.owner-row{align-items:flex-start;flex-direction:column}}
-\n</style>
+
+</style>
 </head>
 <body>
 <header>
@@ -308,7 +309,8 @@ $('ownerLogoutBtn').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();if(error){ownerMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
  ownerSession=null;ownerRequestId=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;ownerMessage('Sessão terminada.','success');
 });
-\nfunction populate(select,items){
+
+function populate(select,items){
  for(const item of items){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;select.appendChild(option);}
 }
 function normalizeMozPhone(value){
