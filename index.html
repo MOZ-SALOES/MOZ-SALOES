@@ -59,7 +59,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <select id="category" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
    <button class="btn" id="searchBtn" type="button">Pesquisar</button>
   </div>
-  <div class="status"><span class="dot" id="dot"></span><strong id="status">A ligar à plataforma…</strong><span id="detail"></span></div>
+  <div class="status"><span class="dot" id="dot"></span><strong id="status">A preparar ligação segura…</strong><span id="detail"></span><button class="btn" id="retryConnection" type="button" hidden style="padding:7px 10px;font-size:.78rem">Tentar novamente</button></div>
  </section>
  <section id="saloes"><div class="section-head"><div><h2>Salões disponíveis</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
  <section id="adminSection" class="admin-wrap" hidden>
@@ -121,14 +121,29 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 
 </main>
 <footer>MOZ SALÕES · Descobre beleza com confiança.</footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src=\'https://unpkg.com/@supabase/supabase-js@2\'"></script>
 <script>
+if(!window.supabase?.createClient){
+ const dot=document.getElementById('dot'),status=document.getElementById('status'),detail=document.getElementById('detail'),retry=document.getElementById('retryConnection');
+ if(dot)dot.className='dot err';
+ if(status)status.textContent='Não foi possível carregar o módulo de ligação';
+ if(detail)detail.textContent='Verifica a Internet e tenta novamente.';
+ if(retry){retry.hidden=false;retry.onclick=()=>location.reload();}
+ document.getElementById('count').textContent='Directório temporariamente indisponível';
+ document.getElementById('results').innerHTML='<div class="empty">Não foi possível iniciar a ligação ao directório. Verifica a Internet e tenta novamente.</div>';
+}else{
 'use strict';
 const SUPABASE_URL='https://wxwbxvvjsgmsrukdfmzq.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_W7Kyr0OpmOnGqApgnK8Oyg_uyT7RiXB';
 const ADMIN_EMAIL='miltonjustino888@gmail.com';
 const ADMIN_NAME='Silda';
-const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const fetchWithTimeout=(input,init={})=>{
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),15000);
+ if(init.signal)init.signal.addEventListener('abort',()=>controller.abort(),{once:true});
+ return fetch(input,{...init,signal:controller.signal}).finally(()=>clearTimeout(timer));
+};
+const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{global:{fetch:fetchWithTimeout}});
 const $=id=>document.getElementById(id);
 const state={salons:[],services:[],categories:[]};
 
@@ -368,19 +383,21 @@ async function init(){
   populate($('category'),state.categories.map(x=>({value:x.id,label:x.name})));
   const provinces=[...new Set(state.salons.map(x=>x.province).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
   populate($('province'),provinces.map(x=>({value:x,label:x})));
-  $('dot').className='dot ok';$('status').textContent='Ligação ao Supabase estabelecida';$('detail').textContent='Dados carregados com sucesso.';
+  $('dot').className='dot ok';$('status').textContent='Ligação ao Supabase estabelecida';$('detail').textContent='Dados carregados com sucesso.';$('retryConnection').hidden=true;
   render();
  }catch(error){
   $('dot').className='dot err';$('status').textContent='Não foi possível carregar o directório';$('detail').textContent=error.message||'Erro de ligação';
   $('count').textContent='A ligação precisa de ser verificada';
-  $('results').innerHTML='<div class="empty">O directório não conseguiu carregar os dados. Tenta actualizar a página mais tarde.</div>';
+  $('results').innerHTML='<div class="empty">O directório não conseguiu carregar os dados. Verifica a ligação e tenta novamente.</div>';$('retryConnection').hidden=false;
  }
 }
+$('retryConnection').addEventListener('click',()=>{ $('retryConnection').hidden=true;$('dot').className='dot';$('status').textContent='A tentar ligar novamente…';$('detail').textContent='';$('count').textContent='A carregar directório…';$('results').innerHTML='<div class="empty">A carregar salões…</div>';init();});
 $('searchBtn').addEventListener('click',render);
 $('q').addEventListener('input',render);
 $('province').addEventListener('change',render);
 $('category').addEventListener('change',render);
 init();
+}
 </script>
 <script src="./admin.js"></script>
 </body>
