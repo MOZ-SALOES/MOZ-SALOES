@@ -1,24 +1,27 @@
 <!doctype html>
 <html lang="pt-MZ">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#102b63">
-<title>BEAUTY MAP MOZ — Encontra salões em Moçambique</title>
+<meta name="description" content="Encontra salões de beleza, serviços, preços e contactos em Moçambique.">
+<title>MOZ SALÕES — Directório de salões de Moçambique</title>
 <style>
 :root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#17233b;background:#f5f7fb;font-synthesis:none}
 *{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}
 header{background:#102b63;color:#fff;padding:18px max(18px,calc((100% - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px}
 .brand{font-weight:900;font-size:1.15rem;letter-spacing:.04em}.brand span{color:#8fc5ff}.tag{font-size:.82rem;opacity:.8;margin-top:3px}
 header a{color:#fff;text-decoration:none;border:1px solid #ffffff70;border-radius:10px;padding:10px 13px;font-size:.88rem}
-main{max-width:1120px;margin:34px auto;padding:0 18px}.hero{background:linear-gradient(125deg,#102b63,#174b91);color:white;border-radius:22px;padding:clamp(24px,5vw,48px);overflow:hidden}
+main{max-width:1120px;margin:34px auto;padding:0 18px}.hero{background:linear-gradient(125deg,#102b63,#174b91);color:white;border-radius:22px;padding:clamp(24px,5vw,48px)}
 .eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.72rem;font-weight:800;color:#b9d9ff}
 h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700px}.hero p{color:#dceaff;max-width:650px;line-height:1.6;margin:0}
 .search{background:white;border:1px solid #e1e7f0;border-radius:18px;padding:18px;margin-top:-22px;position:relative;box-shadow:0 12px 35px #102b6312}
 .filters{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px}.filters input,.filters select{min-width:0;width:100%;padding:13px;border:1px solid #d9e1ed;border-radius:10px;background:white;color:#17233b}
-.btn{border:0;border-radius:10px;padding:12px 18px;background:#1761b1;color:white;font-weight:750;cursor:pointer}.btn:hover{background:#104b8c}
-.status{display:flex;align-items:center;gap:9px;color:#64748b;font-size:.86rem;margin-top:13px}.dot{width:9px;height:9px;border-radius:50%;background:#d39b2a}.dot.ok{background:#15945c}.dot.err{background:#c33}
+.btn{border:0;border-radius:10px;padding:12px 18px;background:#1761b1;color:white;font-weight:750;cursor:pointer}.btn:hover{background:#104b8c}.btn:disabled{opacity:.6;cursor:wait}
+.status{display:flex;align-items:center;gap:9px;color:#64748b;font-size:.86rem;margin-top:13px;flex-wrap:wrap}.dot{width:9px;height:9px;border-radius:50%;background:#d39b2a}.dot.ok{background:#15945c}.dot.err{background:#c33}
 .section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:32px 0 15px}.section-head h2{margin:0;color:#102b63;font-size:1.45rem}.muted{color:#68778e;font-size:.9rem}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.card{background:white;border:1px solid #e1e7f0;border-radius:16px;padding:18px;min-width:0}.card h3{margin:0 0 7px;color:#102b63;font-size:1.1rem}.pill{display:inline-block;background:#edf4ff;color:#24558e;border-radius:99px;padding:5px 9px;font-size:.75rem;margin:0 5px 6px 0}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.card{background:white;border:1px solid #e1e7f0;border-radius:16px;padding:18px;min-width:0}
+.card h3{margin:0 0 7px;color:#102b63;font-size:1.1rem}.pill{display:inline-block;background:#edf4ff;color:#24558e;border-radius:99px;padding:5px 9px;font-size:.75rem;margin:0 5px 6px 0}
 .card p{color:#65738a;line-height:1.5;font-size:.9rem;margin:8px 0}.card .price{font-weight:800;color:#173d70}.card a{color:#145ca8;text-decoration:none;font-weight:700;font-size:.9rem}
 .empty{grid-column:1/-1;text-align:center;padding:35px 20px;background:white;border:1px dashed #cbd5e1;border-radius:16px;color:#64748b}
 .admin-wrap{max-width:560px;margin:30px auto;background:#fff;border:1px solid #e1e7f0;border-radius:18px;padding:22px;box-shadow:0 12px 35px #102b6310}
@@ -26,163 +29,185 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .admin-form{display:grid;gap:12px}.admin-form label{font-size:.88rem;font-weight:700;color:#34445f}.admin-form input{display:block;width:100%;padding:13px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px}
 .admin-message{padding:11px 13px;border-radius:10px;background:#edf4ff;color:#204c80;font-size:.9rem;line-height:1.45;margin-top:12px}
 .admin-message.error{background:#fff0f0;color:#9c2525}.admin-message.success{background:#eaf8f0;color:#17623b}
-[hidden]{display:none!important}
-footer{max-width:1120px;margin:35px auto;padding:0 18px 35px;color:#7a879a;font-size:.82rem}
-@media(max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.filters .btn{grid-column:1/-1}.grid{grid-template-columns:1fr 1fr}}
+[hidden]{display:none!important}footer{max-width:1120px;margin:35px auto;padding:0 18px 35px;color:#7a879a;font-size:.82rem}
+@media(max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters input,.filters .btn{grid-column:1/-1}.grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){header{align-items:flex-start}header a{font-size:.78rem;padding:8px}.grid{grid-template-columns:1fr}.search{padding:13px}.section-head{align-items:start;flex-direction:column}}
 </style>
 </head>
 <body>
-<header><div><div class="brand">BEAUTY <span>MAP</span> MOZ 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div><nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#admin" id="adminNav">Administração</a></nav></header>
+<header>
+ <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
+ <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#admin" id="adminNav">Administração</a></nav>
+</header>
 <main>
-<section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
-<section class="search" aria-label="Pesquisar salões"><div class="filters">
-<input id="q" type="search" placeholder="Pesquisar por nome ou serviço…" aria-label="Pesquisar por nome ou serviço">
-<select id="province" aria-label="Filtrar por província"><option value="">Todas as províncias</option></select>
-<select id="category" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
-<button class="btn" id="searchBtn">Pesquisar</button>
-</div><div class="status"><span class="dot" id="dot"></span><strong id="status">A ligar à plataforma…</strong><span id="detail"></span></div></section>
-<section id="saloes"><div class="section-head"><div><h2>Salões disponíveis</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
-<section id="adminSection" class="admin-wrap" hidden>
+ <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
+ <section class="search" aria-label="Pesquisar salões">
+  <div class="filters">
+   <input id="q" type="search" placeholder="Pesquisar por nome, serviço ou localidade…" aria-label="Pesquisar">
+   <select id="province" aria-label="Filtrar por província"><option value="">Todas as províncias</option></select>
+   <select id="category" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+   <button class="btn" id="searchBtn" type="button">Pesquisar</button>
+  </div>
+  <div class="status"><span class="dot" id="dot"></span><strong id="status">A ligar à plataforma…</strong><span id="detail"></span></div>
+ </section>
+ <section id="saloes"><div class="section-head"><div><h2>Salões disponíveis</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
+ <section id="adminSection" class="admin-wrap" hidden>
   <h2>Acesso administrativo</h2>
-  <p>Área reservada à administração do BEAUTY MAP MOZ. Preenche apenas o nome e o email autorizados. Os restantes dados não são necessários.</p>
+  <p>Área reservada à administração do MOZ SALÕES. O acesso é confirmado pela conta autenticada e pela função de administrador na base de dados.</p>
   <form id="adminLoginForm" class="admin-form">
-    <label>Nome do administrador
-      <input id="adminName" name="name" type="text" value="Silda" autocomplete="name" required>
-    </label>
-    <label>Email autorizado
-      <input id="adminEmail" name="email" type="email" value="miltonjustino888@gmail.com" autocomplete="email" required>
-    </label>
-    <button class="btn" id="adminSubmit" type="submit">Enviar link seguro de acesso</button>
+   <label>Email do administrador
+    <input id="adminEmail" name="email" type="email" value="miltonjustino888@gmail.com" autocomplete="email" required>
+   </label>
+   <button class="btn" id="adminSubmit" type="submit">Enviar link seguro de acesso</button>
   </form>
   <div id="adminMessage" class="admin-message" role="status" hidden></div>
   <div id="adminDashboard" hidden>
-    <div class="status"><span class="dot ok"></span><strong>Sessão administrativa autenticada</strong></div>
-    <p>Bem-vinda, Silda. A identidade foi confirmada pelo Supabase.</p>
-    <p class="muted">O acesso está protegido. Os módulos de gestão serão ligados a esta sessão administrativa.</p>
-    <button class="btn" id="adminLogout" type="button">Terminar sessão</button>
+   <div class="status"><span class="dot ok"></span><strong>Sessão administrativa autenticada</strong></div>
+   <p id="adminWelcome">A identidade foi confirmada pelo Supabase.</p>
+   <p class="muted">A sessão está protegida pela autenticação e pelas políticas RLS. Os módulos de gestão serão ligados a esta sessão administrativa.</p>
+   <button class="btn" id="adminLogout" type="button">Terminar sessão</button>
   </div>
-</section>
+ </section>
 </main>
-<footer>BEAUTY MAP MOZ · Descobre beleza com confiança.</footer>
+<footer>MOZ SALÕES · Descobre beleza com confiança.</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL="https://wmcypueuaszizekaljok.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY="sb_publishable_2S18WQ7OF51dVWNMI487UQ_xXbWN2qi";
-// A chave publishable é pública por concepção. A autorização dos registos é feita pelas políticas RLS.
-const headers={apikey:SUPABASE_PUBLISHABLE_KEY};
-const ADMIN_EMAIL="miltonjustino888@gmail.com";
-const supabaseAuth=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-function adminMessage(message,type="info"){
- const box=$("adminMessage");box.textContent=message;box.className="admin-message"+(type==="error"?" error":type==="success"?" success":"");box.hidden=false;
+'use strict';
+const SUPABASE_URL='https://wxwbxvvjsgmsrukdfmzq.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_W7Kyr0OpmOnGqApgnK8Oyg_uyT7RiXB';
+const ADMIN_EMAIL='miltonjustino888@gmail.com';
+const ADMIN_NAME='Silda';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const $=id=>document.getElementById(id);
+const state={salons:[],services:[],categories:[]};
+
+function safe(value){
+ return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function adminMessage(message,type='info'){
+ const box=$('adminMessage');box.textContent=message;
+ box.className='admin-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;
 }
 function openAdminSection(){
- $("adminSection").hidden=false;
- $("adminSection").scrollIntoView({behavior:"smooth",block:"start"});
+ $('adminSection').hidden=false;
+ $('adminSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function showAdminSession(isAdmin){
- $("adminLoginForm").hidden=isAdmin;
- $("adminDashboard").hidden=!isAdmin;
+ $('adminLoginForm').hidden=isAdmin;
+ $('adminDashboard').hidden=!isAdmin;
 }
 async function verifyAdminSession(session){
  if(!session?.user){showAdminSession(false);return;}
- const {data,error}=await supabaseAuth.from("admin_users").select("user_id,email").eq("user_id",session.user.id).maybeSingle();
- if(error||!data||String(data.email).toLowerCase()!==ADMIN_EMAIL){
-   await supabaseAuth.auth.signOut();
-   showAdminSession(false);
-   adminMessage("Esta conta não está autorizada para administrar a plataforma.", "error");
-   return;
+ const {data,error}=await supabaseClient.from('profiles').select('id,full_name,email,role').eq('id',session.user.id).maybeSingle();
+ if(error||!data||data.role!=='admin'||String(data.email||session.user.email||'').toLowerCase()!==ADMIN_EMAIL){
+  await supabaseClient.auth.signOut();
+  showAdminSession(false);
+  adminMessage('Esta conta não está autorizada para administrar a plataforma.','error');
+  return;
  }
  showAdminSession(true);
- $("adminSection").hidden=false;
- if(location.hash!=="#admin") history.replaceState(null,"",location.pathname+location.search+"#admin");
+ $('adminWelcome').textContent='Bem-vinda, '+(data.full_name||ADMIN_NAME)+'. A identidade foi confirmada pelo Supabase.';
+ $('adminSection').hidden=false;
+ if(location.hash!=='#admin')history.replaceState(null,'',location.pathname+location.search+'#admin');
 }
-$("adminNav").addEventListener("click",()=>{openAdminSection();});
-$("adminLoginForm").addEventListener("submit",async event=>{
+$('adminNav').addEventListener('click',openAdminSection);
+$('adminLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
- const name=$("adminName").value.trim();
- const email=$("adminEmail").value.trim().toLowerCase();
- if(name.toLocaleLowerCase("pt")!=="silda"||email!==ADMIN_EMAIL){
-   adminMessage("Os dados não correspondem ao administrador autorizado.", "error");return;
- }
- if(location.protocol==="file:"){
-   adminMessage("O acesso por email só pode ser concluído depois de publicar o site num endereço HTTPS autorizado no Supabase.", "error");return;
- }
- const button=$("adminSubmit");button.disabled=true;button.textContent="A enviar…";
+ const email=$('adminEmail').value.trim().toLowerCase();
+ if(email!==ADMIN_EMAIL){adminMessage('Este email não está autorizado para administrar a plataforma.','error');return;}
+ if(location.protocol==='file:'){adminMessage('O acesso por email exige que o site esteja publicado num endereço HTTPS autorizado no Supabase.','error');return;}
+ const button=$('adminSubmit');button.disabled=true;button.textContent='A enviar…';
  try{
-   const redirectTo=location.origin+location.pathname;
-   const {error}=await supabaseAuth.auth.signInWithOtp({
-     email,
-     options:{shouldCreateUser:true,emailRedirectTo:redirectTo,data:{full_name:name}}
-   });
-   if(error)throw error;
-   adminMessage("Pedido enviado. Abre a caixa de entrada de "+email+" e clica no link seguro do Supabase para concluir o acesso.", "success");
+  const redirectTo=location.origin+location.pathname;
+  const {error}=await supabaseClient.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:redirectTo,data:{full_name:ADMIN_NAME}}});
+  if(error)throw error;
+  adminMessage('Link de acesso enviado para '+email+'. Abre o email e confirma o acesso.','success');
  }catch(error){
-   adminMessage("Não foi possível enviar o link: "+(error.message||"erro de autenticação"),"error");
- }finally{
-   button.disabled=false;button.textContent="Enviar link seguro de acesso";
- }
+  adminMessage('Não foi possível enviar o link: '+(error.message||'erro de autenticação'),'error');
+ }finally{button.disabled=false;button.textContent='Enviar link seguro de acesso';}
 });
-$("adminLogout").addEventListener("click",async()=>{
- await supabaseAuth.auth.signOut();showAdminSession(false);adminMessage("Sessão terminada com segurança.","success");
+$('adminLogout').addEventListener('click',async()=>{
+ const {error}=await supabaseClient.auth.signOut();
+ if(error){adminMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
+ showAdminSession(false);adminMessage('Sessão terminada com segurança.','success');
 });
-supabaseAuth.auth.onAuthStateChange((_event,session)=>{verifyAdminSession(session);});
-supabaseAuth.auth.getSession().then(({data})=>verifyAdminSession(data.session));
-if(location.hash==="#admin")$("adminSection").hidden=false;
-const state={salons:[],services:[],categories:[],regions:[]};
-const $=id=>document.getElementById(id);
-async function api(table,query){
- const response=await fetch(SUPABASE_URL+"/rest/v1/"+table+"?"+query,{headers});
- if(!response.ok)throw new Error(table+" — HTTP "+response.status);
- return response.json();
+supabaseClient.auth.onAuthStateChange((event,session)=>{
+ if(event==='SIGNED_OUT')showAdminSession(false);
+ if(event==='SIGNED_IN')window.setTimeout(()=>verifyAdminSession(session),0);
+});
+supabaseClient.auth.getSession().then(({data,error})=>{
+ if(error)adminMessage('Não foi possível verificar a sessão: '+error.message,'error');
+ else verifyAdminSession(data.session);
+});
+if(location.hash==='#admin')$('adminSection').hidden=false;
+
+function populate(select,items){
+ for(const item of items){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;select.appendChild(option);}
 }
-function safe(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function populate(select,items){for(const item of items){const option=document.createElement("option");option.value=item.value;option.textContent=item.label;select.appendChild(option);}}
+function normalizeMozPhone(value){
+ let digits=String(value||'').replace(/\D/g,'');
+ if(digits.length===9&&digits.startsWith('8'))digits='258'+digits;
+ return digits;
+}
+function mapUrl(salon){
+ if(salon.latitude!==null&&salon.latitude!==undefined&&salon.longitude!==null&&salon.longitude!==undefined){
+  const lat=Number(salon.latitude),lon=Number(salon.longitude);
+  if(Number.isFinite(lat)&&Number.isFinite(lon))return 'https://www.google.com/maps?q='+lat+','+lon;
+ }
+ const address=[salon.address,salon.neighborhood,salon.city,salon.district,salon.province].filter(Boolean).join(', ');
+ return address?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(address+', Mozambique'):'';
+}
 function render(){
- const term=$("q").value.trim().toLocaleLowerCase("pt");
- const province=$("province").value,category=$("category").value;
+ const term=$('q').value.trim().toLocaleLowerCase('pt');
+ const province=$('province').value,category=$('category').value;
  const filtered=state.salons.filter(s=>{
   const services=state.services.filter(x=>x.salon_id===s.id);
-  const text=[s.name,s.description,s.province_name,s.district_name,s.city_name,s.neighborhood,...services.map(x=>x.name)].join(" ").toLocaleLowerCase("pt");
-  return (!term||text.includes(term))&&(!province||s.province_name===province)&&(!category||services.some(x=>x.category_id===category));
+  const searchable=[s.name,s.description,s.province,s.district,s.municipality,s.city,s.neighborhood,s.address,...services.map(x=>x.name)].join(' ').toLocaleLowerCase('pt');
+  const matchesCategory=!category||s.category_id===category||services.some(x=>x.category_id===category);
+  return (!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory;
  });
- $("count").textContent=filtered.length+" salão(ões) encontrado(s)";
- if(!filtered.length){$("results").innerHTML='<div class="empty"><strong>Não encontrámos salões com estes filtros.</strong><br><span class="muted">Experimenta outra pesquisa ou volta mais tarde. Novos salões serão apresentados aqui após aprovação.</span></div>';return;}
- $("results").innerHTML=filtered.map(s=>{
+ $('count').textContent=filtered.length+' salão(ões) encontrado(s)';
+ if(!filtered.length){
+  $('results').innerHTML='<div class="empty"><strong>Ainda não existem salões publicados com estes filtros.</strong><br><span class="muted">Os salões serão apresentados aqui depois de registados e aprovados.</span></div>';return;
+ }
+ $('results').innerHTML=filtered.map(s=>{
   const services=state.services.filter(x=>x.salon_id===s.id);
-  const tags=services.slice(0,3).map(x=>'<span class="pill">'+safe(x.name)+'</span>').join("");
-  const prices=services.filter(x=>x.price_mzn!==null).map(x=>Number(x.price_mzn));
-  const price=prices.length?'A partir de '+Math.min(...prices).toLocaleString("pt-MZ")+' MT':'Preços sob consulta';
-  const place=[s.neighborhood,s.city_name,s.district_name,s.province_name].filter(Boolean).join(", ");
-  const phone=s.whatsapp||s.phone||"";
-  const contact=phone?'<a href="https://wa.me/'+safe(phone.replace(/\D/g,""))+'" target="_blank" rel="noopener">Contactar pelo WhatsApp</a>':'<span class="muted">Contacto não disponível</span>';
-  const map=s.google_maps_url?'<a href="'+safe(s.google_maps_url)+'" target="_blank" rel="noopener">Ver localização</a>':"";
-  return '<article class="card"><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||"Moçambique")+'</div><p>'+safe(s.description||"Salão de beleza. Consulta os serviços disponíveis.")+'</p><div>'+tags+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(map?' · '+map:"")+'</p></article>';
- }).join("");
+  const tags=services.slice(0,4).map(x=>'<span class="pill">'+safe(x.name)+'</span>').join('');
+  const prices=services.filter(x=>x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);
+  const price=prices.length?'A partir de '+Math.min(...prices).toLocaleString('pt-MZ')+' MT':'Preços sob consulta';
+  const place=[s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', ');
+  const phone=normalizeMozPhone(s.whatsapp||s.phone);
+  const contact=phone?'<a href="https://wa.me/'+safe(phone)+'" target="_blank" rel="noopener noreferrer">Contactar pelo WhatsApp</a>':'<span class="muted">Contacto não disponível</span>';
+  const map=mapUrl(s);
+  const mapLink=map?'<a href="'+safe(map)+'" target="_blank" rel="noopener noreferrer">Ver localização</a>':'';
+  return '<article class="card"><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||'Salão de beleza. Consulta os serviços disponíveis.')+'</p><div>'+tags+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+'</p></article>';
+ }).join('');
 }
 async function init(){
  try{
-  const [categories,regions,salons,services]=await Promise.all([
-   api("categories","select=id,name&is_active=eq.true&order=display_order.asc"),
-   api("location_regions","select=id,name&region_type=eq.province&order=name.asc"),
-   api("salons","select=id,name,description,phone,whatsapp,province_name,district_name,city_name,neighborhood,google_maps_url&publication_status=eq.active&order=name.asc"),
-   api("services","select=salon_id,category_id,name,price_mzn&is_active=eq.true")
+  const [categoriesResult,salonsResult,servicesResult]=await Promise.all([
+   supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),
+   supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude').eq('status','active').order('name',{ascending:true}),
+   supabaseClient.from('services').select('salon_id,category_id,name,price_mzn').eq('active',true)
   ]);
-  state.categories=categories;state.regions=regions;state.salons=salons;state.services=services;
-  populate($("category"),categories.map(x=>({value:x.id,label:x.name})));
-  populate($("province"),regions.map(x=>({value:x.name,label:x.name})));
-  $("dot").className="dot ok";$("status").textContent="Ligação ao Supabase estabelecida";$("detail").textContent="Dados carregados com sucesso.";
+  for(const result of [categoriesResult,salonsResult,servicesResult])if(result.error)throw result.error;
+  state.categories=categoriesResult.data||[];state.salons=salonsResult.data||[];state.services=servicesResult.data||[];
+  populate($('category'),state.categories.map(x=>({value:x.id,label:x.name})));
+  const provinces=[...new Set(state.salons.map(x=>x.province).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+  populate($('province'),provinces.map(x=>({value:x,label:x})));
+  $('dot').className='dot ok';$('status').textContent='Ligação ao Supabase estabelecida';$('detail').textContent='Dados carregados com sucesso.';
   render();
  }catch(error){
-  $("dot").className="dot err";$("status").textContent="Não foi possível carregar o directório";$("detail").textContent=error.message;
-  $("count").textContent="A ligação precisa de ser verificada";
-  $("results").innerHTML='<div class="empty">O directório não conseguiu carregar os dados. Tenta actualizar a página mais tarde.</div>';
+  $('dot').className='dot err';$('status').textContent='Não foi possível carregar o directório';$('detail').textContent=error.message||'Erro de ligação';
+  $('count').textContent='A ligação precisa de ser verificada';
+  $('results').innerHTML='<div class="empty">O directório não conseguiu carregar os dados. Tenta actualizar a página mais tarde.</div>';
  }
 }
-$("searchBtn").addEventListener("click",render);
-$("q").addEventListener("input",render);
-$("province").addEventListener("change",render);
-$("category").addEventListener("change",render);
+$('searchBtn').addEventListener('click',render);
+$('q').addEventListener('input',render);
+$('province').addEventListener('change',render);
+$('category').addEventListener('change',render);
 init();
 </script>
-</body></html>
+</body>
+</html>
