@@ -35,7 +35,7 @@ jobs:
       - name: Upload schema artifact
         uses: actions/upload-artifact@v4
         with:
-          name: beauty-map-moz-schema-${{ github.run_number }}
+          name: moz-saloes-schema-${{ github.run_number }}
           path: schema.sql
           if-no-files-found: error
           retention-days: 7
