@@ -77,6 +77,47 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <div id="adminApp"></div><button id="adminLogout" type="button" hidden>Terminar sessão</button>
   </div>
  </section>
+
+ <section id="ownerSection" class="owner-wrap" hidden>
+  <h2>Área do proprietário</h2>
+  <p>Regista o teu salão, gere a publicação e escolhe um plano. O pagamento só será confirmado depois da validação do Pagar.</p>
+  <form id="ownerLoginForm" class="owner-form">
+   <label class="wide">Email<input id="ownerEmail" type="email" autocomplete="email" placeholder="O teu email" required></label>
+   <label class="wide">Nome do proprietário<input id="ownerFullName" type="text" autocomplete="name" placeholder="Nome completo" required></label>
+   <div class="owner-actions wide"><button class="btn" id="ownerLoginBtn" type="submit">Enviar link seguro de acesso</button></div>
+  </form>
+  <div id="ownerMessage" class="owner-message" role="status" hidden></div>
+  <div id="ownerDashboard" class="owner-panel" hidden>
+   <div class="owner-card"><div class="status"><span class="dot ok"></span><strong id="ownerIdentity">Conta autenticada</strong></div><p class="owner-muted">Apenas os salões pertencentes à tua conta aparecem nesta área.</p></div>
+   <div id="ownerRegistration" class="owner-card">
+    <h3>Registar o meu salão</h3><p>Preenche os dados básicos. O salão ficará pendente de aprovação antes de aparecer no directório.</p>
+    <form id="salonRegisterForm" class="owner-form">
+     <label>Nome do salão<input name="name" required maxlength="100" placeholder="Ex.: Salão Beleza"></label>
+     <label>Telefone / WhatsApp<input name="phone" required inputmode="tel" placeholder="82xxxxxxx"></label>
+     <label>Província<input name="province" required placeholder="Ex.: Maputo"></label>
+     <label>Distrito / Município<input name="district" required placeholder="Ex.: KaMpfumo"></label>
+     <label>Cidade<input name="city" placeholder="Cidade"></label><label>Bairro<input name="neighborhood" placeholder="Bairro"></label>
+     <label class="wide">Morada / referência<input name="address" placeholder="Rua, avenida ou ponto de referência"></label>
+     <label class="wide">Descrição<textarea name="description" rows="3" maxlength="500" placeholder="Apresenta brevemente o teu salão" style="display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;font:inherit"></textarea></label>
+     <div class="owner-actions wide"><button class="btn" id="salonRegisterBtn" type="submit">Registar salão</button></div>
+    </form>
+   </div>
+   <div class="owner-card" id="ownerPaymentCard" hidden>
+    <h3>Publicar / renovar o salão</h3>
+    <form id="ownerPaymentForm" class="owner-form">
+     <label class="wide">Escolher salão<select id="ownerSalon" required></select></label>
+     <label>Plano<select id="ownerPlan" required></select></label>
+     <label>Telefone para pagamento<input id="ownerPayerPhone" required inputmode="tel" placeholder="82xxxxxxx"></label>
+     <label>Método de pagamento<select id="ownerMethod" required><option value="MPESA">M-Pesa</option><option value="EMOLA">e-Mola</option></select></label>
+     <div class="owner-actions wide"><button class="btn" id="ownerPayBtn" type="submit">Iniciar pagamento</button></div>
+    </form>
+    <div class="owner-muted">Os preços e durações são carregados dos planos activos na plataforma.</div>
+   </div>
+   <div class="owner-card"><h3>Os meus pagamentos</h3><div id="ownerPayments" class="owner-list"><span class="owner-muted">A carregar…</span></div></div>
+   <div class="owner-actions"><button class="btn" id="ownerRefreshBtn" type="button">Actualizar dados</button><button class="btn" id="ownerLogoutBtn" type="button" style="background:#64748b">Terminar sessão</button></div>
+  </div>
+ </section>
+
 </main>
 <footer>MOZ SALÕES · Descobre beleza com confiança.</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
