@@ -140,7 +140,9 @@ function adminMessage(message,type='info'){
  box.className='admin-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;
 }
 function openAdminSection(){
+ $('ownerSection').hidden=true;
  $('adminSection').hidden=false;
+ if(location.hash!=='#admin')history.replaceState(null,'',location.pathname+location.search+'#admin');
  $('adminSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function showAdminSession(isAdmin){
@@ -208,7 +210,9 @@ function ownerMessage(message,type='info'){
  box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;
 }
 async function openOwnerSection(){
+ $('adminSection').hidden=true;
  $('ownerSection').hidden=false;
+ if(location.hash!=='#owner')history.replaceState(null,'',location.pathname+location.search+'#owner');
  $('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});
  if(ownerSession?.user){await loadOwnerDashboard(ownerSession);return;}
  const {data}=await supabaseClient.auth.getSession();
