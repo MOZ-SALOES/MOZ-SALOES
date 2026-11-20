@@ -35,7 +35,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 
 .owner-wrap{max-width:760px;margin:30px auto;background:#fff;border:1px solid #e1e7f0;border-radius:18px;padding:22px;box-shadow:0 12px 35px #102b6310}
 .owner-wrap h2,.owner-wrap h3{color:#102b63;margin-top:0}.owner-wrap p{color:#64748b;line-height:1.5}
-.owner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.owner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.owner-auth-switch{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.owner-auth-switch button[aria-pressed=true]{background:#102b63}
 .owner-form label{font-size:.88rem;font-weight:700;color:#34445f}.owner-form input,.owner-form select{display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;background:#fff}
 .owner-form .wide{grid-column:1/-1}.owner-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
 .owner-panel{display:grid;gap:16px}.owner-card{border:1px solid #e1e7f0;border-radius:14px;padding:16px}.owner-card h3{margin:0 0 10px}.owner-list{display:grid;gap:9px}.owner-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;background:#f6f8fc;border-radius:10px}
@@ -66,8 +66,13 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
   <h2>Acesso administrativo</h2>
   <p>Área reservada à administração do MOZ SALÕES. O acesso é confirmado pela conta autenticada e pela função de administrador na base de dados.</p>
   <form id="adminLoginForm" class="admin-form">
-   <p>O link seguro será enviado apenas para a caixa de correio da conta administradora autorizada.</p>
-   <button class="btn" id="adminSubmit" type="submit">Enviar link seguro para a conta administradora</button>
+   <label>Nome de administrador
+    <input id="adminName" name="adminName" type="text" autocomplete="name" placeholder="Nome de administrador" required>
+   </label>
+   <label>Email
+    <input id="adminEmail" name="email" type="email" autocomplete="email" placeholder="O teu email" required>
+   </label>
+   <button class="btn" id="adminSubmit" type="submit">Enviar link seguro de acesso</button>
   </form>
   <div id="adminMessage" class="admin-message" role="status" hidden></div>
   <div id="adminDashboard" hidden>
@@ -80,10 +85,14 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
  <section id="ownerSection" class="owner-wrap" hidden>
   <h2>Área do proprietário</h2>
   <p>Regista o teu salão, gere a publicação e escolhe um plano. O pagamento só será confirmado depois da validação do Pagar.</p>
+  <div class="owner-auth-switch" role="group" aria-label="Tipo de acesso">
+   <button class="btn" id="ownerLoginMode" type="button" aria-pressed="true">Entrar na minha conta</button>
+   <button class="btn" id="ownerRegisterMode" type="button" style="background:#64748b" aria-pressed="false">Criar uma conta</button>
+  </div>
   <form id="ownerLoginForm" class="owner-form">
    <label class="wide">Email<input id="ownerEmail" type="email" autocomplete="email" placeholder="O teu email" required></label>
-   <label class="wide">Nome do proprietário<input id="ownerFullName" type="text" autocomplete="name" placeholder="Nome completo" required></label>
-   <div class="owner-actions wide"><button class="btn" id="ownerLoginBtn" type="submit">Enviar link seguro de acesso</button></div>
+   <label class="wide" id="ownerFullNameWrap" hidden>Nome completo<input id="ownerFullName" type="text" autocomplete="name" placeholder="Nome completo"></label>
+   <div class="owner-actions wide"><button class="btn" id="ownerLoginBtn" type="submit">Enviar link seguro para entrar</button></div>
   </form>
   <div id="ownerMessage" class="owner-message" role="status" hidden></div>
   <div id="ownerDashboard" class="owner-panel" hidden>
@@ -181,17 +190,19 @@ async function verifyAdminSession(session){
 // A entrada administrativa não é apresentada na navegação pública. Aceder pelo endereço reservado #admin.
 $('adminLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
- const email=ADMIN_EMAIL;
+ const name=$('adminName').value.trim().toLocaleLowerCase('pt');
+ const email=$('adminEmail').value.trim().toLowerCase();
+ if(name!=='silda'||email!==ADMIN_EMAIL){adminMessage('Os dados introduzidos não correspondem à conta administrativa autorizada.','error');return;}
  if(location.protocol==='file:'){adminMessage('O acesso por email exige que o site esteja publicado num endereço HTTPS autorizado no Supabase.','error');return;}
  const button=$('adminSubmit');button.disabled=true;button.textContent='A enviar…';
  try{
   const redirectTo=location.origin+location.pathname;
   const {error}=await supabaseClient.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:redirectTo}});
   if(error)throw error;
-  adminMessage('Se o serviço de autenticação estiver disponível, o link será enviado para a caixa de correio da conta administradora. Abre-o neste dispositivo para confirmar o acesso.','success');
+  adminMessage('Se os dados estiverem correctos, o link seguro será enviado para o email indicado. Abre-o neste dispositivo para confirmar o acesso.','success');
  }catch(error){
   adminMessage('Não foi possível enviar o link: '+(error.message||'erro de autenticação'),'error');
- }finally{button.disabled=false;button.textContent='Enviar link seguro para a conta administradora';}
+ }finally{button.disabled=false;button.textContent='Enviar link seguro de acesso';}
 });
 $('adminLogout').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();
@@ -270,18 +281,40 @@ async function loadOwnerDashboard(session){
  }catch(error){ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
+let ownerAuthMode='login';
+function setOwnerAuthMode(mode){
+ ownerAuthMode=mode;
+ const registering=mode==='register';
+ $('ownerFullNameWrap').hidden=!registering;
+ $('ownerFullName').required=registering;
+ $('ownerLoginMode').setAttribute('aria-pressed',String(!registering));
+ $('ownerRegisterMode').setAttribute('aria-pressed',String(registering));
+ $('ownerLoginMode').style.background=registering?'#64748b':'#102b63';
+ $('ownerRegisterMode').style.background=registering?'#102b63':'#64748b';
+ $('ownerLoginBtn').textContent=registering?'Criar conta e enviar link seguro':'Enviar link seguro para entrar';
+ $('ownerMessage').hidden=true;
+}
+$('ownerLoginMode').addEventListener('click',()=>setOwnerAuthMode('login'));
+$('ownerRegisterMode').addEventListener('click',()=>setOwnerAuthMode('register'));
+setOwnerAuthMode('login');
 $('ownerLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
- const email=$('ownerEmail').value.trim().toLowerCase(),fullName=$('ownerFullName').value.trim();
- if(!email||!fullName){ownerMessage('Preenche o email e o nome.','error');return;}
+ const email=$('ownerEmail').value.trim().toLowerCase();
+ const fullName=$('ownerFullName').value.trim();
+ if(!email){ownerMessage('Introduz o teu email.','error');return;}
+ if(ownerAuthMode==='register'&&!fullName){ownerMessage('Introduz o teu nome completo para criar a conta.','error');return;}
  const button=$('ownerLoginBtn');button.disabled=true;button.textContent='A enviar…';
  try{
   const redirectTo=location.origin+location.pathname+'#owner';
-  const {error}=await supabaseClient.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:redirectTo,data:{full_name:fullName}}});
+  const options={shouldCreateUser:ownerAuthMode==='register',emailRedirectTo:redirectTo};
+  if(ownerAuthMode==='register')options.data={full_name:fullName};
+  const {error}=await supabaseClient.auth.signInWithOtp({email,options});
   if(error)throw error;
-  ownerMessage('Enviámos um link seguro para '+email+'. Abre o email no mesmo dispositivo para entrar na área do proprietário.','success');
- }catch(error){ownerMessage('Não foi possível enviar o link: '+(error.message||'erro de autenticação'),'error');}
- finally{button.disabled=false;button.textContent='Enviar link seguro de acesso';}
+  ownerMessage(ownerAuthMode==='register'
+   ?'Pedido de criação de conta enviado para '+email+'. Abre o link recebido para confirmar o email e concluir o registo.'
+   :'Se existir uma conta com este email, receberás um link seguro para entrar. Abre-o para confirmar o acesso.','success');
+ }catch(error){ownerMessage('Não foi possível continuar: '+(error.message||'erro de autenticação'),'error');}
+ finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta e enviar link seguro':'Enviar link seguro para entrar';}
 });
 $('salonRegisterForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!ownerSession?.user){ownerMessage('Entra primeiro na tua conta.','error');return;}
