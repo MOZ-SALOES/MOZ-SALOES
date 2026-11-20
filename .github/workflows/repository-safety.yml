@@ -21,6 +21,17 @@ jobs:
         shell: bash
         run: grep -F 'project_id = "wxwbxvvjsgmsrukdfmzq"' supabase/config.toml
 
+      - name: Verify frontend uses the production Supabase project
+        shell: bash
+        run: |
+          grep -F "const SUPABASE_URL='https://wxwbxvvjsgmsrukdfmzq.supabase.co';" index.html
+          if grep -Eq 'wmcypueuaszizekaljok|admin_users|location_regions|province_name|publication_status|is_active' index.html; then
+            echo "ERROR: frontend contains an obsolete project reference or database field."
+            exit 1
+          fi
+          grep -F "from('profiles')" index.html
+          grep -F "data.role!=='admin'" index.html
+
       - name: Keep recovery notes out of executable migrations
         shell: bash
         run: |
