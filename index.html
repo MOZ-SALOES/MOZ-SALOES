@@ -189,7 +189,7 @@ $('adminLoginForm').addEventListener('submit',async event=>{
  const button=$('adminSubmit');button.disabled=true;button.textContent='A enviar…';
  try{
   const redirectTo=location.origin+location.pathname;
-  const {error}=await supabaseClient.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:redirectTo,data:{full_name:ADMIN_NAME}}});
+  const {error}=await supabaseClient.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:redirectTo}});
   if(error)throw error;
   adminMessage('Link de acesso enviado para '+email+'. Abre o email e confirma o acesso.','success');
  }catch(error){
