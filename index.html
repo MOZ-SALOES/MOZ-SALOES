@@ -142,7 +142,6 @@ if(!window.supabase?.createClient){
 'use strict';
 const SUPABASE_URL='https://wxwbxvvjsgmsrukdfmzq.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_W7Kyr0OpmOnGqApgnK8Oyg_uyT7RiXB';
-const ADMIN_EMAIL='miltonjustino888@gmail.com';
 const ADMIN_NAME='Silda';
 const fetchWithTimeout=(input,init={})=>{
  const controller=new AbortController();
@@ -174,7 +173,7 @@ function showAdminSession(isAdmin){
 async function verifyAdminSession(session){
  if(!session?.user){showAdminSession(false);return;}
  const {data,error}=await supabaseClient.from('profiles').select('id,full_name,email,role').eq('id',session.user.id).maybeSingle();
- if(error||!data||data.role!=='admin'||String(data.email||session.user.email||'').toLowerCase()!==ADMIN_EMAIL){
+ if(error||!data||data.role!=='admin'||String(data.email||'').toLowerCase()!==String(session.user.email||'').toLowerCase()){
   await supabaseClient.auth.signOut();
   showAdminSession(false);
   adminMessage('Esta conta não está autorizada para administrar a plataforma.','error');
@@ -192,7 +191,7 @@ $('adminLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
  const name=$('adminName').value.trim().toLocaleLowerCase('pt');
  const email=$('adminEmail').value.trim().toLowerCase();
- if(name!=='silda'||email!==ADMIN_EMAIL){adminMessage('Os dados introduzidos não correspondem à conta administrativa autorizada.','error');return;}
+ if(name!=='silda'||!email){adminMessage('Introduz o nome e o email da conta administradora.','error');return;}
  if(location.protocol==='file:'){adminMessage('O acesso por email exige que o site esteja publicado num endereço HTTPS autorizado no Supabase.','error');return;}
  const button=$('adminSubmit');button.disabled=true;button.textContent='A enviar…';
  try{
@@ -212,14 +211,14 @@ $('adminLogout').addEventListener('click',async()=>{
 supabaseClient.auth.onAuthStateChange((event,session)=>{
  if(event==='SIGNED_OUT'){showAdminSession(false);ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
  if(event==='SIGNED_IN')window.setTimeout(()=>{
-  if(String(session?.user?.email||'').toLowerCase()===ADMIN_EMAIL){if(location.hash==='#silda-acesso')verifyAdminSession(session);}
+  if(location.hash==='#silda-acesso')verifyAdminSession(session);
   else if(location.hash==='#owner')loadOwnerDashboard(session);
  },0);
 });
 supabaseClient.auth.getSession().then(({data,error})=>{
  if(error)adminMessage('Não foi possível verificar a sessão: '+error.message,'error');
  else if(data.session){
-  if(String(data.session.user?.email||'').toLowerCase()===ADMIN_EMAIL)verifyAdminSession(data.session);
+  if(location.hash==='#silda-acesso')verifyAdminSession(data.session);
   else if(location.hash==='#owner')loadOwnerDashboard(data.session);
  }
 });
@@ -239,7 +238,7 @@ async function openOwnerSection(){
  $('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});
  if(ownerSession?.user){await loadOwnerDashboard(ownerSession);return;}
  const {data}=await supabaseClient.auth.getSession();
- if(data?.session && String(data.session.user?.email||'').toLowerCase()!==ADMIN_EMAIL)await loadOwnerDashboard(data.session);
+ if(data?.session)await loadOwnerDashboard(data.session);
 }
 function ownerPhone(value){
  let digits=String(value||'').replace(/\D/g,'');
