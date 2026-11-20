@@ -132,7 +132,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
     </form>
     <div class="owner-muted">Os preços e durações são carregados dos planos activos na plataforma.</div><div class="owner-message">A integração Pagar está em modo TESTE. Quando a Pagar confirmar o estado PAID através do webhook assinado, a assinatura será activada automaticamente. PROCESSING não significa pagamento concluído.</div>
    </div>
-   <div class="owner-card"><h3>Os meus pagamentos</h3><div id="ownerPayments" class="owner-list"><span class="owner-muted">A carregar…</span></div></div>
+   <div class="owner-card"><h3>Os meus pagamentos</h3><p class="owner-muted">Consulta apenas os pagamentos das taxas dos teus salões. O MOZ SALÕES não disponibiliza saldo, comissões ou levantamentos para proprietários.</p><div id="ownerPayments" class="owner-list"><span class="owner-muted">A carregar…</span></div></div>
    <div class="owner-actions"><button class="btn" id="ownerRefreshBtn" type="button">Actualizar dados</button><button class="btn" id="ownerLogoutBtn" type="button" style="background:#64748b">Terminar sessão</button></div>
   </div>
  </section>
@@ -299,7 +299,7 @@ async function loadOwnerDashboard(session){
   ownerPlans.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' — '+Number(p.price_mzn).toLocaleString('pt-MZ')+' MT';planSelect.appendChild(o);});
   if(!ownerPlans.length){$('ownerPayBtn').disabled=true;ownerMessage('Não há planos activos disponíveis. Contacta a administração.','error');}
   else $('ownerPayBtn').disabled=false;
-  const {data:payments,error:paymentsError}=await supabaseClient.from('payments').select('id,amount_mzn,status,provider,provider_reference,created_at,metadata').eq('payer_id',session.user.id).order('created_at',{ascending:false}).limit(15);
+  const salonIds=(salons||[]).map(x=>x.id);let paymentQuery=supabaseClient.from('payments').select('id,salon_id,amount_mzn,status,provider,provider_reference,created_at,metadata').order('created_at',{ascending:false}).limit(50);paymentQuery=salonIds.length?paymentQuery.or('payer_id.eq.'+session.user.id+',salon_id.in.('+salonIds.join(',')+')'):paymentQuery.eq('payer_id',session.user.id);const {data:payments,error:paymentsError}=await paymentQuery;
   if(paymentsError)throw paymentsError;
   $('ownerPayments').innerHTML=(payments||[]).length?(payments||[]).map(p=>'<div class="owner-row"><div><strong>'+safe(Number(p.amount_mzn).toLocaleString('pt-MZ')+' MT')+'</strong><div class="owner-muted">'+safe(p.provider||'')+' · '+safe(p.created_at?new Date(p.created_at).toLocaleString('pt-MZ'):'')+'</div></div><div><strong>'+safe(p.status)+'</strong><div class="owner-muted">'+safe(p.metadata?.plan_name||'')+'</div></div></div>').join(''):'<span class="owner-muted">Ainda não existem pagamentos.</span>';
   if((salons||[]).length)ownerMessage('Os teus salões e planos foram carregados. Escolhe um salão e inicia a cobrança quando estiveres pronto.','success');
