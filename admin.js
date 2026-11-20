@@ -65,10 +65,9 @@ window.initAdminPanel=async()=>{
  try{
   const {data:u,error:authError}=await db.auth.getUser();
   if(authError||!u?.user)throw new Error('Sessão administrativa não autenticada.');
-  const email=String(u.user.email||'').toLowerCase();
   const {data:profile,error:profileError}=await db.from('profiles').select('email,role').eq('id',u.user.id).maybeSingle();
   if(profileError)throw profileError;
-  if(email!=='miltonjustino888@gmail.com'||String(profile?.email||'').toLowerCase()!=='miltonjustino888@gmail.com'||profile?.role!=='admin'){
+  if(profile?.role!=='admin'||String(profile?.email||'').toLowerCase()!==String(u.user.email||'').toLowerCase()){
    root.innerHTML='<div class="p-empty">Acesso recusado. Esta área é exclusiva da conta administrativa autorizada.</div>';return;
   }
   state.user=u.user;await load();
