@@ -90,9 +90,16 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <button class="btn" id="ownerRegisterMode" type="button" style="background:#64748b" aria-pressed="false">Criar uma conta</button>
   </div>
   <form id="ownerLoginForm" class="owner-form">
-   <label class="wide">Email<input id="ownerEmail" type="email" autocomplete="email" placeholder="O teu email" required></label>
    <label class="wide" id="ownerFullNameWrap" hidden>Nome completo<input id="ownerFullName" type="text" autocomplete="name" placeholder="Nome completo"></label>
-   <div class="owner-actions wide"><button class="btn" id="ownerLoginBtn" type="submit">Enviar link seguro para entrar</button></div>
+   <label class="wide">Email<input id="ownerEmail" type="email" autocomplete="email" placeholder="O teu email" required></label>
+   <label class="wide">Palavra-passe<input id="ownerPassword" type="password" autocomplete="current-password" minlength="8" placeholder="Mínimo de 8 caracteres" required></label>
+   <div class="owner-actions wide"><button class="btn" id="ownerLoginBtn" type="submit">Entrar</button></div>
+   <div class="owner-actions wide" id="ownerForgotWrap"><button class="btn" id="ownerForgotBtn" type="button" style="background:#64748b">Esqueci-me da palavra-passe</button></div>
+  </form>
+  <form id="ownerRecoveryForm" class="owner-form" hidden>
+   <label class="wide">Nova palavra-passe<input id="ownerNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Mínimo de 8 caracteres" required></label>
+   <label class="wide">Confirmar nova palavra-passe<input id="ownerConfirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Repete a palavra-passe" required></label>
+   <div class="owner-actions wide"><button class="btn" id="ownerRecoveryBtn" type="submit">Guardar nova palavra-passe</button></div>
   </form>
   <div id="ownerMessage" class="owner-message" role="status" hidden></div>
   <div id="ownerDashboard" class="owner-panel" hidden>
@@ -149,7 +156,7 @@ const fetchWithTimeout=(input,init={})=>{
  if(init.signal)init.signal.addEventListener('abort',()=>controller.abort(),{once:true});
  return fetch(input,{...init,signal:controller.signal}).finally(()=>clearTimeout(timer));
 };
-const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{global:{fetch:fetchWithTimeout}});
+const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},global:{fetch:fetchWithTimeout}});
 const $=id=>document.getElementById(id);
 const state={salons:[],services:[],categories:[]};
 
@@ -210,9 +217,13 @@ $('adminLogout').addEventListener('click',async()=>{
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
  if(event==='SIGNED_OUT'){showAdminSession(false);ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
+ if(event==='PASSWORD_RECOVERY'){
+  $('ownerSection').hidden=false;$('ownerLoginForm').hidden=true;$('ownerRecoveryForm').hidden=false;
+  ownerMessage('Define uma nova palavra-passe para a tua conta.','info');
+ }
  if(event==='SIGNED_IN')window.setTimeout(()=>{
   if(location.hash==='#silda-acesso')verifyAdminSession(session);
-  else if(location.hash==='#owner')loadOwnerDashboard(session);
+  else if(location.hash==='#owner'&&event!=='PASSWORD_RECOVERY')loadOwnerDashboard(session);
  },0);
 });
 supabaseClient.auth.getSession().then(({data,error})=>{
@@ -286,11 +297,15 @@ function setOwnerAuthMode(mode){
  const registering=mode==='register';
  $('ownerFullNameWrap').hidden=!registering;
  $('ownerFullName').required=registering;
+ $('ownerPassword').autocomplete=registering?'new-password':'current-password';
+ $('ownerLoginBtn').textContent=registering?'Criar conta':'Entrar';
+ $('ownerForgotWrap').hidden=registering;
  $('ownerLoginMode').setAttribute('aria-pressed',String(!registering));
  $('ownerRegisterMode').setAttribute('aria-pressed',String(registering));
  $('ownerLoginMode').style.background=registering?'#64748b':'#102b63';
  $('ownerRegisterMode').style.background=registering?'#102b63':'#64748b';
- $('ownerLoginBtn').textContent=registering?'Criar conta e enviar link seguro':'Enviar link seguro para entrar';
+ $('ownerRecoveryForm').hidden=true;
+ $('ownerLoginForm').hidden=false;
  $('ownerMessage').hidden=true;
 }
 $('ownerLoginMode').addEventListener('click',()=>setOwnerAuthMode('login'));
@@ -299,21 +314,53 @@ setOwnerAuthMode('login');
 $('ownerLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
  const email=$('ownerEmail').value.trim().toLowerCase();
+ const password=$('ownerPassword').value;
  const fullName=$('ownerFullName').value.trim();
  if(!email){ownerMessage('Introduz o teu email.','error');return;}
+ if(password.length<8){ownerMessage('A palavra-passe deve ter pelo menos 8 caracteres.','error');return;}
  if(ownerAuthMode==='register'&&!fullName){ownerMessage('Introduz o teu nome completo para criar a conta.','error');return;}
- const button=$('ownerLoginBtn');button.disabled=true;button.textContent='A enviar…';
+ const button=$('ownerLoginBtn');button.disabled=true;button.textContent=ownerAuthMode==='register'?'A criar conta…':'A entrar…';
  try{
-  const redirectTo=location.origin+location.pathname+'#owner';
-  const options={shouldCreateUser:ownerAuthMode==='register',emailRedirectTo:redirectTo};
-  if(ownerAuthMode==='register')options.data={full_name:fullName};
-  const {error}=await supabaseClient.auth.signInWithOtp({email,options});
-  if(error)throw error;
-  ownerMessage(ownerAuthMode==='register'
-   ?'Pedido de criação de conta enviado para '+email+'. Abre o link recebido para confirmar o email e concluir o registo.'
-   :'Se existir uma conta com este email, receberás um link seguro para entrar. Abre-o para confirmar o acesso.','success');
+  if(ownerAuthMode==='register'){
+   const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:fullName},emailRedirectTo:location.origin+location.pathname+'#owner'}});
+   if(error)throw error;
+   if(!data.session)ownerMessage('A conta foi criada. Se a confirmação de email ainda estiver activa na Supabase, será necessário confirmar o email antes de entrar.','success');
+   else ownerMessage('Conta criada com sucesso. Já podes registar o teu salão.','success');
+  }else{
+   const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+   if(error)throw error;
+   if(data.session)await loadOwnerDashboard(data.session);
+  }
  }catch(error){ownerMessage('Não foi possível continuar: '+(error.message||'erro de autenticação'),'error');}
- finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta e enviar link seguro':'Enviar link seguro para entrar';}
+ finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta':'Entrar';}
+});
+$('ownerForgotBtn').addEventListener('click',async()=>{
+ const email=$('ownerEmail').value.trim().toLowerCase();
+ if(!email){ownerMessage('Introduz primeiro o email da tua conta.','error');return;}
+ const button=$('ownerForgotBtn');button.disabled=true;button.textContent='A enviar…';
+ try{
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'#owner'});
+  if(error)throw error;
+  ownerMessage('Se existir uma conta com esse email, receberás uma mensagem para recuperar a palavra-passe.','success');
+ }catch(error){ownerMessage('Não foi possível solicitar a recuperação: '+(error.message||'erro desconhecido'),'error');}
+ finally{button.disabled=false;button.textContent='Esqueci-me da palavra-passe';}
+});
+$('ownerRecoveryForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const password=$('ownerNewPassword').value,confirm=$('ownerConfirmPassword').value;
+ if(password.length<8){ownerMessage('A nova palavra-passe deve ter pelo menos 8 caracteres.','error');return;}
+ if(password!==confirm){ownerMessage('As palavras-passe não coincidem.','error');return;}
+ const button=$('ownerRecoveryBtn');button.disabled=true;button.textContent='A guardar…';
+ try{
+  const {error}=await supabaseClient.auth.updateUser({password});
+  if(error)throw error;
+  $('ownerRecoveryForm').hidden=true;
+  $('ownerLoginForm').hidden=false;
+  $('ownerNewPassword').value='';$('ownerConfirmPassword').value='';
+  ownerMessage('Palavra-passe actualizada. Já podes entrar com o email e a nova palavra-passe.','success');
+  await supabaseClient.auth.signOut();
+ }catch(error){ownerMessage('Não foi possível actualizar a palavra-passe: '+(error.message||'erro desconhecido'),'error');}
+ finally{button.disabled=false;button.textContent='Guardar nova palavra-passe';}
 });
 $('salonRegisterForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!ownerSession?.user){ownerMessage('Entra primeiro na tua conta.','error');return;}
