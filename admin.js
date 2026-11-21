@@ -11,7 +11,7 @@ const pill=v=>'<span class="p-pill">'+esc(v||'—')+'</span>';
 const list=t=>data[t]||[];
 function adminSalonVisual(s){
  const row=list('salon_images').find(x=>x.salon_id===s.id&&x.image_path);
- if(row){const src=/^https?:\\/\\//i.test(row.image_path)?row.image_path:db.storage.from('salon-images').getPublicUrl(row.image_path).data.publicUrl;return '<img class="p-salon-thumb" src="'+esc(src)+'" alt="Fotografia de '+esc(s.name)+'">';}
+ if(row){const src=/^https?:\/\//i.test(row.image_path)?row.image_path:db.storage.from('salon-images').getPublicUrl(row.image_path).data.publicUrl;return '<img class="p-salon-thumb" src="'+esc(src)+'" alt="Fotografia de '+esc(s.name)+'">';}
  let h=0;for(const ch of String(s.slug||s.name||''))h=(h*31+ch.charCodeAt(0))>>>0;
  const palettes=[['#142b55','#d9b56d'],['#3b244e','#e8b7ca'],['#174b49','#b6d9c6'],['#50312a','#e6c39b'],['#283b63','#b7c7e8']],c=palettes[h%5];
  const barber=/barber|barbearia|mancave|gentleman|tchetcho|clays|ctrl|zizou/i.test(s.slug||s.name||''),n=esc(s.name).slice(0,30);
