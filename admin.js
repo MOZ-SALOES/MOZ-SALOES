@@ -4,6 +4,22 @@ const root=document.getElementById('adminApp');if(!root)return;
 const tabs=[['home','Resumo'],['salons','Salões'],['users','Utilizadores'],['categories','Categorias'],['services','Serviços'],['plans','Planos e taxas'],['subs','Assinaturas'],['payments','Financeiro'],['promos','Promoções'],['reviews','Avaliações'],['reports','Denúncias'],['messages','Mensagens'],['settings','Configurações'],['logs','Actividades']];
 const names={profiles:'users',salons:'salons',salon_images:'salons',categories:'categories',services:'services',subscription_plans:'plans',subscriptions:'subs',payments:'payments',payment_events:'payment_events',promotions:'promos',reviews:'reviews',reports:'reports',inquiries:'messages',admin_settings:'settings',audit_logs:'logs'};
 const tables=Object.keys(names),data={},state={tab:'home',user:null};
+let adminRealtimeChannel=null,adminRealtimeTimer=null;
+function scheduleAdminRealtimeReload(){
+ clearTimeout(adminRealtimeTimer);
+ adminRealtimeTimer=setTimeout(()=>load().catch(error=>console.warn('Actualização administrativa:',error)),300);
+}
+function connectAdminRealtime(){
+ if(adminRealtimeChannel)return;
+ let channel=db.channel('moz-saloes-admin-live');
+ tables.forEach(table=>{
+  channel=channel.on('postgres_changes',{event:'*',schema:'public',table},scheduleAdminRealtimeReload);
+ });
+ adminRealtimeChannel=channel.subscribe(status=>{
+  if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Sincronização administrativa em tempo real indisponível:',status);
+ });
+}
+
 const $=id=>root.querySelector('#'+id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>Number(v||0).toLocaleString('pt-MZ',{minimumFractionDigits:2,maximumFractionDigits:2})+' MT';
 const dt=v=>v?new Date(v).toLocaleDateString('pt-MZ'):'—';
@@ -111,7 +127,7 @@ window.initAdminPanel=async()=>{
   if(profile?.role!=='admin'||String(profile?.email||'').toLowerCase()!==String(u.user.email||'').toLowerCase()){
    root.innerHTML='<div class="p-empty">Acesso recusado. Esta área é exclusiva da conta administrativa autorizada.</div>';return;
   }
-  state.user=u.user;await load();
+  state.user=u.user;await load();connectAdminRealtime();
  }catch(error){
   root.innerHTML='<div class="p-empty">Não foi possível abrir o painel administrativo. '+esc(error.message||'Erro de autorização ou ligação')+'<br>Actualiza a página e tenta novamente.</div>';
  }finally{state.loading=false;}
