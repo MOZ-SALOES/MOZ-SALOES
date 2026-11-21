@@ -38,7 +38,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .owner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.owner-auth-switch{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.owner-auth-switch button[aria-pressed=true]{background:#102b63}
 .owner-form label{font-size:.88rem;font-weight:700;color:#34445f}.owner-form input,.owner-form select{display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;background:#fff}
 .owner-form .wide{grid-column:1/-1}.owner-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
-.owner-panel{display:grid;gap:16px}.owner-card{border:1px solid #e1e7f0;border-radius:14px;padding:16px}.owner-card h3{margin:0 0 10px}.owner-list{display:grid;gap:9px}.owner-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;background:#f6f8fc;border-radius:10px}
+.owner-panel{display:grid;gap:16px}.owner-card{border:1px solid #e1e7f0;border-radius:14px;padding:16px}.owner-card h3{margin:0 0 10px}.owner-list{display:grid;gap:9px}.owner-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;background:#f6f8fc;border-radius:10px}.appointment-notice{padding:13px 15px;border:1px solid #b9d6fb;background:#edf5ff;color:#17477d;border-radius:12px;font-weight:700;line-height:1.5;margin:12px 0}.appointment-notice.empty{border-color:#cfe8d8;background:#effaf3;color:#17623b}
 .owner-message{padding:11px 13px;border-radius:10px;background:#edf4ff;color:#204c80;font-size:.9rem;line-height:1.45;margin-top:12px}.owner-message.error{background:#fff0f0;color:#9c2525}.owner-message.success{background:#eaf8f0;color:#17623b}
 .owner-muted{font-size:.82rem;color:#64748b}.owner-price{font-weight:800;color:#102b63}.owner-divider{border:0;border-top:1px solid #e1e7f0;margin:16px 0}
 @media(max-width:560px){.owner-form{grid-template-columns:1fr}.owner-form .wide{grid-column:auto}.owner-row{align-items:flex-start;flex-direction:column}}
@@ -147,7 +147,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
     </form>
     <div class="owner-muted">Os preços e durações são carregados dos planos activos na plataforma.</div><div class="owner-message">A integração Pagar está em modo TESTE. Quando a Pagar confirmar o estado PAID através do webhook assinado, a assinatura será activada automaticamente. PROCESSING não significa pagamento concluído.</div>
    </div>
-   <div class="owner-card"><h3>Marcações dos meus salões</h3><p class="owner-muted">Aceita ou recusa os pedidos dos clientes. Só as aceites ficam confirmadas.</p><div id="ownerAppointments" class="owner-list">A carregar…</div></div>
+   <div id="ownerAppointmentNotice" class="appointment-notice" role="status" aria-live="polite">A preparar avisos de marcação…</div><div class="owner-card" id="ownerAppointmentsCard"><h3>Marcações dos meus salões</h3><p class="owner-muted">Aceita ou recusa os pedidos dos clientes. Só as aceites ficam confirmadas.</p><div id="ownerAppointments" class="owner-list">A carregar…</div></div>
    <div class="owner-card"><h3>As minhas marcações</h3><p class="owner-muted">Consulta os pedidos que enviaste aos salões.</p><div id="customerAppointments" class="owner-list">A carregar…</div></div>
    <div class="owner-card"><h3>Os meus pagamentos</h3><p class="owner-muted">Consulta apenas os pagamentos das taxas dos teus salões. O MOZ SALÕES não disponibiliza saldo, comissões ou levantamentos para proprietários.</p><div id="ownerPayments" class="owner-list"><span class="owner-muted">A carregar…</span></div></div>
    <div class="owner-actions"><button class="btn" id="ownerRefreshBtn" type="button">Actualizar dados</button><button class="btn" id="ownerLogoutBtn" type="button" style="background:#64748b">Terminar sessão</button></div>
@@ -249,7 +249,7 @@ $('adminLogout').addEventListener('click',async()=>{
  showAdminSession(false);adminMessage('Sessão terminada com segurança.','success');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT'){showAdminSession(false);ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
+ if(event==='SIGNED_OUT'){stopAppointmentPolling();showAdminSession(false);ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
  if(event==='PASSWORD_RECOVERY'){
   $('ownerSection').hidden=false;$('ownerLoginForm').hidden=true;$('ownerRecoveryForm').hidden=false;
   ownerMessage('Define uma nova palavra-passe para a tua conta.','info');
@@ -271,6 +271,7 @@ if(location.hash==='#owner')$('ownerSection').hidden=false;
 
 
 let ownerSession=null, ownerRequestId=null, ownerPlans=[], pendingBookingSalonId=null, bookingSalonId=null;
+let appointmentPollTimer=null, appointmentPollBusy=false, appointmentPollUserId=null, appointmentPollSalonIds=[], appointmentKnownPendingIds=new Set(), appointmentHasLoaded=false;
 function ownerMessage(message,type='info'){
  const box=$('ownerMessage');box.textContent=message;
  box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;
@@ -319,6 +320,7 @@ async function loadOwnerDashboard(session){
   else $('ownerPayBtn').disabled=false;
   const salonIds=(salons||[]).map(x=>x.id);
   await loadAppointments(session.user.id,salonIds);
+  startAppointmentPolling(session.user.id,salonIds);
   let paymentQuery=supabaseClient.from('payments').select('id,salon_id,amount_mzn,status,provider,provider_reference,created_at,metadata').order('created_at',{ascending:false}).limit(50);paymentQuery=salonIds.length?paymentQuery.or('payer_id.eq.'+session.user.id+',salon_id.in.('+salonIds.join(',')+')'):paymentQuery.eq('payer_id',session.user.id);const {data:payments,error:paymentsError}=await paymentQuery;
   if(paymentsError)throw paymentsError;
   $('ownerPayments').innerHTML=(payments||[]).length?(payments||[]).map(p=>'<div class="owner-row"><div><strong>'+safe(Number(p.amount_mzn).toLocaleString('pt-MZ')+' MT')+'</strong><div class="owner-muted">'+safe(p.provider||'')+' · '+safe(p.created_at?new Date(p.created_at).toLocaleString('pt-MZ'):'')+'</div></div><div><strong>'+safe(p.status)+'</strong><div class="owner-muted">'+safe(p.metadata?.plan_name||'')+'</div></div></div>').join(''):'<span class="owner-muted">Ainda não existem pagamentos.</span>';
@@ -468,6 +470,23 @@ $('bookingForm').addEventListener('submit',async event=>{
  }catch(error){bookingMessage('Não foi possível enviar a marcação: '+(error.message||'erro desconhecido'),'error');}
  finally{button.disabled=false;button.textContent='Enviar pedido de marcação';}
 });
+function appointmentStatusLabel(status){return ({pending:'Pendente',accepted:'Aceite',rejected:'Recusada',cancelled:'Cancelada',completed:'Concluída'})[status]||status;}
+function stopAppointmentPolling(){if(appointmentPollTimer){clearInterval(appointmentPollTimer);appointmentPollTimer=null;}appointmentPollUserId=null;appointmentPollSalonIds=[];appointmentPollBusy=false;appointmentKnownPendingIds=new Set();appointmentHasLoaded=false;}
+function startAppointmentPolling(userId,salonIds){
+ if(appointmentPollUserId!==userId){appointmentKnownPendingIds=new Set();appointmentHasLoaded=false;}
+ appointmentPollUserId=userId;appointmentPollSalonIds=[...salonIds];
+ if(appointmentPollTimer)clearInterval(appointmentPollTimer);
+ appointmentPollTimer=setInterval(refreshAppointmentFeed,30000);
+}
+async function refreshAppointmentFeed(){
+ if(!ownerSession?.user||!appointmentPollUserId||ownerSession.user.id!==appointmentPollUserId||appointmentPollBusy||!navigator.onLine)return;
+ appointmentPollBusy=true;
+ try{await loadAppointments(appointmentPollUserId,appointmentPollSalonIds);}
+ catch(error){const notice=$('ownerAppointmentNotice');notice.textContent='Sem ligação neste momento. Os pedidos continuam guardados; vamos tentar actualizar quando a Internet voltar.';notice.hidden=false;}
+ finally{appointmentPollBusy=false;}
+}
+window.addEventListener('online',()=>{if(ownerSession?.user)refreshAppointmentFeed();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ownerSession?.user)refreshAppointmentFeed();});
 async function loadAppointments(userId,salonIds){
  const ownerBox=$('ownerAppointments'),customerBox=$('customerAppointments');
  const [own, mine]=await Promise.all([
@@ -475,10 +494,17 @@ async function loadAppointments(userId,salonIds){
   supabaseClient.from('appointments').select('id,salon_id,service_id,appointment_date,appointment_time,owner_response,status').eq('customer_id',userId).order('appointment_date',{ascending:false})
  ]);
  if(own.error)throw own.error;if(mine.error)throw mine.error;
+ const pending=(own.data||[]).filter(a=>a.status==='pending');
+ const fresh=pending.filter(a=>!appointmentKnownPendingIds.has(a.id));
+ const firstSnapshot=!appointmentHasLoaded;
+ appointmentKnownPendingIds=new Set(pending.map(a=>a.id));appointmentHasLoaded=true;
+ const notice=$('ownerAppointmentNotice');notice.hidden=false;notice.className='appointment-notice'+(pending.length?'':' empty');
+ notice.textContent=pending.length?'Tens '+pending.length+' pedido(s) de marcação pendente(s). '+(firstSnapshot?'Consulta os detalhes e aceita ou recusa cada pedido.':fresh.length?'Chegou um novo pedido de marcação. Consulta os detalhes abaixo.':'Os pedidos continuam à tua espera.'):'Não tens pedidos de marcação pendentes neste momento. O MOZ SALÕES verifica novas marcações automaticamente enquanto esta página estiver aberta.';
+ if(!firstSnapshot&&fresh.length&&document.hidden&&'Notification' in window&&Notification.permission==='granted'){try{new Notification('MOZ SALÕES — Nova marcação',{body:'Recebeste um novo pedido. Abre o site para aceitar ou recusar.'});}catch{}}
  const salonName=id=>state.salons.find(x=>x.id===id)?.name||'Salão';
  const serviceName=id=>state.services.find(x=>x.id===id)?.name||'Serviço';
- ownerBox.innerHTML=(own.data||[]).length?own.data.map(a=>'<div class="owner-row"><div><strong>'+safe(salonName(a.salon_id))+' · '+safe(serviceName(a.service_id))+'</strong><div class="owner-muted">'+safe(a.appointment_date)+' às '+safe(String(a.appointment_time).slice(0,5))+' · '+safe(a.customer_phone)+'</div><div class="owner-muted">'+safe(a.customer_note||'')+'</div></div><div><strong>'+safe(a.status)+'</strong>'+(a.status==='pending'?'<div class="owner-actions"><button class="btn" data-appointment-action="accepted" data-appointment-id="'+safe(a.id)+'">Aceitar</button><button class="btn" style="background:#64748b" data-appointment-action="rejected" data-appointment-id="'+safe(a.id)+'">Recusar</button></div>':'')+'</div></div>').join(''):'<span class="owner-muted">Ainda não recebeste pedidos de marcação.</span>';
- customerBox.innerHTML=(mine.data||[]).length?mine.data.map(a=>'<div class="owner-row"><div><strong>'+safe(salonName(a.salon_id))+' · '+safe(serviceName(a.service_id))+'</strong><div class="owner-muted">'+safe(a.appointment_date)+' às '+safe(String(a.appointment_time).slice(0,5))+'</div><div class="owner-muted">'+safe(a.owner_response||'')+'</div></div><strong>'+safe(a.status)+'</strong></div>').join(''):'<span class="owner-muted">Ainda não enviaste marcações.</span>';
+ ownerBox.innerHTML=(own.data||[]).length?own.data.map(a=>'<div class="owner-row"><div><strong>'+safe(salonName(a.salon_id))+' · '+safe(serviceName(a.service_id))+'</strong><div class="owner-muted">'+safe(a.appointment_date)+' às '+safe(String(a.appointment_time).slice(0,5))+' · '+safe(a.customer_phone)+'</div><div class="owner-muted">'+safe(a.customer_note||'')+'</div></div><div><strong>'+safe(appointmentStatusLabel(a.status))+'</strong>'+(a.status==='pending'?'<div class="owner-actions"><button class="btn" data-appointment-action="accepted" data-appointment-id="'+safe(a.id)+'">Aceitar</button><button class="btn" style="background:#64748b" data-appointment-action="rejected" data-appointment-id="'+safe(a.id)+'">Recusar</button></div>':'')+'</div></div>').join(''):'<span class="owner-muted">Ainda não recebeste pedidos de marcação.</span>';
+ customerBox.innerHTML=(mine.data||[]).length?mine.data.map(a=>'<div class="owner-row"><div><strong>'+safe(salonName(a.salon_id))+' · '+safe(serviceName(a.service_id))+'</strong><div class="owner-muted">'+safe(a.appointment_date)+' às '+safe(String(a.appointment_time).slice(0,5))+'</div><div class="owner-muted">'+safe(a.owner_response||'')+'</div></div><strong>'+safe(appointmentStatusLabel(a.status))+'</strong></div>').join(''):'<span class="owner-muted">Ainda não enviaste marcações.</span>';
 }
 $('ownerAppointments').addEventListener('click',async event=>{
  const b=event.target.closest('[data-appointment-action]');if(!b)return;
@@ -490,7 +516,7 @@ $('ownerAppointments').addEventListener('click',async event=>{
 
 $('ownerLogoutBtn').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();if(error){ownerMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
- ownerSession=null;ownerRequestId=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;ownerMessage('Sessão terminada.','success');
+ stopAppointmentPolling();ownerSession=null;ownerRequestId=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;ownerMessage('Sessão terminada.','success');
 });
 
 function populate(select,items){
