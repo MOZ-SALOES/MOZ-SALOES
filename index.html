@@ -197,19 +197,17 @@ function schedulePublicRealtimeRefresh(table){
  publicRealtimeTimer=setTimeout(async()=>{
   const changed=[...pendingPublicRealtimeTables];pendingPublicRealtimeTables.clear();
   try{
-   if(changed.some(t=>['salons','services','categories','salon_images'].includes(t)))await init();
-   if(changed.includes('subscription_plans')&&ownerSession?.user)await refreshOwnerLiveData();
+   if(changed.includes('directory')||changed.some(t=>['salons','services','categories','salon_images'].includes(t)))await init();
+   if((changed.includes('directory')||changed.includes('subscription_plans')||changed.includes('salons'))&&ownerSession?.user)await refreshOwnerLiveData();
    if(changed.includes('appointments')&&ownerSession?.user)await refreshAppointmentFeed();
-   if(changed.includes('salons')&&ownerSession?.user)await refreshOwnerSalonOptions();
   }catch(error){console.warn('Actualização em tempo real:',error);}
  },250);
 }
 function connectPublicRealtime(){
  if(publicRealtimeChannel)return;
- let channel=supabaseClient.channel('moz-saloes-public-live');
- ['salons','services','categories','salon_images','subscription_plans','appointments'].forEach(table=>{
-  channel=channel.on('postgres_changes',{event:'*',schema:'public',table},()=>schedulePublicRealtimeRefresh(table));
- });
+ let channel=supabaseClient.channel('moz-saloes:public');
+ channel=channel.on('broadcast',{event:'directory_changed'},()=>schedulePublicRealtimeRefresh('directory'));
+ channel=channel.on('postgres_changes',{event:'*',schema:'public',table:'appointments'},()=>schedulePublicRealtimeRefresh('appointments'));
  publicRealtimeChannel=channel.subscribe(status=>{
   if(status==='SUBSCRIBED'){
    $('detail').textContent='Directório sincronizado. As alterações aparecem automaticamente.';
