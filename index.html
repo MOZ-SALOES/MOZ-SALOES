@@ -90,6 +90,20 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 </style>
 </head>
 <body>
+<div id="mozIntro" class="is-active" role="status" aria-label="Abertura MOZ SALÕES">
+ <div class="intro-glow"></div>
+ <div class="intro-content">
+  <div class="intro-mark" aria-hidden="true">
+   <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 12 46 52M46 12 18 52M18 12a7 7 0 1 0-14 0 7 7 0 0 0 14 0ZM60 52a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" stroke="#B9DCFF" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="32" cy="32" r="4" fill="#fff"/>
+   </svg>
+  </div>
+  <div class="intro-name">MOZ <span>SALÕES</span><span class="intro-country">🇲🇿</span></div>
+  <p class="intro-tagline">Beleza perto de ti.</p>
+  <div class="intro-line"></div>
+ </div>
+</div>
 
 
 <header>
@@ -747,6 +761,14 @@ $('province').addEventListener('change',render);
 $('category').addEventListener('change',render);
 init();
 }
+</script>
+<script>
+(function(){
+ const intro=document.getElementById('mozIntro');
+ if(!intro)return;
+ window.setTimeout(()=>intro.classList.remove('is-active'),5000);
+ window.setTimeout(()=>intro.classList.add('is-leaving'),5000);
+})();
 </script>
 <script src="./admin.js"></script>
 </body>
