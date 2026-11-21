@@ -92,30 +92,6 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 <body>
 
 
-<div id="mozCover" role="img" aria-label="Apresentação do MOZ SALÕES">
- <div class="cover-panel">
-  <div class="cover-top"><div class="cover-brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="cover-sub">Directório digital de salões de Moçambique</div></div>
-  <div class="cover-art" aria-hidden="true"><div class="cover-icon">✂️</div></div>
-  <div class="cover-copy"><strong>Beleza perto de ti</strong><p>Descobre salões, consulta serviços e compara preços numa só plataforma.</p><div class="cover-pills"><span>Salões</span><span>Serviços</span><span>Preços</span><span>Localização</span></div></div>
- </div>
-</div>
-
-<div id="mozIntro" role="status" aria-label="A abrir o MOZ SALÕES">
- <div class="intro-glow" aria-hidden="true"></div>
- <div class="intro-content">
-  <div class="intro-mark" aria-hidden="true">
-   <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M18 13l28 38M46 13L18 51" stroke="#D8ECFF" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="16" cy="12" r="7" stroke="#8FC5FF" stroke-width="3"/><circle cx="48" cy="12" r="7" stroke="#8FC5FF" stroke-width="3"/>
-    <path d="M32 30l-7 9 7 8 7-8-7-9z" fill="#8FC5FF" opacity=".9"/>
-   </svg>
-  </div>
-  <div class="intro-name">MOZ <span>SALÕES</span><span class="intro-country">🇲🇿</span></div>
-  <p class="intro-tagline">A beleza começa perto de ti.</p>
-  <div class="intro-line" aria-hidden="true"></div>
- </div>
-</div>
-
 <header>
  <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
  <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a></nav>
@@ -739,31 +715,6 @@ function render(){
  }).join('');
 }
 
-function renderServiceCatalog(){
- const query=$('serviceSearch').value.trim().toLocaleLowerCase('pt');
- const selected=$('serviceCompare').value;
- const names=[...new Set(state.services.map(x=>String(x.name||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
- const current=$('serviceCompare').value;
- $('serviceCompare').innerHTML='<option value="">Todos os serviços</option>'+names.map(n=>'<option value="'+safe(n)+'">'+safe(n)+'</option>').join('');
- if(names.includes(current))$('serviceCompare').value=current;
- let rows=state.services.filter(service=>{
-  const salon=state.salons.find(s=>s.id===service.salon_id);
-  return salon&&(!selected||service.name===selected)&&(!query||(service.name+' '+salon.name+' '+[salon.neighborhood,salon.city,salon.district,salon.province].filter(Boolean).join(' ')).toLocaleLowerCase('pt').includes(query));
- }).map(service=>({service,salon:state.salons.find(s=>s.id===service.salon_id)}));
- rows.sort((a,b)=>{
-  const ap=Number(a.service.price_mzn),bp=Number(b.service.price_mzn);
-  if(a.service.price_mzn==null)return 1;if(b.service.price_mzn==null)return -1;
-  return ap-bp||a.salon.name.localeCompare(b.salon.name,'pt');
- });
- $('serviceCompareCount').textContent=rows.length+' opção(ões) encontrada(s)'+(selected?' para '+selected:'');
- $('serviceCompareResults').innerHTML=rows.length?rows.map(({service,salon})=>{
-  const place=[salon.neighborhood,salon.city,salon.district,salon.province].filter(Boolean).join(', ');
-  const price=service.price_mzn===null||service.price_mzn===''?'Preço sob consulta':Number(service.price_mzn).toLocaleString('pt-MZ')+' MT';
-  const map=mapUrl(salon);
-  return '<article class="compare-row"><div><strong>'+safe(service.name)+'</strong><div>'+safe(salon.name)+'</div><div class="compare-place">'+safe(place||'Moçambique')+(map?' · <a href="'+safe(map)+'" target="_blank" rel="noopener noreferrer">Localização</a>':'')+'</div></div><div class="compare-price">'+safe(price)+'</div></article>';
- }).join(''):'<div class="empty">Não encontrámos preços ou serviços correspondentes. Experimenta outro nome ou serviço.</div>';
-}
-
 async function init(){
  try{
   const [categoriesResult,salonsResult,servicesResult,imagesResult]=await Promise.all([
@@ -782,7 +733,6 @@ async function init(){
   if(provinces.includes(selectedProvince))$('province').value=selectedProvince;
   $('dot').className='dot ok';$('status').textContent='Ligação ao Supabase estabelecida';$('detail').textContent='Dados carregados com sucesso.';$('retryConnection').hidden=true;
   render();
-  renderServiceCatalog();
   connectPublicRealtime();
  }catch(error){
   $('dot').className='dot err';$('status').textContent='Não foi possível carregar o directório';$('detail').textContent=error.message||'Erro de ligação';
@@ -795,16 +745,9 @@ $('searchBtn').addEventListener('click',render);
 $('q').addEventListener('input',render);
 $('province').addEventListener('change',render);
 $('category').addEventListener('change',render);
-$('serviceSearch').addEventListener('input',renderServiceCatalog);
-$('serviceCompare').addEventListener('change',renderServiceCatalog);
 init();
 }
 </script>
 <script src="./admin.js"></script>
-<script>
-(()=>{const cover=document.getElementById("mozCover"),intro=document.getElementById("mozIntro");if(!cover||!intro)return;
- window.setTimeout(()=>{cover.classList.add("is-leaving");window.setTimeout(()=>{cover.remove();intro.classList.add("is-active");window.setTimeout(()=>{intro.classList.add("is-leaving");window.setTimeout(()=>intro.remove(),650);},5000);},520);},1800);
-})();
-</script>
 </body>
 </html>
