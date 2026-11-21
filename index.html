@@ -281,7 +281,8 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
    adminMessage('Define uma nova palavra-passe para a conta administrativa.','success');
   }else{
    $('ownerSection').hidden=false;$('ownerLoginForm').hidden=true;$('ownerRecoveryForm').hidden=false;
-   ownerMessage('Define uma nova palavra-passe para a tua conta.','info');
+   ownerMessage('Link de recuperação validado. Define uma nova palavra-passe.','info');
+   $('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});
   }
  }
  if(event==='SIGNED_IN')window.setTimeout(()=>{
@@ -296,8 +297,18 @@ supabaseClient.auth.getSession().then(({data,error})=>{
   else if(location.hash==='#owner')loadOwnerDashboard(data.session);
  }
 });
-if(location.hash==='#silda-acesso'||new URLSearchParams(location.search).get('admin-recovery')==='1')$('adminSection').hidden=false;
-if(location.hash==='#owner')$('ownerSection').hidden=false;
+const recoveryParams=new URLSearchParams(location.search);
+const recoveryHash=new URLSearchParams(location.hash.replace(/^#/,''));
+const ownerRecoveryRequested=recoveryParams.get('owner-recovery')==='1'||recoveryHash.get('type')==='recovery';
+if(location.hash==='#silda-acesso'||recoveryParams.get('admin-recovery')==='1')$('adminSection').hidden=false;
+if(location.hash==='#owner'||ownerRecoveryRequested){
+ $('ownerSection').hidden=false;
+ if(ownerRecoveryRequested){
+  $('ownerLoginForm').hidden=true;
+  $('ownerRecoveryForm').hidden=false;
+  ownerMessage('A validar o link de recuperação. Se o link for válido, define aqui a nova palavra-passe.','info');
+ }
+}
 
 
 let ownerSession=null, ownerRequestId=null, ownerPlans=[], pendingBookingSalonId=null, bookingSalonId=null;
@@ -409,7 +420,7 @@ $('ownerForgotBtn').addEventListener('click',async()=>{
  if(!email){ownerMessage('Introduz primeiro o email da tua conta.','error');return;}
  const button=$('ownerForgotBtn');button.disabled=true;button.textContent='A enviar…';
  try{
-  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'#owner'});
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?owner-recovery=1'});
   if(error)throw error;
   ownerMessage('Se existir uma conta com esse email, receberás uma mensagem para recuperar a palavra-passe.','success');
  }catch(error){ownerMessage('Não foi possível solicitar a recuperação: '+(error.message||'erro desconhecido'),'error');}
