@@ -77,7 +77,7 @@ jobs:
         if: steps.credentials.outputs.ready == 'true' && steps.history.outputs.ready == 'true'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: supabase migration list --remote="$SUPABASE_DB_URL"
+        run: supabase migration list --db-url="$SUPABASE_DB_URL"
 
       - name: Report deployment safely blocked
         if: steps.credentials.outputs.ready != 'true' || steps.history.outputs.ready != 'true'
