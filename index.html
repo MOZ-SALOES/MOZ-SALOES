@@ -189,6 +189,36 @@ const fetchWithTimeout=(input,init={})=>{
 const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},global:{fetch:fetchWithTimeout}});
 const $=id=>document.getElementById(id);
 const state={salons:[],services:[],categories:[],images:[]};
+let publicRealtimeChannel=null,publicRealtimeTimer=null;
+const pendingPublicRealtimeTables=new Set();
+function schedulePublicRealtimeRefresh(table){
+ pendingPublicRealtimeTables.add(table);
+ clearTimeout(publicRealtimeTimer);
+ publicRealtimeTimer=setTimeout(async()=>{
+  const changed=[...pendingPublicRealtimeTables];pendingPublicRealtimeTables.clear();
+  try{
+   if(changed.some(t=>['salons','services','categories','salon_images'].includes(t)))await init();
+   if(changed.includes('subscription_plans')&&ownerSession?.user)await refreshOwnerLiveData();
+   if(changed.includes('appointments')&&ownerSession?.user)await refreshAppointmentFeed();
+   if(changed.includes('salons')&&ownerSession?.user)await refreshOwnerSalonOptions();
+  }catch(error){console.warn('Actualização em tempo real:',error);}
+ },250);
+}
+function connectPublicRealtime(){
+ if(publicRealtimeChannel)return;
+ let channel=supabaseClient.channel('moz-saloes-public-live');
+ ['salons','services','categories','salon_images','subscription_plans','appointments'].forEach(table=>{
+  channel=channel.on('postgres_changes',{event:'*',schema:'public',table},()=>schedulePublicRealtimeRefresh(table));
+ });
+ publicRealtimeChannel=channel.subscribe(status=>{
+  if(status==='SUBSCRIBED'){
+   $('detail').textContent='Directório sincronizado. As alterações aparecem automaticamente.';
+  }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+   $('detail').textContent='A sincronização em tempo real está temporariamente indisponível.';
+  }
+ });
+}
+
 function salonIllustration(s){
  const slug=String(s.slug||s.name||'salon');let h=0;for(const ch of slug)h=(h*31+ch.charCodeAt(0))>>>0;
  const colors=[['#142b55','#d9b56d'],['#3b244e','#e8b7ca'],['#174b49','#b6d9c6'],['#50312a','#e6c39b'],['#283b63','#b7c7e8']][h%5];
@@ -378,6 +408,25 @@ async function loadOwnerDashboard(session){
   else ownerMessage('A tua conta está pronta. Não precisas de registar um salão para explorar o directório.','success');
  }catch(error){ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
 }
+async function refreshOwnerSalonOptions(){
+ if(!ownerSession?.user||$('ownerSection').hidden)return;
+ const {data:salons,error}=await supabaseClient.from('salons').select('id,name,status,province,district').eq('owner_id',ownerSession.user.id).order('created_at',{ascending:false});
+ if(error)throw error;
+ const select=$('ownerSalon'),selected=select.value;select.innerHTML='';
+ (salons||[]).forEach(s=>{const option=document.createElement('option');option.value=s.id;option.textContent=s.name+' — '+s.status;select.appendChild(option);});
+ if((salons||[]).some(s=>s.id===selected))select.value=selected;
+}
+async function refreshOwnerLiveData(){
+ if(!ownerSession?.user||$('ownerSection').hidden)return;
+ const {data:plans,error}=await supabaseClient.from('subscription_plans').select('id,name,duration_days,price_mzn').eq('active',true).order('duration_days');
+ if(error)throw error;
+ ownerPlans=plans||[];
+ const select=$('ownerPlan'),selected=select.value;select.innerHTML='';
+ ownerPlans.forEach(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.name+' — '+Number(p.price_mzn).toLocaleString('pt-MZ')+' MT';select.appendChild(option);});
+ if(ownerPlans.some(p=>p.id===selected))select.value=selected;
+ $('ownerPayBtn').disabled=!ownerPlans.length;
+ await refreshOwnerSalonOptions();
+}
 $('ownerNav').addEventListener('click',openOwnerSection);
  $('ownerStartSalonBtn').addEventListener('click',()=>{$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerExploreBtn').addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
@@ -536,7 +585,7 @@ async function refreshAppointmentFeed(){
  finally{appointmentPollBusy=false;}
 }
 window.addEventListener('online',()=>{if(ownerSession?.user)refreshAppointmentFeed();});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ownerSession?.user)refreshAppointmentFeed();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){init();if(ownerSession?.user)refreshAppointmentFeed();}});
 async function loadAppointments(userId,salonIds){
  const ownerBox=$('ownerAppointments'),customerBox=$('customerAppointments');
  const [own, mine]=await Promise.all([
@@ -621,11 +670,15 @@ async function init(){
   ]);
   for(const result of [categoriesResult,salonsResult,servicesResult,imagesResult])if(result.error)throw result.error;
   state.categories=categoriesResult.data||[];state.salons=salonsResult.data||[];state.services=servicesResult.data||[];state.images=imagesResult.data||[];
+  const selectedCategory=$('category').value,selectedProvince=$('province').value;
   populate($('category'),state.categories.map(x=>({value:x.id,label:x.name})));
   const provinces=[...new Set(state.salons.map(x=>x.province).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
   populate($('province'),provinces.map(x=>({value:x,label:x})));
+  if(state.categories.some(x=>x.id===selectedCategory))$('category').value=selectedCategory;
+  if(provinces.includes(selectedProvince))$('province').value=selectedProvince;
   $('dot').className='dot ok';$('status').textContent='Ligação ao Supabase estabelecida';$('detail').textContent='Dados carregados com sucesso.';$('retryConnection').hidden=true;
   render();
+  connectPublicRealtime();
  }catch(error){
   $('dot').className='dot err';$('status').textContent='Não foi possível carregar o directório';$('detail').textContent=error.message||'Erro de ligação';
   $('count').textContent='A ligação precisa de ser verificada';
