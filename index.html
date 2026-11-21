@@ -20,7 +20,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .btn{border:0;border-radius:10px;padding:12px 18px;background:#1761b1;color:white;font-weight:750;cursor:pointer}.btn:hover{background:#104b8c}.btn:disabled{opacity:.6;cursor:wait}
 .status{display:flex;align-items:center;gap:9px;color:#64748b;font-size:.86rem;margin-top:13px;flex-wrap:wrap}.dot{width:9px;height:9px;border-radius:50%;background:#d39b2a}.dot.ok{background:#15945c}.dot.err{background:#c33}
 .section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:32px 0 15px}.section-head h2{margin:0;color:#102b63;font-size:1.45rem}.muted{color:#68778e;font-size:.9rem}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.card{background:white;border:1px solid #e1e7f0;border-radius:16px;padding:18px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.salon-visual{height:170px;position:relative;margin:-18px -18px 14px;overflow:hidden;background:#e8edf5;border-radius:15px 15px 0 0}.salon-visual img{width:100%;height:100%;object-fit:cover;display:block}.salon-visual span{position:absolute;right:9px;bottom:9px;background:#102b63dd;color:#fff;border-radius:20px;padding:5px 9px;font-size:10px;font-weight:700}.card{background:white;border:1px solid #e1e7f0;border-radius:16px;padding:18px;min-width:0}
 .card h3{margin:0 0 7px;color:#102b63;font-size:1.1rem}.pill{display:inline-block;background:#edf4ff;color:#24558e;border-radius:99px;padding:5px 9px;font-size:.75rem;margin:0 5px 6px 0}
 .card p{color:#65738a;line-height:1.5;font-size:.9rem;margin:8px 0}.card .price{font-weight:800;color:#173d70}.card a{color:#145ca8;text-decoration:none;font-weight:700;font-size:.9rem}
 .empty{grid-column:1/-1;text-align:center;padding:35px 20px;background:white;border:1px dashed #cbd5e1;border-radius:16px;color:#64748b}
@@ -188,7 +188,16 @@ const fetchWithTimeout=(input,init={})=>{
 };
 const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},global:{fetch:fetchWithTimeout}});
 const $=id=>document.getElementById(id);
-const state={salons:[],services:[],categories:[]};
+const state={salons:[],services:[],categories:[],images:[]};
+function salonIllustration(s){
+ const slug=String(s.slug||s.name||'salon');let h=0;for(const ch of slug)h=(h*31+ch.charCodeAt(0))>>>0;
+ const colors=[['#142b55','#d9b56d'],['#3b244e','#e8b7ca'],['#174b49','#b6d9c6'],['#50312a','#e6c39b'],['#283b63','#b7c7e8']][h%5];
+ const n=safe(s.name||'Salão').slice(0,38);const type=/barber|barbearia|mancave|gentleman|tchetcho|clays|ctrl|zizou/i.test(slug)?'barber':/mani|pedi|unha/i.test(slug)?'nails':/cabelo|hair|belle|afriki/i.test(slug)?'hair':'beauty';
+ let art=type==='barber'?'<path d="M175 70v110M195 70v110" stroke="#fff" stroke-width="12"/><path d="M175 80l20 14-20 14 20 14-20 14 20 14" stroke="#d85c56" stroke-width="9" fill="none"/><path d="M95 102l42 42m0-42l-42 42" stroke="#fff" stroke-width="8" stroke-linecap="round"/>':type==='nails'?'<rect x="112" y="73" width="56" height="92" rx="13" fill="#f4d4dc"/><rect x="125" y="48" width="30" height="30" rx="5" fill="#fff"/><path d="M140 95c-20 20-17 45 0 55 17-10 20-35 0-55z" fill="#bd6687"/>':type==='hair'?'<path d="M90 155c-15-85 30-120 75-110 45 10 55 55 35 110l-18 18H108z" fill="#211a24"/><ellipse cx="145" cy="125" rx="38" ry="49" fill="#d9a27d"/><path d="M106 115c10-48 73-54 84-5-25-10-50-18-84 5z" fill="#211a24"/>':'<path d="M145 55c-50 0-65 42-58 85 5 34 24 54 58 65 34-11 53-31 58-65 7-43-8-85-58-85z" fill="#e9bd9b"/><path d="M88 117c-4-61 35-83 68-79 43 5 60 36 47 82-18-27-35-39-58-40-23 0-39 15-57 37z" fill="#2b1d26"/><path d="M120 145q25 18 50 0" stroke="#8d4d4b" stroke-width="5" fill="none" stroke-linecap="round"/>';
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220"><defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="'+colors[0]+'"/><stop offset="1" stop-color="'+colors[1]+'"/></linearGradient></defs><rect width="320" height="220" fill="url(#g)"/><circle cx="145" cy="116" r="88" fill="#ffffff" opacity=".12"/>'+art+'<path d="M0 187h320v33H0z" fill="#0d1830" opacity=".42"/><text x="160" y="207" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">'+n.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text></svg>';
+ return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+}
+function salonPhoto(s){const row=state.images.find(x=>x.salon_id===s.id&&x.image_path);if(!row)return {src:salonIllustration(s),label:'Imagem ilustrativa'};const src=/^https?:\/\//i.test(row.image_path)?row.image_path:supabaseClient.storage.from('salon-images').getPublicUrl(row.image_path).data.publicUrl;return {src,label:row.caption||'Fotografia do estabelecimento'};}
 
 function safe(value){
  return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -599,18 +608,19 @@ function render(){
   const contact=phone?'<a href="https://wa.me/'+safe(phone)+'" target="_blank" rel="noopener noreferrer">Contactar pelo WhatsApp</a>':'<span class="muted">Contacto não disponível</span>';
   const map=mapUrl(s);
   const mapLink=map?'<a href="'+safe(map)+'" target="_blank" rel="noopener noreferrer">Ver localização</a>':'';
-  return '<article class="card"><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||'Salão de beleza. Consulta os serviços disponíveis.')+'</p><div>'+tags+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+'</p><p><button class="btn" type="button" data-book-salon="'+safe(s.id)+'">Marcar atendimento</button></p></article>';
+  const photo=salonPhoto(s);return '<article class="card"><div class="salon-visual"><img src="'+safe(photo.src)+'" alt="'+safe(photo.label+' — '+s.name)+'" loading="lazy"><span>'+safe(photo.label)+'</span></div><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||'Salão de beleza. Consulta os serviços disponíveis.')+'</p><div>'+tags+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+'</p><p><button class="btn" type="button" data-book-salon="'+safe(s.id)+'">Marcar atendimento</button></p></article>';
  }).join('');
 }
 async function init(){
  try{
-  const [categoriesResult,salonsResult,servicesResult]=await Promise.all([
+  const [categoriesResult,salonsResult,servicesResult,imagesResult]=await Promise.all([
    supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),
    supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude').eq('status','active').order('name',{ascending:true}),
-   supabaseClient.from('services').select('salon_id,category_id,name,price_mzn').eq('active',true)
+   supabaseClient.from('services').select('salon_id,category_id,name,price_mzn').eq('active',true),
+   supabaseClient.from('salon_images').select('salon_id,image_path,caption,sort_order').order('sort_order',{ascending:true})
   ]);
-  for(const result of [categoriesResult,salonsResult,servicesResult])if(result.error)throw result.error;
-  state.categories=categoriesResult.data||[];state.salons=salonsResult.data||[];state.services=servicesResult.data||[];
+  for(const result of [categoriesResult,salonsResult,servicesResult,imagesResult])if(result.error)throw result.error;
+  state.categories=categoriesResult.data||[];state.salons=salonsResult.data||[];state.services=servicesResult.data||[];state.images=imagesResult.data||[];
   populate($('category'),state.categories.map(x=>({value:x.id,label:x.name})));
   const provinces=[...new Set(state.salons.map(x=>x.province).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
   populate($('province'),provinces.map(x=>({value:x,label:x})));
