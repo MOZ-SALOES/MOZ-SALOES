@@ -88,6 +88,15 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <button class="btn" id="adminSubmit" type="submit">Entrar no painel</button>
    <button class="btn secondary" id="adminForgotPassword" type="button">Esqueci-me da palavra-passe</button>
   </form>
+  <form id="adminRecoveryForm" class="admin-form" hidden>
+   <label>Nova palavra-passe
+    <input id="adminNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Mínimo de 8 caracteres" required>
+   </label>
+   <label>Confirmar nova palavra-passe
+    <input id="adminConfirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Repete a palavra-passe" required>
+   </label>
+   <button class="btn" id="adminRecoverySubmit" type="submit">Guardar nova palavra-passe</button>
+  </form>
   <div id="adminMessage" class="admin-message" role="status" hidden></div>
   <div id="adminDashboard" hidden>
    <div class="status"><span class="dot ok"></span><strong>Sessão administrativa autenticada</strong></div>
@@ -237,11 +246,27 @@ $('adminForgotPassword').addEventListener('click',async()=>{
  if(!email){adminMessage('Introduz primeiro o email da conta administradora.','error');return;}
  const button=$('adminForgotPassword');button.disabled=true;
  try{
-  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname+'?admin-recovery=1'});
   if(error)throw error;
   adminMessage('Se a conta existir, receberás um email para definir uma nova palavra-passe. Usa esse link apenas para recuperar o acesso.','success');
  }catch(error){adminMessage('Não foi possível enviar a recuperação: '+(error.message||'erro de autenticação'),'error');}
  finally{button.disabled=false;}
+});
+$('adminRecoveryForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const password=$('adminNewPassword').value,confirm=$('adminConfirmPassword').value;
+ if(password.length<8){adminMessage('A nova palavra-passe deve ter pelo menos 8 caracteres.','error');return;}
+ if(password!==confirm){adminMessage('As palavras-passe não coincidem.','error');return;}
+ const button=$('adminRecoverySubmit');button.disabled=true;button.textContent='A guardar…';
+ try{
+  const {error}=await supabaseClient.auth.updateUser({password});
+  if(error)throw error;
+  $('adminRecoveryForm').hidden=true;$('adminLoginForm').hidden=false;
+  $('adminNewPassword').value='';$('adminConfirmPassword').value='';
+  adminMessage('Palavra-passe administrativa actualizada. Já podes entrar novamente.','success');
+  await supabaseClient.auth.signOut();
+ }catch(error){adminMessage('Não foi possível actualizar a palavra-passe: '+(error.message||'erro de autenticação'),'error');}
+ finally{button.disabled=false;button.textContent='Guardar nova palavra-passe';}
 });
 $('adminLogout').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();
@@ -251,8 +276,13 @@ $('adminLogout').addEventListener('click',async()=>{
 supabaseClient.auth.onAuthStateChange((event,session)=>{
  if(event==='SIGNED_OUT'){stopAppointmentPolling();showAdminSession(false);ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
  if(event==='PASSWORD_RECOVERY'){
-  $('ownerSection').hidden=false;$('ownerLoginForm').hidden=true;$('ownerRecoveryForm').hidden=false;
-  ownerMessage('Define uma nova palavra-passe para a tua conta.','info');
+  if(new URLSearchParams(location.search).get('admin-recovery')==='1'||location.hash==='#silda-acesso'){
+   $('adminSection').hidden=false;$('adminLoginForm').hidden=true;$('adminRecoveryForm').hidden=false;
+   adminMessage('Define uma nova palavra-passe para a conta administrativa.','success');
+  }else{
+   $('ownerSection').hidden=false;$('ownerLoginForm').hidden=true;$('ownerRecoveryForm').hidden=false;
+   ownerMessage('Define uma nova palavra-passe para a tua conta.','info');
+  }
  }
  if(event==='SIGNED_IN')window.setTimeout(()=>{
   if(location.hash==='#silda-acesso')verifyAdminSession(session);
@@ -266,7 +296,7 @@ supabaseClient.auth.getSession().then(({data,error})=>{
   else if(location.hash==='#owner')loadOwnerDashboard(data.session);
  }
 });
-if(location.hash==='#silda-acesso')$('adminSection').hidden=false;
+if(location.hash==='#silda-acesso'||new URLSearchParams(location.search).get('admin-recovery')==='1')$('adminSection').hidden=false;
 if(location.hash==='#owner')$('ownerSection').hidden=false;
 
 
