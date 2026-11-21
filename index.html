@@ -62,6 +62,16 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
   <div class="status"><span class="dot" id="dot"></span><strong id="status">A preparar ligação segura…</strong><span id="detail"></span><button class="btn" id="retryConnection" type="button" hidden style="padding:7px 10px;font-size:.78rem">Tentar novamente</button></div>
  </section>
  <section id="saloes"><div class="section-head"><div><h2>Salões disponíveis</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
+ <section id="bookingSection" class="owner-wrap" hidden>
+  <h2>Marcar atendimento</h2><p id="bookingSalonName">Escolhe o serviço, a data e a hora pretendidas.</p>
+  <form id="bookingForm" class="owner-form">
+   <label class="wide">Serviço<select id="bookingService"><option value="">Escolher serviço (opcional)</option></select></label>
+   <label>Data<input id="bookingDate" type="date" required></label><label>Hora<input id="bookingTime" type="time" required></label>
+   <label class="wide">Telefone<input id="bookingPhone" type="tel" inputmode="tel" required placeholder="82xxxxxxx"></label>
+   <label class="wide">Observação (opcional)<input id="bookingNote" maxlength="300" placeholder="Detalhe do atendimento"></label>
+   <div class="owner-actions wide"><button class="btn" id="bookingSubmit" type="submit">Enviar pedido de marcação</button><button class="btn" id="bookingCancel" type="button" style="background:#64748b">Cancelar</button></div>
+  </form><div id="bookingMessage" class="owner-message" role="status" hidden></div>
+ </section>
  <section id="adminSection" class="admin-wrap" hidden>
   <h2>Acesso administrativo</h2>
   <p>Área reservada à administração do MOZ SALÕES. O acesso é confirmado pela conta autenticada e pela função de administrador na base de dados.</p>
@@ -137,6 +147,8 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
     </form>
     <div class="owner-muted">Os preços e durações são carregados dos planos activos na plataforma.</div><div class="owner-message">A integração Pagar está em modo TESTE. Quando a Pagar confirmar o estado PAID através do webhook assinado, a assinatura será activada automaticamente. PROCESSING não significa pagamento concluído.</div>
    </div>
+   <div class="owner-card"><h3>Marcações dos meus salões</h3><p class="owner-muted">Aceita ou recusa os pedidos dos clientes. Só as aceites ficam confirmadas.</p><div id="ownerAppointments" class="owner-list">A carregar…</div></div>
+   <div class="owner-card"><h3>As minhas marcações</h3><p class="owner-muted">Consulta os pedidos que enviaste aos salões.</p><div id="customerAppointments" class="owner-list">A carregar…</div></div>
    <div class="owner-card"><h3>Os meus pagamentos</h3><p class="owner-muted">Consulta apenas os pagamentos das taxas dos teus salões. O MOZ SALÕES não disponibiliza saldo, comissões ou levantamentos para proprietários.</p><div id="ownerPayments" class="owner-list"><span class="owner-muted">A carregar…</span></div></div>
    <div class="owner-actions"><button class="btn" id="ownerRefreshBtn" type="button">Actualizar dados</button><button class="btn" id="ownerLogoutBtn" type="button" style="background:#64748b">Terminar sessão</button></div>
   </div>
@@ -258,7 +270,7 @@ if(location.hash==='#silda-acesso')$('adminSection').hidden=false;
 if(location.hash==='#owner')$('ownerSection').hidden=false;
 
 
-let ownerSession=null, ownerRequestId=null, ownerPlans=[];
+let ownerSession=null, ownerRequestId=null, ownerPlans=[], pendingBookingSalonId=null, bookingSalonId=null;
 function ownerMessage(message,type='info'){
  const box=$('ownerMessage');box.textContent=message;
  box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;
@@ -305,7 +317,9 @@ async function loadOwnerDashboard(session){
   ownerPlans.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' — '+Number(p.price_mzn).toLocaleString('pt-MZ')+' MT';planSelect.appendChild(o);});
   if(!ownerPlans.length){$('ownerPayBtn').disabled=true;ownerMessage('Não há planos activos disponíveis. Contacta a administração.','error');}
   else $('ownerPayBtn').disabled=false;
-  const salonIds=(salons||[]).map(x=>x.id);let paymentQuery=supabaseClient.from('payments').select('id,salon_id,amount_mzn,status,provider,provider_reference,created_at,metadata').order('created_at',{ascending:false}).limit(50);paymentQuery=salonIds.length?paymentQuery.or('payer_id.eq.'+session.user.id+',salon_id.in.('+salonIds.join(',')+')'):paymentQuery.eq('payer_id',session.user.id);const {data:payments,error:paymentsError}=await paymentQuery;
+  const salonIds=(salons||[]).map(x=>x.id);
+  await loadAppointments(session.user.id,salonIds);
+  let paymentQuery=supabaseClient.from('payments').select('id,salon_id,amount_mzn,status,provider,provider_reference,created_at,metadata').order('created_at',{ascending:false}).limit(50);paymentQuery=salonIds.length?paymentQuery.or('payer_id.eq.'+session.user.id+',salon_id.in.('+salonIds.join(',')+')'):paymentQuery.eq('payer_id',session.user.id);const {data:payments,error:paymentsError}=await paymentQuery;
   if(paymentsError)throw paymentsError;
   $('ownerPayments').innerHTML=(payments||[]).length?(payments||[]).map(p=>'<div class="owner-row"><div><strong>'+safe(Number(p.amount_mzn).toLocaleString('pt-MZ')+' MT')+'</strong><div class="owner-muted">'+safe(p.provider||'')+' · '+safe(p.created_at?new Date(p.created_at).toLocaleString('pt-MZ'):'')+'</div></div><div><strong>'+safe(p.status)+'</strong><div class="owner-muted">'+safe(p.metadata?.plan_name||'')+'</div></div></div>').join(''):'<span class="owner-muted">Ainda não existem pagamentos.</span>';
   if((salons||[]).length)ownerMessage('O teu salão está registado. Se ainda não pagaste a taxa, a publicação mantém-se pendente. Podes iniciar o pagamento quando estiveres pronto.','info');
@@ -353,7 +367,7 @@ $('ownerLoginForm').addEventListener('submit',async event=>{
   }else{
    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
    if(error)throw error;
-   if(data.session)await loadOwnerDashboard(data.session);
+   if(data.session){await loadOwnerDashboard(data.session);if(pendingBookingSalonId)showBookingForm(pendingBookingSalonId);}
   }
  }catch(error){ownerMessage('Não foi possível continuar: '+(error.message||'erro de autenticação'),'error');}
  finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta':'Entrar';}
@@ -424,6 +438,56 @@ $('ownerPaymentForm').addEventListener('submit',async event=>{
  finally{btn.disabled=false;btn.textContent='Iniciar pagamento';}
 });
 $('ownerRefreshBtn').addEventListener('click',()=>loadOwnerDashboard(ownerSession));
+function bookingMessage(message,type='info'){const box=$('bookingMessage');box.textContent=message;box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;}
+function showBookingForm(salonId){
+ bookingSalonId=salonId;pendingBookingSalonId=salonId;
+ const salon=state.salons.find(x=>x.id===salonId);
+ $('bookingSalonName').textContent='Marcação para '+(salon?.name||'o salão')+'. O pedido só fica confirmado depois da aceitação do proprietário.';
+ const select=$('bookingService');select.innerHTML='<option value="">Escolher serviço (opcional)</option>';
+ state.services.filter(x=>x.salon_id===salonId).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+(x.price_mzn!==null?' — '+Number(x.price_mzn).toLocaleString('pt-MZ')+' MT':'');select.appendChild(o);});
+ const d=new Date();$('bookingDate').min=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+ $('bookingPhone').value=ownerSession?.user?.phone||'';$('bookingSection').hidden=false;$('bookingMessage').hidden=true;
+ $('bookingSection').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('results').addEventListener('click',async event=>{
+ const b=event.target.closest('[data-book-salon]');if(!b)return;
+ pendingBookingSalonId=b.getAttribute('data-book-salon');
+ const {data}=await supabaseClient.auth.getSession();
+ if(!data?.session){await openOwnerSection();ownerMessage('Para marcar atendimento, entra ou cria uma conta gratuita. Depois poderás concluir o pedido.','info');return;}
+ await loadOwnerDashboard(data.session);showBookingForm(pendingBookingSalonId);
+});
+$('bookingCancel').addEventListener('click',()=>{$('bookingSection').hidden=true;bookingSalonId=null;pendingBookingSalonId=null;});
+$('bookingForm').addEventListener('submit',async event=>{
+ event.preventDefault();if(!ownerSession?.user){bookingMessage('Entra na tua conta para enviar a marcação.','error');return;}
+ const phone=ownerPhone($('bookingPhone').value);
+ if(!/^2588[2-7]\d{7}$/.test(phone)){bookingMessage('Indica um número moçambicano válido, por exemplo 82xxxxxxx.','error');return;}
+ const payload={salon_id:bookingSalonId,service_id:$('bookingService').value||null,customer_id:ownerSession.user.id,customer_phone:phone,appointment_date:$('bookingDate').value,appointment_time:$('bookingTime').value,customer_note:$('bookingNote').value.trim()||null,status:'pending'};
+ const button=$('bookingSubmit');button.disabled=true;button.textContent='A enviar…';
+ try{const {error}=await supabaseClient.from('appointments').insert(payload);if(error)throw error;
+ bookingMessage('Pedido enviado. Aguarda a resposta do salão; ainda não está confirmado.','success');$('bookingForm').reset();await loadOwnerDashboard(ownerSession);
+ }catch(error){bookingMessage('Não foi possível enviar a marcação: '+(error.message||'erro desconhecido'),'error');}
+ finally{button.disabled=false;button.textContent='Enviar pedido de marcação';}
+});
+async function loadAppointments(userId,salonIds){
+ const ownerBox=$('ownerAppointments'),customerBox=$('customerAppointments');
+ const [own, mine]=await Promise.all([
+  salonIds.length?supabaseClient.from('appointments').select('id,salon_id,service_id,customer_phone,appointment_date,appointment_time,customer_note,status').in('salon_id',salonIds).order('appointment_date').order('appointment_time'):Promise.resolve({data:[],error:null}),
+  supabaseClient.from('appointments').select('id,salon_id,service_id,appointment_date,appointment_time,owner_response,status').eq('customer_id',userId).order('appointment_date',{ascending:false})
+ ]);
+ if(own.error)throw own.error;if(mine.error)throw mine.error;
+ const salonName=id=>state.salons.find(x=>x.id===id)?.name||'Salão';
+ const serviceName=id=>state.services.find(x=>x.id===id)?.name||'Serviço';
+ ownerBox.innerHTML=(own.data||[]).length?own.data.map(a=>'<div class="owner-row"><div><strong>'+safe(salonName(a.salon_id))+' · '+safe(serviceName(a.service_id))+'</strong><div class="owner-muted">'+safe(a.appointment_date)+' às '+safe(String(a.appointment_time).slice(0,5))+' · '+safe(a.customer_phone)+'</div><div class="owner-muted">'+safe(a.customer_note||'')+'</div></div><div><strong>'+safe(a.status)+'</strong>'+(a.status==='pending'?'<div class="owner-actions"><button class="btn" data-appointment-action="accepted" data-appointment-id="'+safe(a.id)+'">Aceitar</button><button class="btn" style="background:#64748b" data-appointment-action="rejected" data-appointment-id="'+safe(a.id)+'">Recusar</button></div>':'')+'</div></div>').join(''):'<span class="owner-muted">Ainda não recebeste pedidos de marcação.</span>';
+ customerBox.innerHTML=(mine.data||[]).length?mine.data.map(a=>'<div class="owner-row"><div><strong>'+safe(salonName(a.salon_id))+' · '+safe(serviceName(a.service_id))+'</strong><div class="owner-muted">'+safe(a.appointment_date)+' às '+safe(String(a.appointment_time).slice(0,5))+'</div><div class="owner-muted">'+safe(a.owner_response||'')+'</div></div><strong>'+safe(a.status)+'</strong></div>').join(''):'<span class="owner-muted">Ainda não enviaste marcações.</span>';
+}
+$('ownerAppointments').addEventListener('click',async event=>{
+ const b=event.target.closest('[data-appointment-action]');if(!b)return;
+ const id=b.getAttribute('data-appointment-id'),status=b.getAttribute('data-appointment-action');b.disabled=true;
+ try{const {error}=await supabaseClient.from('appointments').update({status}).eq('id',id).eq('status','pending');if(error)throw error;
+ ownerMessage(status==='accepted'?'Marcação aceite. O cliente já pode ver a confirmação.':'Pedido de marcação recusado.','success');await loadOwnerDashboard(ownerSession);
+ }catch(error){ownerMessage('Não foi possível actualizar: '+(error.message||'erro desconhecido'),'error');b.disabled=false;}
+});
+
 $('ownerLogoutBtn').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();if(error){ownerMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
  ownerSession=null;ownerRequestId=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;ownerMessage('Sessão terminada.','success');
@@ -468,7 +532,7 @@ function render(){
   const contact=phone?'<a href="https://wa.me/'+safe(phone)+'" target="_blank" rel="noopener noreferrer">Contactar pelo WhatsApp</a>':'<span class="muted">Contacto não disponível</span>';
   const map=mapUrl(s);
   const mapLink=map?'<a href="'+safe(map)+'" target="_blank" rel="noopener noreferrer">Ver localização</a>':'';
-  return '<article class="card"><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||'Salão de beleza. Consulta os serviços disponíveis.')+'</p><div>'+tags+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+'</p></article>';
+  return '<article class="card"><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||'Salão de beleza. Consulta os serviços disponíveis.')+'</p><div>'+tags+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+'</p><p><button class="btn" type="button" data-book-salon="'+safe(s.id)+'">Marcar atendimento</button></p></article>';
  }).join('');
 }
 async function init(){
