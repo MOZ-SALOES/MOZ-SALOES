@@ -17,7 +17,7 @@ const table=(heads,body)=>'<div class="p-table"><table><thead><tr>'+heads.map(x=
 const empty=t=>'<div class="p-empty">'+t+'</div>';
 const stat=(a,b,c)=>'<article class="p-stat"><small>'+a+'</small><strong>'+b+'</strong><span>'+c+'</span></article>';
 function home(){const s=list('salons'),p=list('payments'),u=list('profiles'),total=p.filter(x=>x.status==='confirmed').reduce((n,x)=>n+Number(x.amount_mzn),0);return '<div class="p-stats">'+stat('Salões registados',s.length,'Todos os estados')+stat('Aguardam aprovação',s.filter(x=>x.status==='pending').length,'Requerem análise')+stat('Salões publicados',s.filter(x=>x.status==='active').length,'Estado activo')+stat('Utilizadores',u.length,'Contas registadas')+stat('Pagamentos pendentes',p.filter(x=>x.status==='pending').length,'Confirmação manual')+stat('Total confirmado',money(total),'Registos na base de dados')+'</div><div class="p-box"><h3>Salões recentes</h3>'+table(['Salão','Província','Estado','Data'],s.slice(0,8).map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.province)+'</td><td>'+pill(x.status)+'</td><td>'+dt(x.created_at)+'</td></tr>').join(''))+'</div><div class="p-note">M-Pesa/e-Mola e levantamentos ainda não estão integrados. O painel não simula transacções.</div>';}
-function salons(){const q=($('filter')?.value||'').toLowerCase(),a=list('salons').filter(x=>[x.name,x.province,x.district,x.city,x.neighborhood].join(' ').toLowerCase().includes(q));return '<input class="p-filter" id="filter" placeholder="Pesquisar salão ou localidade…" value="'+esc(q)+'">'+(a.length?table(['Salão / Contacto','Localização','Estado','Verificado','Acções'],a.map(x=>'<tr><td><b>'+esc(x.name)+'</b><small>'+esc(x.phone||x.whatsapp||'')+'</small></td><td>'+esc([x.neighborhood,x.city,x.district,x.province].filter(Boolean).join(', '))+'</td><td>'+pill(x.status)+'</td><td>'+pill(x.verified?'Sim':'Não')+'</td><td class="p-actions">'+(x.status!=='active'?'<button data-do="salon" data-id="'+x.id+'" data-val="active">Aprovar</button>':'<button data-do="salon" data-id="'+x.id+'" data-val="suspended">Suspender</button>')+'<button data-do="salon" data-id="'+x.id+'" data-val="rejected">Rejeitar</button><button data-do="verify" data-id="'+x.id+'" data-val="'+(!x.verified)+'">'+(x.verified?'Retirar selo':'Verificar')+'</button></td></tr>').join('')):empty('Ainda não existem salões.'));}
+function salons(){const q=($('filter')?.value||'').toLowerCase(),a=list('salons').filter(x=>[x.name,x.province,x.district,x.city,x.neighborhood].join(' ').toLowerCase().includes(q));return '<input class="p-filter" id="filter" placeholder="Pesquisar salão ou localidade…" value="'+esc(q)+'">'+(a.length?table(['Salão / Contacto','Localização','Estado','Verificado','Acções'],a.map(x=>'<tr><td><b>'+esc(x.name)+'</b><small>'+esc(x.phone||x.whatsapp||'')+'</small></td><td>'+esc([x.neighborhood,x.city,x.district,x.province].filter(Boolean).join(', '))+'</td><td>'+pill(x.status)+'</td><td>'+pill(x.verified?'Sim':'Não')+'</td><td class="p-actions">'+(x.status!=='active'?'<button data-do="salon" data-id="'+x.id+'" data-val="active">Aprovar</button><button data-do="salon-free" data-id="'+x.id+'">Aprovar grátis</button>':'<button data-do="salon" data-id="'+x.id+'" data-val="suspended">Suspender</button>')+'<button data-do="salon" data-id="'+x.id+'" data-val="rejected">Rejeitar</button><button data-do="verify" data-id="'+x.id+'" data-val="'+(!x.verified)+'">'+(x.verified?'Retirar selo':'Verificar')+'</button></td></tr>').join('')):empty('Ainda não existem salões.'));}
 function users(){return table(['Nome / Email','Telefone','Função','Acção'],list('profiles').map(x=>'<tr><td><b>'+esc(x.full_name)+'</b><small>'+esc(x.email)+'</small></td><td>'+esc(x.phone||'—')+'</td><td>'+pill(x.role)+'</td><td>'+(x.id===state.user?.id?'Conta actual':'<select data-role="'+x.id+'"><option value="customer" '+(x.role==='customer'?'selected':'')+'>Cliente</option><option value="owner" '+(x.role==='owner'?'selected':'')+'>Proprietário</option><option value="admin" '+(x.role==='admin'?'selected':'')+'>Administrador</option></select><button data-do="role" data-id="'+x.id+'">Guardar</button>')+'</td></tr>').join(''));}
 function categories(){return '<form id="catForm" class="p-form"><input name="name" placeholder="Nome da categoria" required><input name="description" placeholder="Descrição"><button>Adicionar</button></form>'+table(['Categoria','Estado','Acção'],list('categories').map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+pill(x.active?'activa':'inactiva')+'</td><td><button data-do="cat" data-id="'+x.id+'" data-val="'+(!x.active)+'">'+(x.active?'Desactivar':'Activar')+'</button></td></tr>').join(''));}
 function services(){return table(['Serviço','Salão','Preço','Estado','Acção'],list('services').map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(list('salons').find(s=>s.id===x.salon_id)?.name||'—')+'</td><td>'+(x.price_mzn==null?'Sob consulta':money(x.price_mzn))+'</td><td>'+pill(x.active?'activo':'inactivo')+'</td><td><button data-do="service" data-id="'+x.id+'" data-val="'+(!x.active)+'">'+(x.active?'Ocultar':'Activar')+'</button></td></tr>').join(''));}
@@ -43,6 +43,7 @@ function render(){const t=tabs.find(x=>x[0]===state.tab)||tabs[0];root.innerHTML
 async function upd(t,id,v,a){const r=await db.from(t).update(v).eq('id',id);if(r.error){notice(r.error.message,true);return;}await audit(a,t,id,v);await load();notice('Alteração guardada.');}
 async function act(a,d){if(a==='refresh'){await load();notice('Dados actualizados.');return;}
  if(a==='salon'){if(!confirm('Confirmas esta alteração do estado do salão?'))return;await upd('salons',d.id,{status:d.val},'salon_status_changed');}
+ if(a==='salon-free'){await approveSalonFree(d.id);}
  if(a==='verify'){await upd('salons',d.id,{verified:d.val==='true'},'salon_verification_changed');}
  if(a==='cat')await upd('categories',d.id,{active:d.val==='true'},'category_status_changed');
  if(a==='service')await upd('services',d.id,{active:d.val==='true'},'service_status_changed');
@@ -54,6 +55,36 @@ async function act(a,d){if(a==='refresh'){await load();notice('Dados actualizado
  if(a==='plan'){const x=list('subscription_plans').find(p=>p.id===d.id),days=prompt('Duração em dias:',x.duration_days),price=prompt('Preço em MT:',x.price_mzn);if(days!==null&&price!==null&&Number(days)>0&&Number(price)>=0)await upd('subscription_plans',d.id,{duration_days:Number(days),price_mzn:Number(price)},'plan_updated');}
  if(a==='setting-name'){await setting('platform_name',$('platformName').value.trim());}
  if(a==='settings-flags'){await setting('payments_enabled',$('paymentsEnabled').checked);await load();notice('Configurações guardadas.');}
+}
+async function approveSalonFree(salonId){
+ const salon=list('salons').find(x=>x.id===salonId);
+ if(!salon){notice('Não foi possível localizar este salão.',true);return;}
+ if(salon.status==='active'){notice('Este salão já está publicado. Usa a opção de renovação adequada.',true);return;}
+ const rawDays=prompt('Por quantos dias queres oferecer a publicação? Escreve 30, 60 ou 90.','30');
+ if(rawDays===null)return;
+ const days=Number(rawDays);
+ if(![30,60,90].includes(days)){notice('Escolhe 30, 60 ou 90 dias.',true);return;}
+ const reason=prompt('Indica o motivo da isenção (obrigatório):','Oferta promocional da plataforma');
+ if(reason===null)return;
+ if(!reason.trim()){notice('O motivo da isenção é obrigatório.',true);return;}
+ const plan=list('subscription_plans').find(p=>Number(p.duration_days)===days&&p.active);
+ if(!plan){notice('Não existe um plano activo de '+days+' dias. Verifica a secção Planos e taxas.',true);return;}
+ const waived=Number(plan.price_mzn||0);
+ if(!confirm('Confirmas a publicação GRATUITA de "'+salon.name+'" por '+days+' dias? Valor dispensado: '+money(waived)+'. Motivo: '+reason.trim()))return;
+ const starts=new Date(),ends=new Date(starts.getTime()+days*86400000);
+ const payload={salon_id:salonId,plan_id:plan.id,status:'active',starts_at:starts.toISOString(),ends_at:ends.toISOString()};
+ notice('A conceder publicação gratuita…');
+ const created=await db.from('subscriptions').insert(payload).select('id').single();
+ if(created.error){notice('Não foi possível criar a isenção: '+created.error.message,true);return;}
+ const updated=await db.from('salons').update({status:'active',publication_expires_at:ends.toISOString()}).eq('id',salonId);
+ if(updated.error){
+  await db.from('subscriptions').delete().eq('id',created.data.id);
+  notice('A isenção não foi concluída. O salão não foi publicado: '+updated.error.message,true);return;
+ }
+ const logged=await db.from('audit_logs').insert({actor_id:state.user.id,action:'salon_free_publication_granted',entity_type:'salons',entity_id:salonId,details:{free_publication:true,duration_days:days,reason:reason.trim(),subscription_id:created.data.id,plan_name:plan.name,price_waived_mzn:waived,starts_at:starts.toISOString(),ends_at:ends.toISOString()}});
+ await load();
+ if(logged.error)notice('Salão publicado gratuitamente, mas houve uma falha ao registar o motivo no histórico: '+logged.error.message,true);
+ else notice('Salão publicado gratuitamente por '+days+' dias. A isenção ficou registada no histórico administrativo.');
 }
 async function setting(key,value){const r=await db.from('admin_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'});if(r.error)notice(r.error.message,true);else{await audit('setting_updated','admin_settings',null,{key,value});await load();notice('Configuração guardada.');}}
 async function createCategory(e){e.preventDefault();const f=new FormData(e.target),name=String(f.get('name')).trim(),slug=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');const r=await db.from('categories').insert({name,slug,description:String(f.get('description')||''),sort_order:list('categories').length+1});if(r.error){notice(r.error.message,true);return;}await audit('category_created','categories',null,{name});await load();notice('Categoria criada.');}
