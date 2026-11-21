@@ -75,7 +75,8 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
  <section id="adminSection" class="admin-wrap" hidden>
   <h2>Acesso administrativo</h2>
   <p>Área reservada à administração do MOZ SALÕES. O acesso é confirmado pela conta autenticada e pela função de administrador na base de dados.</p>
-  <form id="adminLoginForm" class="admin-form">
+  <button class="btn" id="adminAccessToggle" type="button">Entrar como administrador</button>
+  <form id="adminLoginForm" class="admin-form" hidden>
    <label>Nome de administrador
     <input id="adminName" name="adminName" type="text" autocomplete="name" placeholder="Nome de administrador" required>
    </label>
@@ -240,10 +241,19 @@ function openAdminSection(){
  if(location.hash!=='#silda-acesso')history.replaceState(null,'',location.pathname+location.search+'#silda-acesso');
  $('adminSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
+let adminLoginVisible=false;
 function showAdminSession(isAdmin){
- $('adminLoginForm').hidden=isAdmin;
+ $('adminLoginForm').hidden=isAdmin||!adminLoginVisible;
+ $('adminAccessToggle').hidden=isAdmin||adminLoginVisible;
  $('adminDashboard').hidden=!isAdmin;
+ if(isAdmin)adminLoginVisible=false;
 }
+$('adminAccessToggle').addEventListener('click',()=>{
+ adminLoginVisible=true;
+ showAdminSession(false);
+ $('adminLoginForm').scrollIntoView({behavior:'smooth',block:'center'});
+ $('adminName').focus();
+});
 async function verifyAdminSession(session){
  if(!session?.user){showAdminSession(false);return;}
  const {data,error}=await supabaseClient.from('profiles').select('id,full_name,email,role').eq('id',session.user.id).maybeSingle();
@@ -298,7 +308,7 @@ $('adminRecoveryForm').addEventListener('submit',async event=>{
  try{
   const {error}=await supabaseClient.auth.updateUser({password});
   if(error)throw error;
-  $('adminRecoveryForm').hidden=true;$('adminLoginForm').hidden=false;
+  $('adminRecoveryForm').hidden=true;adminLoginVisible=false;showAdminSession(false);
   $('adminNewPassword').value='';$('adminConfirmPassword').value='';
   adminMessage('Palavra-passe administrativa actualizada. Já podes entrar novamente.','success');
   await supabaseClient.auth.signOut();
@@ -308,13 +318,13 @@ $('adminRecoveryForm').addEventListener('submit',async event=>{
 $('adminLogout').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();
  if(error){adminMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
- showAdminSession(false);adminMessage('Sessão terminada com segurança.','success');
+ adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();adminMessage('Sessão terminada com segurança. Para voltar, selecciona «Entrar como administrador».','success');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT'){stopAppointmentPolling();showAdminSession(false);ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
+ if(event==='SIGNED_OUT'){stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
  if(event==='PASSWORD_RECOVERY'){
   if(new URLSearchParams(location.search).get('admin-recovery')==='1'||location.hash==='#silda-acesso'){
-   $('adminSection').hidden=false;$('adminLoginForm').hidden=true;$('adminRecoveryForm').hidden=false;
+   $('adminSection').hidden=false;adminLoginVisible=false;showAdminSession(false);$('adminRecoveryForm').hidden=false;$('adminAccessToggle').hidden=true;
    adminMessage('Define uma nova palavra-passe para a conta administrativa.','success');
   }else{
    $('ownerSection').hidden=false;$('ownerLoginForm').hidden=true;$('ownerRecoveryForm').hidden=false;
