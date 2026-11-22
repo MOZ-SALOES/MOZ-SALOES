@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#102b63">
-<meta name="description" content="Encontra salões de beleza, serviços, preços e contactos em Moçambique.">
+<meta name="description" content="Encontra salões de beleza em Moçambique. Pesquisa serviços, compara preços, vê localizações e contacta salões perto de ti."><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="https://moz-saloes.github.io/MOZ-SALOES/">
 <title>MOZ SALÕES — Directório de salões de Moçambique</title>
 <style>
 :root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#17233b;background:#f5f7fb;font-synthesis:none}
@@ -117,6 +117,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <input id="q" type="search" placeholder="Pesquisar por nome, serviço ou localidade…" aria-label="Pesquisar">
    <select id="province" aria-label="Filtrar por província"><option value="">Todas as províncias</option></select>
    <select id="category" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+   <select id="sortPrice" aria-label="Ordenar resultados"><option value="name">Ordenar: nome</option><option value="price-asc">Menor preço primeiro</option><option value="price-desc">Maior preço primeiro</option></select>
    <button class="btn" id="searchBtn" type="button">Pesquisar</button>
   </div>
   <div class="status"><span class="dot" id="dot"></span><strong id="status">A preparar ligação segura…</strong><span id="detail"></span><button class="btn" id="retryConnection" type="button" hidden style="padding:7px 10px;font-size:.78rem">Tentar novamente</button></div>
@@ -206,20 +207,22 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
      <div class="owner-actions wide"><button class="btn" id="salonRegisterBtn" type="submit">Registar salão</button></div>
     </form>
    </div>
-   <div class="owner-card" id="ownerPaymentCard" hidden>
-    <h3>Publicar / renovar o salão</h3>
-    <form id="ownerPaymentForm" class="owner-form">
-     <label class="wide">Escolher salão<select id="ownerSalon" required></select></label>
-     <label>Plano<select id="ownerPlan" required></select></label>
-     <label>Telefone para pagamento<input id="ownerPayerPhone" required inputmode="tel" placeholder="82xxxxxxx"></label>
-     <label>Método de pagamento<select id="ownerMethod" required><option value="MPESA">M-Pesa</option><option value="EMOLA">e-Mola</option></select></label>
-     <div class="owner-actions wide"><button class="btn" id="ownerPayBtn" type="submit">Iniciar pagamento</button></div>
+   <div class="owner-card" id="ownerSalonManager" hidden>
+    <h3>Os meus salões</h3><div id="ownerSalonList" class="owner-list"></div>
+    <hr class="owner-divider"><h3>Adicionar serviços e preços</h3>
+    <form id="ownerServiceForm" class="owner-form">
+     <label class="wide">Salão<select id="ownerServiceSalon" required></select></label>
+     <label>Nome do serviço<input id="ownerServiceName" required maxlength="100" placeholder="Ex.: Tranças"></label>
+     <label>Categoria<select id="ownerServiceCategory"><option value="">Sem categoria</option></select></label>
+     <label>Preço em MT<input id="ownerServicePrice" type="number" min="0" step="0.01" required placeholder="Ex.: 500"></label>
+     <label class="wide">Descrição (opcional)<input id="ownerServiceDescription" maxlength="250" placeholder="Detalhes do serviço"></label>
+     <div class="owner-actions wide"><button class="btn" id="ownerServiceSubmit" type="submit">Adicionar serviço</button></div>
     </form>
-    <div class="owner-muted">Os preços e durações são carregados dos planos activos na plataforma.</div><div class="owner-message">A integração Pagar está em modo TESTE. Quando a Pagar confirmar o estado PAID através do webhook assinado, a assinatura será activada automaticamente. PROCESSING não significa pagamento concluído.</div>
+    <div id="ownerServiceList" class="owner-list"></div>
    </div>
    <div id="ownerAppointmentNotice" class="appointment-notice" role="status" aria-live="polite">A preparar avisos de marcação…</div><div class="owner-card" id="ownerAppointmentsCard"><h3>Marcações dos meus salões</h3><p class="owner-muted">Aceita ou recusa os pedidos dos clientes. Só as aceites ficam confirmadas.</p><div id="ownerAppointments" class="owner-list">A carregar…</div></div>
    <div class="owner-card"><h3>As minhas marcações</h3><p class="owner-muted">Consulta os pedidos que enviaste aos salões.</p><div id="customerAppointments" class="owner-list">A carregar…</div></div>
-   <div class="owner-card"><h3>Os meus pagamentos</h3><p class="owner-muted">Consulta apenas os pagamentos das taxas dos teus salões. O MOZ SALÕES não disponibiliza saldo, comissões ou levantamentos para proprietários.</p><div id="ownerPayments" class="owner-list"><span class="owner-muted">A carregar…</span></div></div>
+   
    <div class="owner-actions"><button class="btn" id="ownerRefreshBtn" type="button">Actualizar dados</button><button class="btn" id="ownerLogoutBtn" type="button" style="background:#64748b">Terminar sessão</button></div>
   </div>
  </section>
@@ -444,56 +447,76 @@ async function loadOwnerDashboard(session){
  $('ownerLoginForm').hidden=true;$('ownerDashboard').hidden=false;
  $('ownerIdentity').textContent='Sessão: '+(session.user.email||'proprietário');
  try{
-  const [{data:profile,error:profileError},{data:salons,error:salonError},{data:plans,error:planError}]=await Promise.all([
+  const [{data:profile,error:profileError},{data:salons,error:salonError}]=await Promise.all([
    supabaseClient.from('profiles').select('id,full_name,role').eq('id',session.user.id).maybeSingle(),
-   supabaseClient.from('salons').select('id,name,status,province,district').eq('owner_id',session.user.id).order('created_at',{ascending:false}),
-   supabaseClient.from('subscription_plans').select('id,name,duration_days,price_mzn').eq('active',true).order('duration_days')
+   supabaseClient.from('salons').select('id,name,status,province,district,city,neighborhood').eq('owner_id',session.user.id).order('created_at',{ascending:false})
   ]);
-  if(profileError)throw profileError;if(salonError)throw salonError;if(planError)throw planError;
+  if(profileError)throw profileError;if(salonError)throw salonError;
   if(profile?.role==='admin'){
    $('ownerSection').hidden=true;
    openAdminSection();
    await verifyAdminSession(session);
    return;
   }
-  ownerPlans=plans||[];
-  const salonSelect=$('ownerSalon');salonSelect.innerHTML='';
-  (salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name+' — '+s.status;salonSelect.appendChild(o);});
   $('ownerRegistration').hidden=true;
-   $('ownerStartCard').hidden=(salons||[]).length>0;
-  $('ownerPaymentCard').hidden=!(salons||[]).length;
-  const planSelect=$('ownerPlan');planSelect.innerHTML='';
-  ownerPlans.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' — '+Number(p.price_mzn).toLocaleString('pt-MZ')+' MT';planSelect.appendChild(o);});
-  if(!ownerPlans.length){$('ownerPayBtn').disabled=true;ownerMessage('Não há planos activos disponíveis. Contacta a administração.','error');}
-  else $('ownerPayBtn').disabled=false;
+  $('ownerStartCard').hidden=(salons||[]).length>0;
+  $('ownerSalonManager').hidden=!(salons||[]).length;
+  $('ownerSalonList').innerHTML=(salons||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe([s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', '))+'</div></div><strong>'+safe(s.status==='active'?'Publicado':s.status==='pending'?'A aguardar aprovação':s.status)+'</strong></div>').join('')||'';
+  const serviceSalon=$('ownerServiceSalon');serviceSalon.innerHTML='';
+  (salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;serviceSalon.appendChild(o);});
+  const {data:cats,error:catsError}=await supabaseClient.from('categories').select('id,name').eq('active',true).order('name');
+  if(catsError)throw catsError;
+  const serviceCategory=$('ownerServiceCategory');serviceCategory.innerHTML='<option value="">Sem categoria</option>';
+  (cats||[]).forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;serviceCategory.appendChild(o);});
+  await refreshOwnerServiceList();
   const salonIds=(salons||[]).map(x=>x.id);
   await loadAppointments(session.user.id,salonIds);
   startAppointmentPolling(session.user.id,salonIds);
-  let paymentQuery=supabaseClient.from('payments').select('id,salon_id,amount_mzn,status,provider,provider_reference,created_at,metadata').order('created_at',{ascending:false}).limit(50);paymentQuery=salonIds.length?paymentQuery.or('payer_id.eq.'+session.user.id+',salon_id.in.('+salonIds.join(',')+')'):paymentQuery.eq('payer_id',session.user.id);const {data:payments,error:paymentsError}=await paymentQuery;
-  if(paymentsError)throw paymentsError;
-  $('ownerPayments').innerHTML=(payments||[]).length?(payments||[]).map(p=>'<div class="owner-row"><div><strong>'+safe(Number(p.amount_mzn).toLocaleString('pt-MZ')+' MT')+'</strong><div class="owner-muted">'+safe(p.provider||'')+' · '+safe(p.created_at?new Date(p.created_at).toLocaleString('pt-MZ'):'')+'</div></div><div><strong>'+safe(p.status)+'</strong><div class="owner-muted">'+safe(p.metadata?.plan_name||'')+'</div></div></div>').join(''):'<span class="owner-muted">Ainda não existem pagamentos.</span>';
-  if((salons||[]).length)ownerMessage('O teu salão está registado. Se ainda não pagaste a taxa, a publicação mantém-se pendente. Podes iniciar o pagamento quando estiveres pronto.','info');
-  else ownerMessage('A tua conta está pronta. Não precisas de registar um salão para explorar o directório.','success');
+  if((salons||[]).length)ownerMessage('Os teus salões estão na plataforma. A publicação é gratuita; os salões aparecem no directório depois da aprovação administrativa.','success');
+  else ownerMessage('A tua conta está pronta. Podes explorar o directório ou registar gratuitamente o teu salão.','success');
  }catch(error){ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
 }
-async function refreshOwnerSalonOptions(){
+async function refreshOwnerServiceList(){
  if(!ownerSession?.user||$('ownerSection').hidden)return;
- const {data:salons,error}=await supabaseClient.from('salons').select('id,name,status,province,district').eq('owner_id',ownerSession.user.id).order('created_at',{ascending:false});
+ const {data:salons,error:salonError}=await supabaseClient.from('salons').select('id,name').eq('owner_id',ownerSession.user.id);
+ if(salonError)throw salonError;
+ const ids=(salons||[]).map(s=>s.id);
+ if(!ids.length){$('ownerServiceList').innerHTML='';return;}
+ const {data:services,error}=await supabaseClient.from('services').select('id,salon_id,name,price_mzn,active').in('salon_id',ids).order('name');
  if(error)throw error;
- const select=$('ownerSalon'),selected=select.value;select.innerHTML='';
- (salons||[]).forEach(s=>{const option=document.createElement('option');option.value=s.id;option.textContent=s.name+' — '+s.status;select.appendChild(option);});
- if((salons||[]).some(s=>s.id===selected))select.value=selected;
+ const names=new Map((salons||[]).map(s=>[s.id,s.name]));
+ $('ownerServiceList').innerHTML=(services||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(names.get(s.salon_id)||'')+' · '+safe(s.price_mzn===null?'Preço sob consulta':Number(s.price_mzn).toLocaleString('pt-MZ')+' MT')+'</div></div><button class="btn" type="button" data-owner-service-delete="'+safe(s.id)+'" style="background:#64748b">Remover</button></div>').join('')||'<span class="owner-muted">Ainda não adicionaste serviços.</span>';
 }
+$('ownerServiceForm').addEventListener('submit',async event=>{
+ event.preventDefault();if(!ownerSession?.user)return;
+ const salonId=$('ownerServiceSalon').value,name=$('ownerServiceName').value.trim(),price=Number($('ownerServicePrice').value);
+ if(!salonId||!name||!Number.isFinite(price)||price<0){ownerMessage('Confirma o salão, o serviço e o preço.','error');return;}
+ const button=$('ownerServiceSubmit');button.disabled=true;button.textContent='A guardar…';
+ try{
+  const {data:owned,error:ownedError}=await supabaseClient.from('salons').select('id').eq('id',salonId).eq('owner_id',ownerSession.user.id).maybeSingle();
+  if(ownedError)throw ownedError;if(!owned)throw new Error('Este salão não pertence à tua conta.');
+  const payload={salon_id:salonId,name,category_id:$('ownerServiceCategory').value||null,price_mzn:price,description:$('ownerServiceDescription').value.trim()||null,active:true};
+  const {error}=await supabaseClient.from('services').insert(payload);if(error)throw error;
+  $('ownerServiceName').value='';$('ownerServicePrice').value='';$('ownerServiceDescription').value='';
+  await refreshOwnerServiceList();ownerMessage('Serviço adicionado com sucesso.','success');
+ }catch(error){ownerMessage('Não foi possível adicionar o serviço: '+(error.message||'erro desconhecido'),'error');}
+ finally{button.disabled=false;button.textContent='Adicionar serviço';}
+});
+$('ownerServiceList').addEventListener('click',async event=>{
+ const button=event.target.closest('[data-owner-service-delete]');if(!button||!ownerSession?.user)return;
+ if(!confirm('Queres remover este serviço do teu salão?'))return;
+ try{
+  const {data:owned,error:ownedError}=await supabaseClient.from('salons').select('id').eq('owner_id',ownerSession.user.id);
+  if(ownedError)throw ownedError;
+  const ids=(owned||[]).map(s=>s.id);
+  const {error}=await supabaseClient.from('services').delete().eq('id',button.dataset.ownerServiceDelete).in('salon_id',ids);
+  if(error)throw error;await refreshOwnerServiceList();ownerMessage('Serviço removido.','success');
+ }catch(error){ownerMessage('Não foi possível remover o serviço: '+(error.message||'erro desconhecido'),'error');}
+});
+
 async function refreshOwnerLiveData(){
  if(!ownerSession?.user||$('ownerSection').hidden)return;
- const {data:plans,error}=await supabaseClient.from('subscription_plans').select('id,name,duration_days,price_mzn').eq('active',true).order('duration_days');
- if(error)throw error;
- ownerPlans=plans||[];
- const select=$('ownerPlan'),selected=select.value;select.innerHTML='';
- ownerPlans.forEach(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.name+' — '+Number(p.price_mzn).toLocaleString('pt-MZ')+' MT';select.appendChild(option);});
- if(ownerPlans.some(p=>p.id===selected))select.value=selected;
- $('ownerPayBtn').disabled=!ownerPlans.length;
- await refreshOwnerSalonOptions();
+ await loadOwnerDashboard(ownerSession);
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
  $('ownerStartSalonBtn').addEventListener('click',()=>{$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
@@ -580,31 +603,9 @@ $('salonRegisterForm').addEventListener('submit',async event=>{
   const payload={owner_id:ownerSession.user.id,name,slug,phone,whatsapp:phone,province:String(fd.get('province')).trim(),district:String(fd.get('district')).trim(),city:String(fd.get('city')||'').trim()||null,neighborhood:String(fd.get('neighborhood')||'').trim()||null,address:String(fd.get('address')||'').trim()||null,description:String(fd.get('description')||'').trim()||null};
   const {error}=await supabaseClient.from('salons').insert(payload);if(error)throw error;
   form.reset();await loadOwnerDashboard(ownerSession);
-  ownerMessage('Salão registado. O estado inicial é PENDENTE. Se não pagares a taxa agora, continuará pendente; poderás voltar à tua conta para iniciar o pagamento mais tarde. A publicação também depende da aprovação administrativa.','success');
+  ownerMessage('Salão registado gratuitamente. O estado inicial é PENDENTE e ficará visível no directório depois da aprovação administrativa.','success');
  }catch(error){ownerMessage('Não foi possível registar o salão: '+(error.message||'erro desconhecido'),'error');}
  finally{btn.disabled=false;btn.textContent='Registar salão';}
-});
-$('ownerPaymentForm').addEventListener('input',()=>{ownerRequestId=null;});
-$('ownerPaymentForm').addEventListener('change',()=>{ownerRequestId=null;});
-$('ownerPaymentForm').addEventListener('submit',async event=>{
- event.preventDefault();if(!ownerSession?.user){ownerMessage('Entra primeiro na tua conta.','error');return;}
- const salonId=$('ownerSalon').value,planId=$('ownerPlan').value,method=$('ownerMethod').value,payerPhone=ownerPhone($('ownerPayerPhone').value);
- if(!salonId||!planId){ownerMessage('Selecciona o salão e o plano.','error');return;}
- if(!/^2588[2-7]\d{7}$/.test(payerPhone)){ownerMessage('Indica um número moçambicano válido para pagamento.','error');return;}
- if(!ownerRequestId)ownerRequestId=crypto.randomUUID();
- const btn=$('ownerPayBtn');btn.disabled=true;btn.textContent='A iniciar…';
- try{
-  const {data,error}=await supabaseClient.functions.invoke('pagar-create-payment',{body:{salonId,planId,method,payerPhone,requestId:ownerRequestId}});
-  if(error){
-   let detail=error.message||'Não foi possível iniciar o pagamento.';
-   try{const payload=await error.context.json();if(payload?.error)detail=payload.error;}catch{}
-   throw new Error(detail);
-  }
-  ownerRequestId=null;
-  ownerMessage('Pedido enviado ao Pagar. Estado recebido: '+(data.status||'PROCESSING')+'. Isto ainda não confirma o pagamento; aguarda a confirmação automática do provedor. Referência: '+(data.reference||data.providerPaymentId||'—'),'success');
-  await loadOwnerDashboard(ownerSession);
- }catch(error){ownerMessage((error.message||'Falha ao iniciar o pagamento')+'. Se o resultado ficou incerto, tenta novamente sem alterar os dados para reutilizar o mesmo pedido.','error');}
- finally{btn.disabled=false;btn.textContent='Iniciar pagamento';}
 });
 $('ownerRefreshBtn').addEventListener('click',()=>loadOwnerDashboard(ownerSession));
 function bookingMessage(message,type='info'){const box=$('bookingMessage');box.textContent=message;box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;}
@@ -704,13 +705,14 @@ function mapUrl(salon){
 }
 function render(){
  const term=$('q').value.trim().toLocaleLowerCase('pt');
- const province=$('province').value,category=$('category').value;
+ const province=$('province').value,category=$('category').value,sort=$('sortPrice').value;
  const filtered=state.salons.filter(s=>{
   const services=state.services.filter(x=>x.salon_id===s.id);
   const searchable=[s.name,s.description,s.province,s.district,s.municipality,s.city,s.neighborhood,s.address,...services.map(x=>x.name)].join(' ').toLocaleLowerCase('pt');
   const matchesCategory=!category||s.category_id===category||services.some(x=>x.category_id===category);
   return (!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory;
  });
+ if(sort!=='name')filtered.sort((a,b)=>{const minPrice=s=>{const p=state.services.filter(x=>x.salon_id===s.id&&x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);return p.length?Math.min(...p):Number.POSITIVE_INFINITY;};return sort==='price-asc'?minPrice(a)-minPrice(b):minPrice(b)-minPrice(a);});
  $('count').textContent=filtered.length+' salão(ões) encontrado(s)';
  if(!filtered.length){
   $('results').innerHTML='<div class="empty"><strong>Ainda não existem salões publicados com estes filtros.</strong><br><span class="muted">Os salões serão apresentados aqui depois de registados e aprovados.</span></div>';return;
@@ -759,6 +761,7 @@ $('searchBtn').addEventListener('click',render);
 $('q').addEventListener('input',render);
 $('province').addEventListener('change',render);
 $('category').addEventListener('change',render);
+$('sortPrice').addEventListener('change',render);
 init();
 }
 </script>
