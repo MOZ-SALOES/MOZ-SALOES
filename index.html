@@ -426,7 +426,7 @@ const recoveryParams=new URLSearchParams(location.search);
 const recoveryHash=new URLSearchParams(location.hash.replace(/^#/,''));
 const ownerRecoveryRequested=recoveryParams.get('owner-recovery')==='1'||recoveryHash.get('type')==='recovery';
 if(location.hash==='#silda-acesso'||recoveryParams.get('admin-recovery')==='1')$('adminSection').hidden=false;
-if(location.hash==='#owner'||ownerRecoveryRequested){
+if(location.hash==='#owner'||location.hash==='#registar-servicos'||ownerRecoveryRequested){
  $('ownerSection').hidden=false;
  if(ownerRecoveryRequested){
   $('ownerLoginForm').hidden=true;
@@ -436,7 +436,7 @@ if(location.hash==='#owner'||ownerRecoveryRequested){
 }
 
 
-let ownerSession=null, pendingBookingSalonId=null, bookingSalonId=null, publishSalonIntent=false, publishServiceIntent=false;
+let ownerSession=null, pendingBookingSalonId=null, bookingSalonId=null, publishSalonIntent=false, publishServiceIntent=location.hash==='#registar-servicos';
 let appointmentPollTimer=null, appointmentPollBusy=false, appointmentPollUserId=null, appointmentPollSalonIds=[], appointmentKnownPendingIds=new Set(), appointmentHasLoaded=false;
 function ownerMessage(message,type='info'){
  const box=$('ownerMessage');box.textContent=message;
@@ -643,7 +643,7 @@ $('ownerLoginForm').addEventListener('submit',async event=>{
  const button=$('ownerLoginBtn');button.disabled=true;button.textContent=ownerAuthMode==='register'?'A criar conta…':'A entrar…';
  try{
   if(ownerAuthMode==='register'){
-   const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:fullName||''},emailRedirectTo:location.origin+location.pathname+'#owner'}});
+   const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:fullName||''},emailRedirectTo:location.origin+location.pathname+'#registar-servicos'}});
    if(error)throw error;
    if(!data.session)ownerMessage('A conta foi criada. Se a confirmação de email estiver activa, confirma o email e depois entra para concluir o registo dos teus serviços.','success');
    else {await loadOwnerDashboard(data.session);if(publishServiceIntent||publishSalonIntent){const type=publishServiceIntent?'independent':'salon';showOwnerRegistration(type);ownerMessage(type==='independent'?'Conta criada! Agora completa o teu perfil profissional e regista o primeiro serviço.':'Conta criada! Agora preenche os dados do teu salão.','success');}else{ownerMessage('Conta criada com sucesso. Já podes explorar os salões e gerir a tua conta.','success');}}
