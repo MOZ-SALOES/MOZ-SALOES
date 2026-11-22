@@ -224,10 +224,10 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
     </form>
    </div>
    <div class="owner-card" id="ownerSalonManager" hidden>
-    <h3>Os meus salões</h3><div id="ownerSalonList" class="owner-list"></div><div class="owner-actions"><button class="btn" id="ownerAddAnotherSalon" type="button">Registar outro salão</button></div>
+    <h3>Os meus registos</h3><div id="ownerSalonList" class="owner-list"></div><div class="owner-actions"><button class="btn" id="ownerAddAnotherSalon" type="button">Registar outro salão</button></div>
     <hr class="owner-divider"><h3>Adicionar serviços e preços</h3>
     <form id="ownerServiceForm" class="owner-form">
-     <label class="wide">Salão<select id="ownerServiceSalon" required></select></label>
+     <label class="wide">Perfil / salão<select id="ownerServiceSalon" required></select></label>
      <label>Nome do serviço<input id="ownerServiceName" required maxlength="100" placeholder="Ex.: Tranças"></label>
      <label>Categoria<select id="ownerServiceCategory"><option value="">Sem categoria</option></select></label>
      <label>Preço em MT<input id="ownerServicePrice" type="number" min="0" step="0.01" required placeholder="Ex.: 500"></label>
@@ -464,7 +464,7 @@ async function loadOwnerDashboard(session){
  try{
   const [{data:profile,error:profileError},{data:salons,error:salonError}]=await Promise.all([
    supabaseClient.from('profiles').select('id,full_name,role').eq('id',session.user.id).maybeSingle(),
-   supabaseClient.from('salons').select('id,name,status,province,district,city,neighborhood').eq('owner_id',session.user.id).order('created_at',{ascending:false})
+   supabaseClient.from('salons').select('id,name,status,province,district,city,neighborhood,provider_type,service_mode,service_address,service_areas').eq('owner_id',session.user.id).order('created_at',{ascending:false})
   ]);
   if(profileError)throw profileError;if(salonError)throw salonError;
   if(profile?.role==='admin'){
@@ -476,7 +476,7 @@ async function loadOwnerDashboard(session){
   $('ownerRegistration').hidden=true;
   $('ownerStartCard').hidden=(salons||[]).length>0;
   $('ownerSalonManager').hidden=!(salons||[]).length;
-  $('ownerSalonList').innerHTML=(salons||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe([s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', '))+'</div></div><strong>'+safe(s.status==='active'?'Publicado':s.status==='pending'?'A aguardar aprovação':s.status)+'</strong></div>').join('')||'';
+  $('ownerSalonList').innerHTML=(salons||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(s.provider_type==='independent'?'Profissional independente':'Salão')+' · '+safe([s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', '))+'</div><div class="owner-muted">'+safe(s.provider_type==='independent'?({at_location:'No próprio local',home:'Ao domicílio',both:'No local e ao domicílio'}[s.service_mode]||''): '')+'</div></div><strong>'+safe(s.status==='active'?'Publicado':s.status==='pending'?'A aguardar aprovação':s.status)+'</strong></div>').join('')||'';
   const serviceSalon=$('ownerServiceSalon');serviceSalon.innerHTML='';
   (salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;serviceSalon.appendChild(o);});
   const {data:cats,error:catsError}=await supabaseClient.from('categories').select('id,name').eq('active',true).order('name');
@@ -625,7 +625,7 @@ function updateRegistrationType(){
  $('registrationIntro').textContent=independent?'Divulga os teus serviços de beleza mesmo sem teres um salão. O perfil ficará pendente de aprovação.':'Preenche os dados do estabelecimento. O salão ficará pendente de aprovação.';
  $('providerNameLabel').textContent=independent?'Nome profissional':'Nome do salão';
  $('providerName').placeholder=independent?'Ex.: Ana Tranças':'Ex.: Salão Beleza';
- $('mainAddressWrap').hidden=independent;$('providerAddress').required=!independent;
+ $('mainAddressWrap').hidden=independent;$('providerAddress').required=false;
  $('independentOptions').hidden=!independent;
  $('photoHelp').textContent=independent?'Fotografia tua ou dos teus trabalhos (opcional).':'Fotografia do estabelecimento (opcional).';
  $('salonRegisterBtn').textContent=independent?'Registar profissional e serviço':'Registar salão';
