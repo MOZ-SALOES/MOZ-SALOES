@@ -629,7 +629,7 @@ function updateRegistrationType(){
  $('independentOptions').hidden=!independent;
  $('photoHelp').textContent=independent?'Fotografia tua ou dos teus trabalhos (opcional).':'Fotografia do estabelecimento (opcional).';
  $('salonRegisterBtn').textContent=independent?'Registar profissional e serviço':'Registar salão';
- updateServiceModeFields();
+ if(independent)updateServiceModeFields();else{$('serviceAddress').required=false;$('serviceAreas').required=false;}
 }
 function updateServiceModeFields(){
  const mode=$('serviceMode').value;
