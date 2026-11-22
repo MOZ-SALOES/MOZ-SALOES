@@ -484,7 +484,7 @@ async function refreshOwnerServiceList(){
  const {data:services,error}=await supabaseClient.from('services').select('id,salon_id,name,price_mzn,active').in('salon_id',ids).order('name');
  if(error)throw error;
  const names=new Map((salons||[]).map(s=>[s.id,s.name]));
- $('ownerServiceList').innerHTML=(services||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(names.get(s.salon_id)||'')+' · '+safe(s.price_mzn===null?'Preço sob consulta':Number(s.price_mzn).toLocaleString('pt-MZ')+' MT')+'</div></div><button class="btn" type="button" data-owner-service-delete="'+safe(s.id)+'" style="background:#64748b">Remover</button></div>').join('')||'<span class="owner-muted">Ainda não adicionaste serviços.</span>';
+ $('ownerServiceList').innerHTML=(services||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(names.get(s.salon_id)||'')+' · '+safe(s.price_mzn===null?'Preço sob consulta':Number(s.price_mzn).toLocaleString('pt-MZ')+' MT')+'</div></div><div class="owner-actions"><button class="btn" type="button" data-owner-service-edit="'+safe(s.id)+'">Editar</button><button class="btn" type="button" data-owner-service-delete="'+safe(s.id)+'" style="background:#64748b">Remover</button></div></div>').join('')||'<span class="owner-muted">Ainda não adicionaste serviços.</span>';
 }
 $('ownerServiceForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!ownerSession?.user)return;
@@ -502,15 +502,25 @@ $('ownerServiceForm').addEventListener('submit',async event=>{
  finally{button.disabled=false;button.textContent='Adicionar serviço';}
 });
 $('ownerServiceList').addEventListener('click',async event=>{
- const button=event.target.closest('[data-owner-service-delete]');if(!button||!ownerSession?.user)return;
- if(!confirm('Queres remover este serviço do teu salão?'))return;
+ const edit=event.target.closest('[data-owner-service-edit]'),remove=event.target.closest('[data-owner-service-delete]');
+ if((!edit&&!remove)||!ownerSession?.user)return;
  try{
   const {data:owned,error:ownedError}=await supabaseClient.from('salons').select('id').eq('owner_id',ownerSession.user.id);
   if(ownedError)throw ownedError;
   const ids=(owned||[]).map(s=>s.id);
-  const {error}=await supabaseClient.from('services').delete().eq('id',button.dataset.ownerServiceDelete).in('salon_id',ids);
+  if(edit){
+   const {data:service,error}=await supabaseClient.from('services').select('id,salon_id,name,price_mzn').eq('id',edit.dataset.ownerServiceEdit).in('salon_id',ids).maybeSingle();
+   if(error)throw error;if(!service)throw new Error('Serviço não encontrado.');
+   const name=prompt('Nome do serviço:',service.name);if(name===null)return;
+   const raw=prompt('Preço em MT:',String(service.price_mzn??''));if(raw===null)return;
+   const price=Number(raw);if(!name.trim()||!Number.isFinite(price)||price<0)throw new Error('Indica um nome e um preço válidos.');
+   const {error:updateError}=await supabaseClient.from('services').update({name:name.trim(),price_mzn:price}).eq('id',service.id).in('salon_id',ids);
+   if(updateError)throw updateError;await refreshOwnerServiceList();ownerMessage('Serviço actualizado.','success');return;
+  }
+  if(!confirm('Queres remover este serviço do teu salão?'))return;
+  const {error}=await supabaseClient.from('services').delete().eq('id',remove.dataset.ownerServiceDelete).in('salon_id',ids);
   if(error)throw error;await refreshOwnerServiceList();ownerMessage('Serviço removido.','success');
- }catch(error){ownerMessage('Não foi possível remover o serviço: '+(error.message||'erro desconhecido'),'error');}
+ }catch(error){ownerMessage('Não foi possível actualizar o serviço: '+(error.message||'erro desconhecido'),'error');}
 });
 
 async function refreshOwnerLiveData(){
