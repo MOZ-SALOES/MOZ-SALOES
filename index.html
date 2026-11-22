@@ -208,14 +208,13 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
     </form>
    </div>
    <div class="owner-card" id="ownerSalonManager" hidden>
-    <h3>Os meus salões</h3><div id="ownerSalonList" class="owner-list"></div>
+    <h3>Os meus salões</h3><div id="ownerSalonList" class="owner-list"></div><div class="owner-actions"><button class="btn" id="ownerAddAnotherSalon" type="button">Registar outro salão</button></div>
     <hr class="owner-divider"><h3>Adicionar serviços e preços</h3>
     <form id="ownerServiceForm" class="owner-form">
      <label class="wide">Salão<select id="ownerServiceSalon" required></select></label>
      <label>Nome do serviço<input id="ownerServiceName" required maxlength="100" placeholder="Ex.: Tranças"></label>
      <label>Categoria<select id="ownerServiceCategory"><option value="">Sem categoria</option></select></label>
      <label>Preço em MT<input id="ownerServicePrice" type="number" min="0" step="0.01" required placeholder="Ex.: 500"></label>
-     <label class="wide">Descrição (opcional)<input id="ownerServiceDescription" maxlength="250" placeholder="Detalhes do serviço"></label>
      <div class="owner-actions wide"><button class="btn" id="ownerServiceSubmit" type="submit">Adicionar serviço</button></div>
     </form>
     <div id="ownerServiceList" class="owner-list"></div>
@@ -495,9 +494,9 @@ $('ownerServiceForm').addEventListener('submit',async event=>{
  try{
   const {data:owned,error:ownedError}=await supabaseClient.from('salons').select('id').eq('id',salonId).eq('owner_id',ownerSession.user.id).maybeSingle();
   if(ownedError)throw ownedError;if(!owned)throw new Error('Este salão não pertence à tua conta.');
-  const payload={salon_id:salonId,name,category_id:$('ownerServiceCategory').value||null,price_mzn:price,description:$('ownerServiceDescription').value.trim()||null,active:true};
+  const payload={salon_id:salonId,name,category_id:$('ownerServiceCategory').value||null,price_mzn:price,active:true};
   const {error}=await supabaseClient.from('services').insert(payload);if(error)throw error;
-  $('ownerServiceName').value='';$('ownerServicePrice').value='';$('ownerServiceDescription').value='';
+  $('ownerServiceName').value='';$('ownerServicePrice').value='';
   await refreshOwnerServiceList();ownerMessage('Serviço adicionado com sucesso.','success');
  }catch(error){ownerMessage('Não foi possível adicionar o serviço: '+(error.message||'erro desconhecido'),'error');}
  finally{button.disabled=false;button.textContent='Adicionar serviço';}
@@ -519,6 +518,7 @@ async function refreshOwnerLiveData(){
  await loadOwnerDashboard(ownerSession);
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
+$('ownerAddAnotherSalon').addEventListener('click',()=>{$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerStartSalonBtn').addEventListener('click',()=>{$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerExploreBtn').addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
 let ownerAuthMode='login';
