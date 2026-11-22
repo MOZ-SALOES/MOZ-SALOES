@@ -127,7 +127,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
   </div>
   <div class="status"><span class="dot" id="dot"></span><strong id="status">A preparar ligação segura…</strong><span id="detail"></span><button class="btn" id="retryConnection" type="button" hidden style="padding:7px 10px;font-size:.78rem">Tentar novamente</button></div>
  </section>
- <section id="saloes"><div class="section-head"><div><h2>Salões disponíveis</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
+ <section id="saloes"><div class="section-head"><div><h2>Salões e profissionais de beleza</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
  <section id="bookingSection" class="owner-wrap" hidden>
   <h2>Marcar atendimento</h2><p id="bookingSalonName">Escolhe o serviço, a data e a hora pretendidas.</p>
   <form id="bookingForm" class="owner-form">
@@ -780,9 +780,9 @@ function render(){
   return (!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory;
  });
  if(sort!=='name')filtered.sort((a,b)=>{const minPrice=s=>{const p=state.services.filter(x=>x.salon_id===s.id&&x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);return p.length?Math.min(...p):Number.POSITIVE_INFINITY;};const pa=minPrice(a),pb=minPrice(b);if(!Number.isFinite(pa))return 1;if(!Number.isFinite(pb))return -1;return sort==='price-asc'?pa-pb:pb-pa;});
- $('count').textContent=filtered.length+' salão(ões) encontrado(s)';
+ $('count').textContent=filtered.length+' resultado(s) encontrado(s)';
  if(!filtered.length){
-  $('results').innerHTML='<div class="empty"><strong>Ainda não existem salões publicados com estes filtros.</strong><br><span class="muted">Os salões serão apresentados aqui depois de registados e aprovados.</span></div>';return;
+  $('results').innerHTML='<div class="empty"><strong>Ainda não existem salões ou profissionais publicados com estes filtros.</strong><br><span class="muted">Os registos serão apresentados aqui depois de aprovados.</span></div>';return;
  }
  $('results').innerHTML=filtered.map(s=>{
   const services=state.services.filter(x=>x.salon_id===s.id);
