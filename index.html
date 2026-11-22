@@ -767,7 +767,7 @@ function mapUrl(salon){
   const lat=Number(salon.latitude),lon=Number(salon.longitude);
   if(Number.isFinite(lat)&&Number.isFinite(lon))return 'https://www.google.com/maps?q='+lat+','+lon;
  }
- const address=[salon.address,salon.neighborhood,salon.city,salon.district,salon.province].filter(Boolean).join(', ');
+ const address=[salon.service_address||salon.address,salon.neighborhood,salon.city,salon.district,salon.province].filter(Boolean).join(', ');
  return address?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(address+', Mozambique'):'';
 }
 function render(){
