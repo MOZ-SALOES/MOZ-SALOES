@@ -12,6 +12,7 @@
 header{background:#102b63;color:#fff;padding:18px max(18px,calc((100% - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px}
 .brand{font-weight:900;font-size:1.15rem;letter-spacing:.04em}.brand span{color:#8fc5ff}.tag{font-size:.82rem;opacity:.8;margin-top:3px}
 header a{color:#fff;text-decoration:none;border:1px solid #ffffff70;border-radius:10px;padding:10px 13px;font-size:.88rem}
+header a.publish-salon-link{background:#fff;color:#123d78;border-color:#fff;font-weight:850;box-shadow:0 5px 18px #0002}header a.publish-salon-link:hover{background:#dcecff}
 main{max-width:1120px;margin:34px auto;padding:0 18px}.hero{background:linear-gradient(125deg,#102b63,#174b91);color:white;border-radius:22px;padding:clamp(24px,5vw,48px)}
 .eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.72rem;font-weight:800;color:#b9d9ff}
 h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700px}.hero p{color:#dceaff;max-width:650px;line-height:1.6;margin:0}
@@ -112,7 +113,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 
 <header>
  <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
- <nav style="display:flex;gap:9px;align-items:center"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a></nav>
+ <nav class="main-nav" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a><a href="#owner" id="publishSalonNav" class="publish-salon-link">＋ Publicar meu salão</a></nav>
 </header>
 <main>
  <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
@@ -534,6 +535,7 @@ async function refreshOwnerLiveData(){
  await loadOwnerDashboard(ownerSession);
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
+$('publishSalonNav').addEventListener('click',async event=>{event.preventDefault();await openOwnerSection();if(ownerSession?.user){if($('ownerStartCard').hidden&&$('ownerSalonManager').hidden){$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});}else if(!$('ownerStartCard').hidden){$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start');}else{$('ownerAddAnotherSalon').click();}}else{setOwnerAuthMode('register');$('ownerFullName').focus();}});
 $('ownerAddAnotherSalon').addEventListener('click',()=>{$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerStartSalonBtn').addEventListener('click',()=>{$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerExploreBtn').addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
