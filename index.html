@@ -40,10 +40,10 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .owner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.owner-auth-switch{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.owner-auth-switch button[aria-pressed=true]{background:#102b63}
 .owner-form label{font-size:.88rem;font-weight:700;color:#34445f}.owner-form input,.owner-form select{display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;background:#fff}
 .owner-form .wide{grid-column:1/-1}.owner-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
-.owner-panel{display:grid;gap:16px}.owner-card{border:1px solid #e1e7f0;border-radius:14px;padding:16px}.owner-card h3{margin:0 0 10px}.owner-list{display:grid;gap:9px}.owner-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;background:#f6f8fc;border-radius:10px}.appointment-notice{padding:13px 15px;border:1px solid #b9d6fb;background:#edf5ff;color:#17477d;border-radius:12px;font-weight:700;line-height:1.5;margin:12px 0}.appointment-notice.empty{border-color:#cfe8d8;background:#effaf3;color:#17623b}
+.owner-panel{display:grid;gap:16px}.owner-card{border:1px solid #e1e7f0;border-radius:14px;padding:16px}.owner-card h3{margin:0 0 10px}.owner-list{display:grid;gap:9px}.owner-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.owner-stat{background:#f3f6fb;border:1px solid #e1e7f0;border-radius:11px;padding:12px}.owner-stat small{display:block;color:#64748b;font-size:.78rem}.owner-stat strong{display:block;color:#102b63;font-size:1.35rem;margin-top:4px}.owner-photo-row{display:flex;align-items:center;gap:10px}.owner-photo-row img{width:58px;height:58px;object-fit:cover;border-radius:9px}.owner-photo-row button{padding:7px 10px;font-size:.8rem}.owner-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;background:#f6f8fc;border-radius:10px}.appointment-notice{padding:13px 15px;border:1px solid #b9d6fb;background:#edf5ff;color:#17477d;border-radius:12px;font-weight:700;line-height:1.5;margin:12px 0}.appointment-notice.empty{border-color:#cfe8d8;background:#effaf3;color:#17623b}
 .owner-message{padding:11px 13px;border-radius:10px;background:#edf4ff;color:#204c80;font-size:.9rem;line-height:1.45;margin-top:12px}.owner-message.error{background:#fff0f0;color:#9c2525}.owner-message.success{background:#eaf8f0;color:#17623b}
 .owner-muted{font-size:.82rem;color:#64748b}.owner-price{font-weight:800;color:#102b63}.owner-divider{border:0;border-top:1px solid #e1e7f0;margin:16px 0}
-@media(max-width:560px){.owner-form{grid-template-columns:1fr}.owner-form .wide{grid-column:auto}.owner-row{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.owner-form{grid-template-columns:1fr}.owner-form .wide{grid-column:auto}.owner-row{align-items:flex-start;flex-direction:column}.owner-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 
 /* Abertura animada MOZ SALÕES — 5 segundos */
@@ -193,7 +193,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
   </form>
   <div id="ownerMessage" class="owner-message" role="status" hidden></div>
   <div id="ownerDashboard" class="owner-panel" hidden>
-   <div class="owner-card"><div class="status"><span class="dot ok"></span><strong id="ownerIdentity">Conta autenticada</strong></div><p class="owner-muted">Apenas os salões pertencentes à tua conta aparecem nesta área.</p></div>
+   <div class="owner-card"><div class="status"><span class="dot ok"></span><strong id="ownerIdentity">Conta autenticada</strong></div><p class="owner-muted">Apenas os salões pertencentes à tua conta aparecem nesta área.</p><div class="owner-actions"><button class="btn" id="ownerEnableNotifications" type="button" style="background:#64748b">Activar notificações</button><span id="ownerNotificationState" class="owner-muted">Avisos dentro do painel activos.</span></div></div><div class="owner-card"><h3>Resumo das marcações</h3><div id="ownerAppointmentStats" class="owner-stats"></div></div>
    <div id="ownerStartCard" class="owner-card" hidden>
     <h3>A tua conta está pronta</h3>
     <p>Não precisas de ter um salão para usar a plataforma. Podes registar um estabelecimento ou divulgar os teus serviços de beleza como profissional independente.</p>
@@ -224,7 +224,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
     </form>
    </div>
    <div class="owner-card" id="ownerSalonManager" hidden>
-    <h3>Os meus registos</h3><div id="ownerSalonList" class="owner-list"></div><div class="owner-actions"><button class="btn" id="ownerAddAnotherSalon" type="button">Registar outro salão</button></div>
+    <h3>Os meus registos</h3><div id="ownerSalonList" class="owner-list"></div><hr class="owner-divider"><h3>Editar dados do perfil</h3><form id="ownerProfileForm" class="owner-form"><label class="wide">Perfil a editar<select id="ownerProfileSalon" required></select></label><label>Nome público<input id="ownerProfileName" maxlength="100" required></label><label>Telefone<input id="ownerProfilePhone" inputmode="tel"></label><label>WhatsApp<input id="ownerProfileWhatsapp" inputmode="tel"></label><label>Email público<input id="ownerProfileEmail" type="email"></label><label>Província<input id="ownerProfileProvince" required></label><label>Distrito / Município<input id="ownerProfileDistrict" required></label><label>Cidade<input id="ownerProfileCity"></label><label>Bairro<input id="ownerProfileNeighborhood"></label><label class="wide">Morada / referência<input id="ownerProfileAddress"></label><label class="wide">Descrição<textarea id="ownerProfileDescription" rows="3" maxlength="500" style="display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;font:inherit"></textarea></label><div id="ownerIndependentEditFields" class="wide" hidden><label>Modalidade<select id="ownerProfileMode"><option value="at_location">No meu local</option><option value="home">Ao domicílio</option><option value="both">No local e ao domicílio</option></select></label><label>Endereço do posto de serviços<input id="ownerProfileServiceAddress"></label><label>Zonas de atendimento ao domicílio<input id="ownerProfileServiceAreas"></label></div><label class="wide">Adicionar fotografia(s) (JPG, PNG ou WEBP, até 5 MB cada)<input id="ownerProfilePhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><div id="ownerProfilePhotoList" class="owner-list wide"></div><div class="owner-actions wide"><button class="btn" id="ownerProfileSave" type="submit">Guardar alterações</button></div></form><hr class="owner-divider"><div class="owner-actions"><button class="btn" id="ownerAddAnotherSalon" type="button">Registar outro salão</button></div>
     <hr class="owner-divider"><h3>Adicionar serviços e preços</h3>
     <form id="ownerServiceForm" class="owner-form">
      <label class="wide">Perfil / salão<select id="ownerServiceSalon" required></select></label>
@@ -464,7 +464,7 @@ async function loadOwnerDashboard(session){
  try{
   const [{data:profile,error:profileError},{data:salons,error:salonError}]=await Promise.all([
    supabaseClient.from('profiles').select('id,full_name,role').eq('id',session.user.id).maybeSingle(),
-   supabaseClient.from('salons').select('id,name,status,province,district,city,neighborhood,provider_type,service_mode,service_address,service_areas').eq('owner_id',session.user.id).order('created_at',{ascending:false})
+   supabaseClient.from('salons').select('id,owner_id,name,status,description,phone,whatsapp,email,province,district,municipality,city,neighborhood,address,provider_type,service_mode,service_address,service_areas').eq('owner_id',session.user.id).order('created_at',{ascending:false})
   ]);
   if(profileError)throw profileError;if(salonError)throw salonError;
   if(profile?.role==='admin'){
@@ -473,10 +473,12 @@ async function loadOwnerDashboard(session){
    await verifyAdminSession(session);
    return;
   }
+  ownerProfilesCache=salons||[];
   $('ownerRegistration').hidden=true;
   $('ownerStartCard').hidden=(salons||[]).length>0;
   $('ownerSalonManager').hidden=!(salons||[]).length;
   $('ownerSalonList').innerHTML=(salons||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(s.provider_type==='independent'?'Profissional independente':'Salão')+' · '+safe([s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', '))+'</div><div class="owner-muted">'+safe(s.provider_type==='independent'?({at_location:'No próprio local',home:'Ao domicílio',both:'No local e ao domicílio'}[s.service_mode]||''): '')+'</div></div><strong>'+safe(s.status==='active'?'Publicado':s.status==='pending'?'A aguardar aprovação':s.status)+'</strong></div>').join('')||'';
+  const profileSelect=$('ownerProfileSalon');profileSelect.innerHTML='';(salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;profileSelect.appendChild(o);});if((salons||[]).length)fillOwnerProfileForm(salons[0]);
   const serviceSalon=$('ownerServiceSalon');serviceSalon.innerHTML='';
   (salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;serviceSalon.appendChild(o);});
   const {data:cats,error:catsError}=await supabaseClient.from('categories').select('id,name').eq('active',true).order('name');
@@ -491,6 +493,55 @@ async function loadOwnerDashboard(session){
   else ownerMessage('A tua conta está pronta. Podes explorar o directório ou registar um salão ou os teus serviços de beleza.','success');
  }catch(error){ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
 }
+
+let ownerProfilesCache=[];
+function fillOwnerProfileForm(s){
+ if(!s)return;
+ const fields={ownerProfileName:s.name,ownerProfilePhone:s.phone,ownerProfileWhatsapp:s.whatsapp,ownerProfileEmail:s.email,ownerProfileProvince:s.province,ownerProfileDistrict:s.district,ownerProfileCity:s.city,ownerProfileNeighborhood:s.neighborhood,ownerProfileAddress:s.address,ownerProfileDescription:s.description,ownerProfileMode:s.service_mode,ownerProfileServiceAddress:s.service_address,ownerProfileServiceAreas:s.service_areas};
+ Object.entries(fields).forEach(([id,value])=>{const el=$(id);if(el)el.value=value||'';});
+ $('ownerIndependentEditFields').hidden=s.provider_type!=='independent';
+ loadOwnerProfilePhotos(s.id).catch(e=>ownerMessage('Não foi possível carregar fotografias: '+e.message,'error'));
+}
+async function loadOwnerProfilePhotos(salonId){
+ const box=$('ownerProfilePhotoList');box.innerHTML='<span class="owner-muted">A carregar fotografias…</span>';
+ const {data,error}=await supabaseClient.from('salon_images').select('id,image_path,caption').eq('salon_id',salonId).order('sort_order');
+ if(error)throw error;
+ box.innerHTML=(data||[]).map(row=>{const src=/^https?:\/\//i.test(row.image_path)?row.image_path:supabaseClient.storage.from('salon-images').getPublicUrl(row.image_path).data.publicUrl;return '<div class="owner-photo-row"><img src="'+safe(src)+'" alt="Fotografia do perfil"><span class="owner-muted">'+safe(row.caption||'Fotografia')+'</span><button class="btn" type="button" data-owner-photo-delete="'+safe(row.id)+'" data-owner-photo-path="'+safe(row.image_path)+'" style="background:#64748b">Remover</button></div>';}).join('')||'<span class="owner-muted">Ainda não há fotografias.</span>';
+}
+$('ownerProfileSalon').addEventListener('change',()=>{const s=ownerProfilesCache.find(x=>x.id===$('ownerProfileSalon').value);if(s)fillOwnerProfileForm(s);});
+$('ownerProfileForm').addEventListener('submit',async event=>{
+ event.preventDefault();if(!ownerSession?.user)return;
+ const id=$('ownerProfileSalon').value,s=ownerProfilesCache.find(x=>x.id===id);
+ if(!s||s.owner_id!==ownerSession.user.id){ownerMessage('Perfil não pertence à tua conta.','error');return;}
+ const button=$('ownerProfileSave');button.disabled=true;button.textContent='A guardar…';
+ try{
+  const payload={name:$('ownerProfileName').value.trim(),phone:$('ownerProfilePhone').value.trim()||null,whatsapp:$('ownerProfileWhatsapp').value.trim()||null,email:$('ownerProfileEmail').value.trim()||null,province:$('ownerProfileProvince').value.trim(),district:$('ownerProfileDistrict').value.trim(),city:$('ownerProfileCity').value.trim()||null,neighborhood:$('ownerProfileNeighborhood').value.trim()||null,address:$('ownerProfileAddress').value.trim()||null,description:$('ownerProfileDescription').value.trim()||null};
+  if(s.provider_type==='independent')Object.assign(payload,{service_mode:$('ownerProfileMode').value,service_address:$('ownerProfileServiceAddress').value.trim()||null,service_areas:$('ownerProfileServiceAreas').value.trim()||null});
+  if(!payload.name||!payload.province||!payload.district)throw new Error('Preenche o nome, a província e o distrito.');
+  const {error}=await supabaseClient.from('salons').update(payload).eq('id',id).eq('owner_id',ownerSession.user.id);if(error)throw error;
+  for(const file of [...($('ownerProfilePhotos').files||[])]){
+   if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024)throw new Error('Cada fotografia deve ser JPG, PNG ou WEBP e ter até 5 MB.');
+   const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg',path=ownerSession.user.id+'/'+id+'/'+crypto.randomUUID()+'.'+ext;
+   const {data:uploaded,error:uploadError}=await supabaseClient.storage.from('salon-images').upload(path,file,{contentType:file.type,upsert:false});if(uploadError)throw uploadError;
+   const {error:imageError}=await supabaseClient.from('salon_images').insert({salon_id:id,image_path:uploaded.path,caption:'Fotografia do salão ou dos serviços',sort_order:Date.now()});if(imageError)throw imageError;
+  }
+  $('ownerProfilePhotos').value='';await loadOwnerDashboard(ownerSession);ownerMessage('Dados e fotografias actualizados com sucesso.','success');
+ }catch(error){ownerMessage('Não foi possível guardar as alterações: '+(error.message||'erro desconhecido'),'error');}
+ finally{button.disabled=false;button.textContent='Guardar alterações';}
+});
+$('ownerProfilePhotoList').addEventListener('click',async event=>{
+ const b=event.target.closest('[data-owner-photo-delete]');if(!b||!ownerSession?.user)return;if(!confirm('Queres remover esta fotografia?'))return;
+ try{
+  const {data:owned,error:ownedError}=await supabaseClient.from('salons').select('id').eq('owner_id',ownerSession.user.id).eq('id',$('ownerProfileSalon').value).maybeSingle();if(ownedError)throw ownedError;if(!owned)throw new Error('Sem permissão para este perfil.');
+  const {error}=await supabaseClient.from('salon_images').delete().eq('id',b.dataset.ownerPhotoDelete).eq('salon_id',owned.id);if(error)throw error;
+  await supabaseClient.storage.from('salon-images').remove([b.dataset.ownerPhotoPath]);await loadOwnerProfilePhotos(owned.id);ownerMessage('Fotografia removida.','success');
+ }catch(error){ownerMessage('Não foi possível remover a fotografia: '+error.message,'error');}
+});
+$('ownerEnableNotifications').addEventListener('click',async()=>{
+ if(!('Notification' in window)){$('ownerNotificationState').textContent='Este navegador não suporta notificações do sistema.';return;}
+ try{const p=await Notification.requestPermission();$('ownerNotificationState').textContent=p==='granted'?'Notificações do sistema activadas.':'Permissão de notificações não concedida.';}catch{$('ownerNotificationState').textContent='Não foi possível activar notificações.';}
+});
+
 async function refreshOwnerServiceList(){
  if(!ownerSession?.user||$('ownerSection').hidden)return;
  const {data:salons,error:salonError}=await supabaseClient.from('salons').select('id,name').eq('owner_id',ownerSession.user.id);
@@ -729,6 +780,7 @@ async function loadAppointments(userId,salonIds){
   supabaseClient.from('appointments').select('id,salon_id,service_id,appointment_date,appointment_time,owner_response,status').eq('customer_id',userId).order('appointment_date',{ascending:false})
  ]);
  if(own.error)throw own.error;if(mine.error)throw mine.error;
+ const statusCounts=(own.data||[]).reduce((acc,a)=>{acc[a.status]=(acc[a.status]||0)+1;return acc;},{});$('ownerAppointmentStats').innerHTML=[['Total',(own.data||[]).length],['Pendentes',statusCounts.pending||0],['Aceites',statusCounts.accepted||0],['Recusadas',statusCounts.rejected||0],['Concluídas',statusCounts.completed||0]].map(x=>'<div class="owner-stat"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('');
  const pending=(own.data||[]).filter(a=>a.status==='pending');
  const fresh=pending.filter(a=>!appointmentKnownPendingIds.has(a.id));
  const firstSnapshot=!appointmentHasLoaded;
