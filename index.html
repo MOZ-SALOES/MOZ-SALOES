@@ -173,8 +173,8 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
  </section>
 
  <section id="ownerSection" class="owner-wrap" hidden>
-  <h2>Conta MOZ SALÕES</h2>
-  <p>Cria uma conta simples para entrar na plataforma. Podes explorar os salões sem registar um salão. Se mais tarde quiseres divulgar o teu negócio, encontrarás essa opção dentro da tua conta.</p>
+  <h2 id="ownerSectionTitle">Conta MOZ SALÕES</h2>
+  <p id="ownerSectionIntro">Cria uma conta para gerir o teu salão. Para publicar, primeiro precisamos de identificar o proprietário; depois poderás preencher a ficha do salão e adicionar os serviços e preços.</p>
   <div class="owner-auth-switch" role="group" aria-label="Tipo de acesso">
    <button class="btn" id="ownerLoginMode" type="button" aria-pressed="true">Entrar na minha conta</button>
    <button class="btn" id="ownerRegisterMode" type="button" style="background:#64748b" aria-pressed="false">Criar uma conta</button>
@@ -427,7 +427,7 @@ if(location.hash==='#owner'||ownerRecoveryRequested){
 }
 
 
-let ownerSession=null, pendingBookingSalonId=null, bookingSalonId=null;
+let ownerSession=null, pendingBookingSalonId=null, bookingSalonId=null, publishSalonIntent=false;
 let appointmentPollTimer=null, appointmentPollBusy=false, appointmentPollUserId=null, appointmentPollSalonIds=[], appointmentKnownPendingIds=new Set(), appointmentHasLoaded=false;
 function ownerMessage(message,type='info'){
  const box=$('ownerMessage');box.textContent=message;
@@ -535,7 +535,7 @@ async function refreshOwnerLiveData(){
  await loadOwnerDashboard(ownerSession);
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
-$('publishSalonNav').addEventListener('click',async event=>{event.preventDefault();await openOwnerSection();if(ownerSession?.user){if($('ownerStartCard').hidden&&$('ownerSalonManager').hidden){$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});}else if(!$('ownerStartCard').hidden){$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});}else{$('ownerAddAnotherSalon').click();}}else{setOwnerAuthMode('register');$('ownerFullName').focus();}});
+$('publishSalonNav').addEventListener('click',async event=>{event.preventDefault();publishSalonIntent=true;await openOwnerSection();$('ownerSectionTitle').textContent='Publicar o meu salão';$('ownerSectionIntro').textContent='Para publicar o teu salão, cria uma conta gratuita ou entra na tua conta. Esta etapa protege a tua ficha e permite-te gerir os serviços, preços e fotografias.';if(ownerSession?.user){$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start');}else{setOwnerAuthMode('register');$('ownerFullName').focus();$('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});}});
 $('ownerAddAnotherSalon').addEventListener('click',()=>{$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerStartSalonBtn').addEventListener('click',()=>{$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerExploreBtn').addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
@@ -573,11 +573,11 @@ $('ownerLoginForm').addEventListener('submit',async event=>{
    const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:fullName||''},emailRedirectTo:location.origin+location.pathname+'#owner'}});
    if(error)throw error;
    if(!data.session)ownerMessage('A conta foi criada. Se a confirmação de email estiver activa, confirma o email para poderes entrar. Não precisas de registar um salão.','success');
-   else {await loadOwnerDashboard(data.session);ownerMessage('Conta criada com sucesso. Podes explorar os salões sem preencher mais dados. Se quiseres publicar o teu salão, escolhe essa opção dentro da conta.','success');}
+   else {await loadOwnerDashboard(data.session);if(publishSalonIntent){$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});ownerMessage('Conta criada! Agora preenche a ficha do teu salão. Depois poderás adicionar os serviços e respectivos preços.','success');}else{ownerMessage('Conta criada com sucesso. Já podes explorar os salões e gerir a tua conta.','success');}}
   }else{
    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
    if(error)throw error;
-   if(data.session){await loadOwnerDashboard(data.session);if(pendingBookingSalonId)showBookingForm(pendingBookingSalonId);}
+   if(data.session){await loadOwnerDashboard(data.session);if(publishSalonIntent){$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});ownerMessage('Sessão iniciada. Continua a publicação preenchendo a ficha do teu salão.','success');}if(pendingBookingSalonId)showBookingForm(pendingBookingSalonId);}
   }
  }catch(error){ownerMessage('Não foi possível continuar: '+(error.message||'erro de autenticação'),'error');}
  finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta':'Entrar';}
