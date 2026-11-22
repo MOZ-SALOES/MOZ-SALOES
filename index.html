@@ -16,7 +16,7 @@ main{max-width:1120px;margin:34px auto;padding:0 18px}.hero{background:linear-gr
 .eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.72rem;font-weight:800;color:#b9d9ff}
 h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700px}.hero p{color:#dceaff;max-width:650px;line-height:1.6;margin:0}
 .search{background:white;border:1px solid #e1e7f0;border-radius:18px;padding:18px;margin-top:-22px;position:relative;box-shadow:0 12px 35px #102b6312}
-.filters{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px}.filters input,.filters select{min-width:0;width:100%;padding:13px;border:1px solid #d9e1ed;border-radius:10px;background:white;color:#17233b}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px}.filters input,.filters select{min-width:0;width:100%;padding:13px;border:1px solid #d9e1ed;border-radius:10px;background:white;color:#17233b}
 .btn{border:0;border-radius:10px;padding:12px 18px;background:#1761b1;color:white;font-weight:750;cursor:pointer}.btn:hover{background:#104b8c}.btn:disabled{opacity:.6;cursor:wait}
 .status{display:flex;align-items:center;gap:9px;color:#64748b;font-size:.86rem;margin-top:13px;flex-wrap:wrap}.dot{width:9px;height:9px;border-radius:50%;background:#d39b2a}.dot.ok{background:#15945c}.dot.err{background:#c33}
 .section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:32px 0 15px}.section-head h2{margin:0;color:#102b63;font-size:1.45rem}.muted{color:#68778e;font-size:.9rem}
@@ -261,7 +261,7 @@ function schedulePublicRealtimeRefresh(table){
   const changed=[...pendingPublicRealtimeTables];pendingPublicRealtimeTables.clear();
   try{
    if(changed.includes('directory')||changed.some(t=>['salons','services','categories','salon_images'].includes(t)))await init();
-   if((changed.includes('directory')||changed.includes('subscription_plans')||changed.includes('salons'))&&ownerSession?.user)await refreshOwnerLiveData();
+   if((changed.includes('directory')||changed.includes('salons'))&&ownerSession?.user)await refreshOwnerLiveData();
    if(changed.includes('appointments')&&ownerSession?.user)await refreshAppointmentFeed();
   }catch(error){console.warn('Actualização em tempo real:',error);}
  },250);
@@ -420,7 +420,7 @@ if(location.hash==='#owner'||ownerRecoveryRequested){
 }
 
 
-let ownerSession=null, ownerRequestId=null, ownerPlans=[], pendingBookingSalonId=null, bookingSalonId=null;
+let ownerSession=null, pendingBookingSalonId=null, bookingSalonId=null;
 let appointmentPollTimer=null, appointmentPollBusy=false, appointmentPollUserId=null, appointmentPollSalonIds=[], appointmentKnownPendingIds=new Set(), appointmentHasLoaded=false;
 function ownerMessage(message,type='info'){
  const box=$('ownerMessage');box.textContent=message;
@@ -684,7 +684,7 @@ $('ownerAppointments').addEventListener('click',async event=>{
 
 $('ownerLogoutBtn').addEventListener('click',async()=>{
  const {error}=await supabaseClient.auth.signOut();if(error){ownerMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
- stopAppointmentPolling();ownerSession=null;ownerRequestId=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;ownerMessage('Sessão terminada.','success');
+ stopAppointmentPolling();ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;ownerMessage('Sessão terminada.','success');
 });
 
 function populate(select,items){
@@ -712,7 +712,7 @@ function render(){
   const matchesCategory=!category||s.category_id===category||services.some(x=>x.category_id===category);
   return (!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory;
  });
- if(sort!=='name')filtered.sort((a,b)=>{const minPrice=s=>{const p=state.services.filter(x=>x.salon_id===s.id&&x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);return p.length?Math.min(...p):Number.POSITIVE_INFINITY;};return sort==='price-asc'?minPrice(a)-minPrice(b):minPrice(b)-minPrice(a);});
+ if(sort!=='name')filtered.sort((a,b)=>{const minPrice=s=>{const p=state.services.filter(x=>x.salon_id===s.id&&x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);return p.length?Math.min(...p):Number.POSITIVE_INFINITY;};const pa=minPrice(a),pb=minPrice(b);if(!Number.isFinite(pa))return 1;if(!Number.isFinite(pb))return -1;return sort==='price-asc'?pa-pb:pb-pa;});
  $('count').textContent=filtered.length+' salão(ões) encontrado(s)';
  if(!filtered.length){
   $('results').innerHTML='<div class="empty"><strong>Ainda não existem salões publicados com estes filtros.</strong><br><span class="muted">Os salões serão apresentados aqui depois de registados e aprovados.</span></div>';return;
