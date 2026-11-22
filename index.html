@@ -200,18 +200,27 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
     <div class="owner-actions"><button class="btn" id="ownerStartSalonBtn" type="button">Publicar o meu salão</button><button class="btn" id="ownerExploreBtn" type="button" style="background:#64748b">Continuar a explorar</button></div>
    </div>
    <div id="ownerRegistration" class="owner-card" hidden>
-    <h3>Registar o meu salão</h3><p>Preenche os dados básicos. O salão ficará pendente de aprovação antes de aparecer no directório.</p>
+    <h3 id="registrationHeading">Registar no MOZ SALÕES</h3><p id="registrationIntro">Escolhe o tipo de actividade. Tudo funciona dentro do mesmo MOZ SALÕES.</p>
     <form id="salonRegisterForm" class="owner-form">
-     <label>Nome do salão<input name="name" required maxlength="100" placeholder="Ex.: Salão Beleza"></label>
+     <label class="wide">O que pretendes registar?<select name="providerType" id="providerType"><option value="salon">Tenho um salão ou estabelecimento</option><option value="independent">Presto serviços de beleza, sem salão</option></select></label>
+     <label><span id="providerNameLabel">Nome do salão</span><input name="name" id="providerName" required maxlength="100" placeholder="Ex.: Salão Beleza"></label>
      <label>Telefone / WhatsApp<input name="phone" required inputmode="tel" placeholder="82xxxxxxx"></label>
-     <label>Província<input name="province" required placeholder="Ex.: Maputo"></label>
-     <label>Distrito / Município<input name="district" required placeholder="Ex.: KaMpfumo"></label>
+     <label>Província<input name="province" required placeholder="Ex.: Maputo"></label><label>Distrito / Município<input name="district" required placeholder="Ex.: KaMpfumo"></label>
      <label>Cidade<input name="city" placeholder="Cidade"></label><label>Bairro<input name="neighborhood" placeholder="Bairro"></label>
-     <label class="wide">Morada / referência<input name="address" placeholder="Rua, avenida ou ponto de referência"></label>
-     <label class="wide">Fotografia do salão (JPG, PNG ou WEBP, até 5 MB)<input name="salonPhoto" id="salonPhotoInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
-     <p class="owner-muted wide">Escolhe uma fotografia real do teu estabelecimento para aparecer no directório. A fotografia é opcional nesta primeira inscrição.</p>
-     <label class="wide">Descrição<textarea name="description" rows="3" maxlength="500" placeholder="Apresenta brevemente o teu salão" style="display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;font:inherit"></textarea></label>
-     <div class="owner-actions wide"><button class="btn" id="salonRegisterBtn" type="submit">Registar salão</button></div>
+     <label class="wide" id="mainAddressWrap">Morada / referência do salão<input name="address" id="providerAddress" placeholder="Rua, avenida ou ponto de referência"></label>
+     <div class="wide" id="independentOptions" hidden><strong>Modalidade e serviços</strong>
+      <label class="wide">Onde atendes?<select name="serviceMode" id="serviceMode"><option value="at_location">No meu próprio local</option><option value="home">Ao domicílio</option><option value="both">No meu local e ao domicílio</option></select></label>
+      <label class="wide" id="serviceAddressWrap">Endereço do teu posto de serviços<input name="serviceAddress" id="serviceAddress" placeholder="Rua, bairro ou referência"></label>
+      <label class="wide" id="serviceAreasWrap">Bairros ou zonas onde te deslocas<input name="serviceAreas" id="serviceAreas" placeholder="Ex.: Matola, Machava, T3"></label>
+      <p class="owner-muted">Indica a tua localização. Não precisas de possuir um salão.</p>
+      <label>Primeiro serviço<input name="firstService" id="firstService" maxlength="100" placeholder="Ex.: Tranças, manicure ou pedicure"></label>
+      <label>Categoria<select name="firstServiceCategory" id="firstServiceCategory"><option value="">Escolher categoria</option></select></label>
+      <label>Preço em MT (opcional)<input name="firstServicePrice" id="firstServicePrice" type="number" min="0" step="0.01" placeholder="Sob consulta"></label>
+     </div>
+     <label class="wide">Fotografia (JPG, PNG ou WEBP, até 5 MB)<input name="salonPhoto" id="salonPhotoInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
+     <p class="owner-muted wide" id="photoHelp">Fotografia opcional do estabelecimento.</p>
+     <label class="wide">Descrição<textarea name="description" rows="3" maxlength="500" placeholder="Apresenta o teu salão ou os teus serviços" style="display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;font:inherit"></textarea></label>
+     <div class="owner-actions wide"><button class="btn" id="salonRegisterBtn" type="submit">Registar</button></div>
     </form>
    </div>
    <div class="owner-card" id="ownerSalonManager" hidden>
@@ -472,14 +481,14 @@ async function loadOwnerDashboard(session){
   (salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;serviceSalon.appendChild(o);});
   const {data:cats,error:catsError}=await supabaseClient.from('categories').select('id,name').eq('active',true).order('name');
   if(catsError)throw catsError;
-  const serviceCategory=$('ownerServiceCategory');serviceCategory.innerHTML='<option value="">Sem categoria</option>';
+  const serviceCategory=$('ownerServiceCategory');serviceCategory.innerHTML='<option value="">Sem categoria</option>';populateInitialServiceCategories();
   (cats||[]).forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;serviceCategory.appendChild(o);});
   await refreshOwnerServiceList();
   const salonIds=(salons||[]).map(x=>x.id);
   await loadAppointments(session.user.id,salonIds);
   startAppointmentPolling(session.user.id,salonIds);
-  if((salons||[]).length)ownerMessage('Os teus salões estão na plataforma. A publicação é gratuita; os salões aparecem no directório depois da aprovação administrativa.','success');
-  else ownerMessage('A tua conta está pronta. Podes explorar o directório ou registar gratuitamente o teu salão.','success');
+  if((salons||[]).length)ownerMessage('Os teus registos estão na plataforma. A publicação é gratuita; salões e profissionais aparecem no directório depois da aprovação administrativa.','success');
+  else ownerMessage('A tua conta está pronta. Podes explorar o directório ou registar um salão ou os teus serviços de beleza.','success');
  }catch(error){ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
 }
 async function refreshOwnerServiceList(){
@@ -610,33 +619,60 @@ $('ownerRecoveryForm').addEventListener('submit',async event=>{
  }catch(error){ownerMessage('Não foi possível actualizar a palavra-passe: '+(error.message||'erro desconhecido'),'error');}
  finally{button.disabled=false;button.textContent='Guardar nova palavra-passe';}
 });
+function updateRegistrationType(){
+ const independent=$('providerType').value==='independent';
+ $('registrationHeading').textContent=independent?'Registar profissional independente':'Registar o meu salão';
+ $('registrationIntro').textContent=independent?'Divulga os teus serviços de beleza mesmo sem teres um salão. O perfil ficará pendente de aprovação.':'Preenche os dados do estabelecimento. O salão ficará pendente de aprovação.';
+ $('providerNameLabel').textContent=independent?'Nome profissional':'Nome do salão';
+ $('providerName').placeholder=independent?'Ex.: Ana Tranças':'Ex.: Salão Beleza';
+ $('mainAddressWrap').hidden=independent;$('providerAddress').required=!independent;
+ $('independentOptions').hidden=!independent;
+ $('photoHelp').textContent=independent?'Fotografia tua ou dos teus trabalhos (opcional).':'Fotografia do estabelecimento (opcional).';
+ $('salonRegisterBtn').textContent=independent?'Registar profissional e serviço':'Registar salão';
+ updateServiceModeFields();
+}
+function updateServiceModeFields(){
+ const mode=$('serviceMode').value;
+ $('serviceAddressWrap').hidden=mode==='home';$('serviceAreasWrap').hidden=mode==='at_location';
+ $('serviceAddress').required=mode!=='home';$('serviceAreas').required=mode!=='at_location';
+}
+$('providerType').addEventListener('change',updateRegistrationType);
+$('serviceMode').addEventListener('change',updateServiceModeFields);
+function populateInitialServiceCategories(){
+ const select=$('firstServiceCategory');if(!select||select.options.length>1)return;
+ (state.categories||[]).forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;select.appendChild(o);});
+}
+updateRegistrationType();
 $('salonRegisterForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!ownerSession?.user){ownerMessage('Entra primeiro na tua conta.','error');return;}
  const form=event.currentTarget,fd=new FormData(form),name=String(fd.get('name')||'').trim();
- const phone=ownerPhone(fd.get('phone')),photo=fd.get('salonPhoto');
+ const independent=String(fd.get('providerType'))==='independent',phone=ownerPhone(fd.get('phone')),photo=fd.get('salonPhoto');
  if(!/^2588[2-7]\d{7}$/.test(phone)){ownerMessage('Indica um número moçambicano válido, por exemplo 82xxxxxxx.','error');return;}
+ if(independent&&!String(fd.get('firstService')||'').trim()){ownerMessage('Indica pelo menos um serviço, por exemplo tranças, manicure ou pedicure.','error');return;}
  if(photo&&photo.size>5*1024*1024){ownerMessage('A fotografia deve ter no máximo 5 MB.','error');return;}
  if(photo&&photo.size&&!['image/jpeg','image/png','image/webp'].includes(photo.type)){ownerMessage('Escolhe uma imagem JPG, PNG ou WEBP.','error');return;}
  const slug=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+crypto.randomUUID().slice(0,8);
  const btn=$('salonRegisterBtn');btn.disabled=true;btn.textContent='A registar…';
  try{
-  const payload={owner_id:ownerSession.user.id,name,slug,phone,whatsapp:phone,province:String(fd.get('province')).trim(),district:String(fd.get('district')).trim(),city:String(fd.get('city')||'').trim()||null,neighborhood:String(fd.get('neighborhood')||'').trim()||null,address:String(fd.get('address')||'').trim()||null,description:String(fd.get('description')||'').trim()||null};
-  const {data:salon,error}=await supabaseClient.from('salons').insert(payload).select('id').single();if(error)throw error;
-  let photoWarning='';
-  if(photo&&photo.size){
-   const extension=photo.type==='image/png'?'png':photo.type==='image/webp'?'webp':'jpg';
-   const path=ownerSession.user.id+'/'+salon.id+'/'+crypto.randomUUID()+'.'+extension;
-   const {data:uploaded,error:uploadError}=await supabaseClient.storage.from('salon-images').upload(path,photo,{contentType:photo.type,upsert:false});
-   if(uploadError){photoWarning=' O salão foi registado, mas a fotografia não foi enviada: '+uploadError.message;}
-   else{
-    const {error:imageError}=await supabaseClient.from('salon_images').insert({salon_id:salon.id,image_path:uploaded.path,caption:'Fotografia do estabelecimento',sort_order:0});
-    if(imageError)photoWarning=' O salão foi registado, mas não foi possível associar a fotografia: '+imageError.message;
-   }
+  const payload={owner_id:ownerSession.user.id,name,slug,phone,whatsapp:phone,province:String(fd.get('province')).trim(),district:String(fd.get('district')).trim(),city:String(fd.get('city')||'').trim()||null,neighborhood:String(fd.get('neighborhood')||'').trim()||null,address:independent?null:(String(fd.get('address')||'').trim()||null),description:String(fd.get('description')||'').trim()||null,provider_type:independent?'independent':'salon',service_mode:independent?String(fd.get('serviceMode')||'at_location'):'at_location',service_address:independent?(String(fd.get('serviceAddress')||'').trim()||null):null,service_areas:independent?(String(fd.get('serviceAreas')||'').trim()||null):null};
+  const {data:record,error}=await supabaseClient.from('salons').insert(payload).select('id').single();if(error)throw error;
+  let warning='';
+  if(independent){
+   const raw=String(fd.get('firstServicePrice')||'').trim();
+   const {error:serviceError}=await supabaseClient.from('services').insert({salon_id:record.id,name:String(fd.get('firstService')).trim(),category_id:String(fd.get('firstServiceCategory')||'')||null,price_mzn:raw===''?null:Number(raw),active:true});
+   if(serviceError)warning=' O perfil foi criado, mas o primeiro serviço não foi guardado: '+serviceError.message;
   }
-  form.reset();await loadOwnerDashboard(ownerSession);
-  ownerMessage('Salão registado gratuitamente. O estado inicial é PENDENTE e ficará visível no directório depois da aprovação administrativa.'+photoWarning,photoWarning?'error':'success');
- }catch(error){ownerMessage('Não foi possível registar o salão: '+(error.message||'erro desconhecido'),'error');}
- finally{btn.disabled=false;btn.textContent='Registar salão';}
+  if(photo&&photo.size){
+   const ext=photo.type==='image/png'?'png':photo.type==='image/webp'?'webp':'jpg',path=ownerSession.user.id+'/'+record.id+'/'+crypto.randomUUID()+'.'+ext;
+   const {data:uploaded,error:uploadError}=await supabaseClient.storage.from('salon-images').upload(path,photo,{contentType:photo.type,upsert:false});
+   if(uploadError)warning+=' A fotografia não foi enviada: '+uploadError.message;
+   else{const {error:imageError}=await supabaseClient.from('salon_images').insert({salon_id:record.id,image_path:uploaded.path,caption:independent?'Fotografia do profissional ou dos seus trabalhos':'Fotografia do estabelecimento',sort_order:0});if(imageError)warning+=' A fotografia não foi associada: '+imageError.message;}
+  }
+  form.reset();$('providerType').value='salon';updateRegistrationType();
+  await loadOwnerDashboard(ownerSession);$('ownerSalonManager').scrollIntoView({behavior:'smooth',block:'start'});
+  ownerMessage((independent?'Perfil profissional':'Salão')+' registado gratuitamente. Estado PENDENTE; ficará visível depois da aprovação administrativa.'+warning,warning?'error':'success');
+ }catch(error){ownerMessage('Não foi possível concluir o registo: '+(error.message||'erro desconhecido'),'error');}
+ finally{btn.disabled=false;updateRegistrationType();}
 });
 $('ownerRefreshBtn').addEventListener('click',()=>loadOwnerDashboard(ownerSession));
 function bookingMessage(message,type='info'){const box=$('bookingMessage');box.textContent=message;box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;}
@@ -754,11 +790,14 @@ function render(){
   const prices=services.filter(x=>x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);
   const price=prices.length?'A partir de '+Math.min(...prices).toLocaleString('pt-MZ')+' MT':'Preços sob consulta';
   const place=[s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', ');
+  const providerLabel=s.provider_type==='independent'?'Profissional independente':'Salão';
+  const serviceModeLabel=s.provider_type==='independent'?({at_location:'Atende no próprio local',home:'Atende ao domicílio',both:'Atende no próprio local e ao domicílio'}[s.service_mode]||'Atendimento por marcação'):'Estabelecimento';
+  const servicePlace=s.provider_type==='independent'?(s.service_mode==='home'?'Zonas de atendimento: '+(s.service_areas||place):s.service_mode==='both'?'Local: '+(s.service_address||place)+' · Domicílio: '+(s.service_areas||'consultar'):'Local de atendimento: '+(s.service_address||place)):place;
   const phone=normalizeMozPhone(s.whatsapp||s.phone);
   const contact=phone?'<a href="https://wa.me/'+safe(phone)+'" target="_blank" rel="noopener noreferrer">Contactar pelo WhatsApp</a>':'<span class="muted">Contacto não disponível</span>';
   const map=mapUrl(s);
   const mapLink=map?'<a href="'+safe(map)+'" target="_blank" rel="noopener noreferrer">Ver localização</a>':'';
-  const photo=salonPhoto(s);return '<article class="card"><div class="salon-visual"><img src="'+safe(photo.src)+'" alt="'+safe(photo.label+' — '+s.name)+'" loading="lazy"><span>'+safe(photo.label)+'</span></div><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||'Salão de beleza. Consulta os serviços disponíveis.')+'</p><div class="service-list"><strong class="service-heading">Serviços e preços</strong>'+serviceLines+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+'</p><p><button class="btn" type="button" data-book-salon="'+safe(s.id)+'">Marcar atendimento</button></p></article>';
+  const photo=salonPhoto(s);return '<article class="card"><div class="salon-visual"><img src="'+safe(photo.src)+'" alt="'+safe(photo.label+' — '+s.name)+'" loading="lazy"><span>'+safe(photo.label)+'</span></div><span class="muted">'+providerLabel+'</span><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||(s.provider_type==='independent'?'Profissional de beleza independente. Consulta os serviços disponíveis.':'Salão de beleza. Consulta os serviços disponíveis.'))+'</p><p class="muted">'+safe(serviceModeLabel)+(servicePlace?' · '+safe(servicePlace):'')+'</p><div class="service-list"><strong class="service-heading">Serviços e preços</strong>'+serviceLines+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+'</p><p><button class="btn" type="button" data-book-salon="'+safe(s.id)+'">Marcar atendimento</button></p></article>';
  }).join('');
 }
 
@@ -766,7 +805,7 @@ async function init(){
  try{
   const [categoriesResult,salonsResult,servicesResult,imagesResult]=await Promise.all([
    supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),
-   supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude').eq('status','active').order('name',{ascending:true}),
+   supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude,provider_type,service_mode,service_address,service_areas').eq('status','active').order('name',{ascending:true}),
    supabaseClient.from('services').select('salon_id,category_id,name,price_mzn').eq('active',true),
    supabaseClient.from('salon_images').select('salon_id,image_path,caption,sort_order').order('sort_order',{ascending:true})
   ]);
