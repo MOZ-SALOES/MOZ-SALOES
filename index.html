@@ -202,7 +202,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <div id="ownerRegistration" class="owner-card" hidden>
     <h3 id="registrationHeading">Registar no MOZ SALÕES</h3><p id="registrationIntro">Escolhe o tipo de actividade. Tudo funciona dentro do mesmo MOZ SALÕES.</p>
     <form id="salonRegisterForm" class="owner-form">
-     <label class="wide">O que pretendes registar?<select name="providerType" id="providerType"><option value="salon">Tenho um salão ou estabelecimento</option><option value="independent">Presto serviços de beleza, sem salão</option></select></label>
+     <label class="wide" id="providerTypeWrap" hidden>Tipo de registo<select name="providerType" id="providerType"><option value="salon">Tenho um salão ou estabelecimento</option><option value="independent">Presto serviços de beleza, sem salão</option></select></label>
      <label><span id="providerNameLabel">Nome do salão</span><input name="name" id="providerName" required maxlength="100" placeholder="Ex.: Salão Beleza"></label>
      <label>Telefone / WhatsApp<input name="phone" required inputmode="tel" placeholder="82xxxxxxx"></label>
      <label>Província<input name="province" required placeholder="Ex.: Maputo"></label><label>Distrito / Município<input name="district" required placeholder="Ex.: KaMpfumo"></label>
@@ -597,7 +597,7 @@ async function refreshOwnerLiveData(){
 $('ownerNav').addEventListener('click',openOwnerSection);
 function showOwnerRegistration(type){
  $('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;
- $('providerType').value=type;updateRegistrationType();
+ $('providerType').value=type;$('providerTypeWrap').hidden=true;updateRegistrationType();
  $('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('publishSalonNav').addEventListener('click',async event=>{
