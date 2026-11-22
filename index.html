@@ -523,7 +523,7 @@ $('ownerProfileForm').addEventListener('submit',async event=>{
    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024)throw new Error('Cada fotografia deve ser JPG, PNG ou WEBP e ter até 5 MB.');
    const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg',path=ownerSession.user.id+'/'+id+'/'+crypto.randomUUID()+'.'+ext;
    const {data:uploaded,error:uploadError}=await supabaseClient.storage.from('salon-images').upload(path,file,{contentType:file.type,upsert:false});if(uploadError)throw uploadError;
-   const {error:imageError}=await supabaseClient.from('salon_images').insert({salon_id:id,image_path:uploaded.path,caption:'Fotografia do salão ou dos serviços',sort_order:Date.now()});if(imageError)throw imageError;
+   const {error:imageError}=await supabaseClient.from('salon_images').insert({salon_id:id,image_path:uploaded.path,caption:'Fotografia do salão ou dos serviços',sort_order:Math.floor(Date.now()/1000)});if(imageError){await supabaseClient.storage.from('salon-images').remove([uploaded.path]);throw imageError;}
   }
   $('ownerProfilePhotos').value='';await loadOwnerDashboard(ownerSession);ownerMessage('Dados e fotografias actualizados com sucesso.','success');
  }catch(error){ownerMessage('Não foi possível guardar as alterações: '+(error.message||'erro desconhecido'),'error');}
