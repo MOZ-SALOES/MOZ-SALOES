@@ -113,7 +113,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 
 <header>
  <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
- <nav class="main-nav" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a><a href="#owner" id="publishSalonNav" class="publish-salon-link">＋ Publicar meu salão</a></nav>
+ <nav class="main-nav" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a><a href="#owner" id="publishSalonNav" class="publish-salon-link">＋ Registar salão ou serviço</a></nav>
 </header>
 <main>
  <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
@@ -174,7 +174,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 
  <section id="ownerSection" class="owner-wrap" hidden>
   <h2 id="ownerSectionTitle">Conta MOZ SALÕES</h2>
-  <p id="ownerSectionIntro">Cria uma conta para gerir o teu salão. Para publicar, primeiro precisamos de identificar o proprietário; depois poderás preencher a ficha do salão e adicionar os serviços e preços.</p>
+  <p id="ownerSectionIntro">Cria uma conta gratuita para registar um salão ou divulgar os teus serviços de beleza. Poderás gerir a tua ficha, serviços, preços e localização.</p>
   <div class="owner-auth-switch" role="group" aria-label="Tipo de acesso">
    <button class="btn" id="ownerLoginMode" type="button" aria-pressed="true">Entrar na minha conta</button>
    <button class="btn" id="ownerRegisterMode" type="button" style="background:#64748b" aria-pressed="false">Criar uma conta</button>
@@ -196,8 +196,8 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <div class="owner-card"><div class="status"><span class="dot ok"></span><strong id="ownerIdentity">Conta autenticada</strong></div><p class="owner-muted">Apenas os salões pertencentes à tua conta aparecem nesta área.</p></div>
    <div id="ownerStartCard" class="owner-card" hidden>
     <h3>A tua conta está pronta</h3>
-    <p>Não precisas de registar um salão para usar a plataforma. Podes continuar a explorar os salões e, quando quiseres divulgar o teu negócio, inicia o registo aqui.</p>
-    <div class="owner-actions"><button class="btn" id="ownerStartSalonBtn" type="button">Publicar o meu salão</button><button class="btn" id="ownerExploreBtn" type="button" style="background:#64748b">Continuar a explorar</button></div>
+    <p>Não precisas de ter um salão para usar a plataforma. Podes registar um estabelecimento ou divulgar os teus serviços de beleza como profissional independente.</p>
+    <div class="owner-actions"><button class="btn" id="ownerStartSalonBtn" type="button">Registar salão ou serviços</button><button class="btn" id="ownerExploreBtn" type="button" style="background:#64748b">Continuar a explorar</button></div>
    </div>
    <div id="ownerRegistration" class="owner-card" hidden>
     <h3 id="registrationHeading">Registar no MOZ SALÕES</h3><p id="registrationIntro">Escolhe o tipo de actividade. Tudo funciona dentro do mesmo MOZ SALÕES.</p>
@@ -544,7 +544,7 @@ async function refreshOwnerLiveData(){
  await loadOwnerDashboard(ownerSession);
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
-$('publishSalonNav').addEventListener('click',async event=>{event.preventDefault();publishSalonIntent=true;await openOwnerSection();$('ownerSectionTitle').textContent='Publicar o meu salão';$('ownerSectionIntro').textContent='Para publicar o teu salão, cria uma conta gratuita ou entra na tua conta. Esta etapa protege a tua ficha e permite-te gerir os serviços, preços e fotografias.';if(ownerSession?.user){$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});}else{setOwnerAuthMode('register');$('ownerFullName').focus();$('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});}});
+$('publishSalonNav').addEventListener('click',async event=>{event.preventDefault();publishSalonIntent=true;await openOwnerSection();$('ownerSectionTitle').textContent='Registar salão ou serviços';$('ownerSectionIntro').textContent='Cria uma conta gratuita ou entra para registar o teu salão ou os teus serviços de beleza, mesmo sem estabelecimento.';if(ownerSession?.user){$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});}else{setOwnerAuthMode('register');$('ownerFullName').focus();$('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});}});
 $('ownerAddAnotherSalon').addEventListener('click',()=>{$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerStartSalonBtn').addEventListener('click',()=>{$('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;$('ownerRegistration').scrollIntoView({behavior:'smooth',block:'start'});});
  $('ownerExploreBtn').addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
