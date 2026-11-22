@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://moz-saloes.github.io/MOZ-SALOES/sitemap.xml
