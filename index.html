@@ -740,9 +740,12 @@ $('salonRegisterForm').addEventListener('submit',async event=>{
 });
 $('ownerRefreshBtn').addEventListener('click',()=>loadOwnerDashboard(ownerSession));
 function bookingMessage(message,type='info'){const box=$('bookingMessage');box.textContent=message;box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;}
+function isValidBookingUuid(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value||'').trim());}
 function showBookingForm(salonId){
- bookingSalonId=salonId;pendingBookingSalonId=salonId;
- const salon=state.salons.find(x=>x.id===salonId);
+ const safeSalonId=String(salonId||'').trim();
+ const salon=state.salons.find(x=>x.id===safeSalonId);
+ if(!isValidBookingUuid(safeSalonId)||!salon){bookingSalonId=null;bookingMessage('Não foi possível identificar o salão seleccionado. Volta ao directório e escolhe o salão novamente.','error');return false;}
+ bookingSalonId=salon.id;pendingBookingSalonId=salon.id;
  $('bookingSalonName').textContent='Marcação para '+(salon?.name||'o salão')+'. O pedido só fica confirmado depois da aceitação do proprietário.';
  const select=$('bookingService');select.innerHTML='<option value="">Escolher serviço (opcional)</option>';
  state.services.filter(x=>x.salon_id===salonId).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+(x.price_mzn!==null?' — '+Number(x.price_mzn).toLocaleString('pt-MZ')+' MT':'');select.appendChild(o);});
@@ -752,17 +755,25 @@ function showBookingForm(salonId){
 }
 $('results').addEventListener('click',async event=>{
  const b=event.target.closest('[data-book-salon]');if(!b)return;
- pendingBookingSalonId=b.getAttribute('data-book-salon');
+ const selectedSalonId=String(b.getAttribute('data-book-salon')||'').trim();
+ if(!isValidBookingUuid(selectedSalonId)||!state.salons.some(x=>x.id===selectedSalonId)){bookingMessage('Este salão não tem um identificador válido para a marcação. Actualiza o directório e tenta novamente.','error');return;}
+ pendingBookingSalonId=selectedSalonId;
  const {data}=await supabaseClient.auth.getSession();
  if(!data?.session){await openOwnerSection();ownerMessage('Para marcar atendimento, entra ou cria uma conta gratuita. Depois poderás concluir o pedido.','info');return;}
- await loadOwnerDashboard(data.session);showBookingForm(pendingBookingSalonId);
+ await loadOwnerDashboard(data.session);showBookingForm(selectedSalonId);
 });
 $('bookingCancel').addEventListener('click',()=>{$('bookingSection').hidden=true;bookingSalonId=null;pendingBookingSalonId=null;});
 $('bookingForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!ownerSession?.user){bookingMessage('Entra na tua conta para enviar a marcação.','error');return;}
  const phone=ownerPhone($('bookingPhone').value);
  if(!/^2588[2-7]\d{7}$/.test(phone)){bookingMessage('Indica um número moçambicano válido, por exemplo 82xxxxxxx.','error');return;}
- const payload={salon_id:bookingSalonId,service_id:$('bookingService').value||null,customer_id:ownerSession.user.id,customer_phone:phone,appointment_date:$('bookingDate').value,appointment_time:$('bookingTime').value,customer_note:$('bookingNote').value.trim()||null,status:'pending'};
+ const salonId=String(bookingSalonId||'').trim();
+ const customerId=String(ownerSession.user.id||'').trim();
+ const selectedServiceId=String($('bookingService').value||'').trim();
+ if(!isValidBookingUuid(salonId)||!state.salons.some(x=>x.id===salonId)){bookingMessage('O salão seleccionado perdeu a identificação. Cancela esta janela e selecciona novamente o salão.','error');return;}
+ if(!isValidBookingUuid(customerId)){bookingMessage('Não foi possível identificar a tua conta. Termina a sessão e entra novamente.','error');return;}
+ if(selectedServiceId&&(!isValidBookingUuid(selectedServiceId)||!state.services.some(x=>x.id===selectedServiceId&&x.salon_id===salonId))){bookingMessage('O serviço seleccionado já não pertence a este salão. Actualiza a página e escolhe novamente.','error');return;}
+ const payload={salon_id:salonId,service_id:selectedServiceId||null,customer_id:customerId,customer_phone:phone,appointment_date:$('bookingDate').value,appointment_time:$('bookingTime').value,customer_note:$('bookingNote').value.trim()||null,status:'pending'};
  const button=$('bookingSubmit');button.disabled=true;button.textContent='A enviar…';
  try{const {error}=await supabaseClient.from('appointments').insert(payload);if(error)throw error;
  bookingMessage('Pedido enviado. Aguarda a resposta do salão; ainda não está confirmado.','success');$('bookingForm').reset();await loadOwnerDashboard(ownerSession);
