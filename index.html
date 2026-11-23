@@ -882,7 +882,7 @@ async function init(){
   const [categoriesResult,salonsResult,servicesResult,imagesResult]=await Promise.all([
    supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),
    supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude,provider_type,service_mode,service_address,service_areas').eq('status','active').order('name',{ascending:true}),
-   supabaseClient.from('services').select('salon_id,category_id,name,price_mzn').eq('active',true),
+   supabaseClient.from('services').select('id,salon_id,category_id,name,price_mzn').eq('active',true),
    supabaseClient.from('salon_images').select('salon_id,image_path,caption,sort_order').order('sort_order',{ascending:true})
   ]);
   for(const result of [categoriesResult,salonsResult,servicesResult,imagesResult])if(result.error)throw result.error;
