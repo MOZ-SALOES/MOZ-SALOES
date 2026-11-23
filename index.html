@@ -902,7 +902,7 @@ function render(){
   const providerLabel=s.provider_type==='independent'?'Profissional independente':'Salão';
   const serviceModeLabel=s.provider_type==='independent'?({at_location:'Atende no próprio local',home:'Atende ao domicílio',both:'Atende no próprio local e ao domicílio'}[s.service_mode]||'Atendimento por marcação'):'Estabelecimento';
   const servicePlace=s.provider_type==='independent'?(s.service_mode==='home'?'Zonas de atendimento: '+(s.service_areas||place):s.service_mode==='both'?'Local: '+(s.service_address||place)+' · Domicílio: '+(s.service_areas||'consultar'):'Local de atendimento: '+(s.service_address||place)):(s.service_areas?'Atendimento: '+s.service_areas:place);
-  const profileExtras=[(s.experience_years!==null&&s.experience_years!==undefined?Number(s.experience_years)+' anos de experiência':''),(s.specialties||[]).join(' · '),(s.languages||[]).length?'Idiomas: '+s.languages.join(', '):''].filter(Boolean).join(' · ');
+  const profileExtras=[(s.experience_years!==null&&s.experience_years!==undefined?Number(s.experience_years)+' anos de experiência':''),(s.specialties||[]).join(' · '),(s.languages||[]).length?'Idiomas: '+s.languages.join(', '):'',s.certificates?'Formação: '+s.certificates:''].filter(Boolean).join(' · ');
   const salonHours=state.hours.filter(h=>h.salon_id===s.id).sort((a,b)=>a.weekday-b.weekday);const hoursText=salonHours.length?'Horário: '+salonHours.map(h=>['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][h.weekday]+' '+(h.closed?'folga':String(h.opens_at).slice(0,5)+'–'+String(h.closes_at).slice(0,5))).join(' · '):'';
   const extraGallery=state.images.filter(x=>x.salon_id===s.id&&x.image_path).slice(1,4).map(x=>{const u=String(x.image_path).startsWith('http')?x.image_path:supabaseClient.storage.from('salon-images').getPublicUrl(x.image_path).data.publicUrl;return '<img src="'+safe(u)+'" alt="'+safe(x.caption||'Trabalho do salão')+'" loading="lazy">';}).join('');
   const phone=normalizeMozPhone(s.whatsapp||s.phone);
@@ -917,7 +917,7 @@ async function init(){
  try{
   const [categoriesResult,salonsResult,servicesResult,imagesResult,hoursResult]=await Promise.all([
    supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),
-   supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude,provider_type,service_mode,service_address,service_areas,experience_years,specialties,languages').eq('status','active').order('name',{ascending:true}),
+   supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude,provider_type,service_mode,service_address,service_areas,experience_years,specialties,languages,certificates').eq('status','active').order('name',{ascending:true}),
    supabaseClient.from('services').select('id,salon_id,category_id,name,price_mzn').eq('active',true),
    supabaseClient.from('salon_images').select('salon_id,image_path,caption,sort_order').order('sort_order',{ascending:true}),
    supabaseClient.from('salon_hours').select('salon_id,weekday,opens_at,closes_at,closed')
