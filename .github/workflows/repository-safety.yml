@@ -32,6 +32,13 @@ jobs:
           grep -F "from('profiles')" index.html
           grep -F "data.role!=='admin'" index.html
 
+      - name: Check inline JavaScript syntax
+        shell: bash
+        run: |
+          awk 'BEGIN { capture=0 } /^<script>$/ { capture=1; next } /^<\\/script>$/ && capture { capture=0; exit } capture { print }' index.html > /tmp/moz-saloes-inline.js
+          test -s /tmp/moz-saloes-inline.js
+          node --check /tmp/moz-saloes-inline.js
+
       - name: Keep recovery notes out of executable migrations
         shell: bash
         run: |
