@@ -461,6 +461,8 @@ if(location.hash==='#owner'||location.hash==='#registar-servicos'||ownerRecovery
 
 let ownerSession=null, pendingBookingSalonId=null, bookingSalonId=null, publishSalonIntent=false, publishServiceIntent=location.hash==='#registar-servicos';
 let appointmentPollTimer=null, appointmentPollBusy=false, appointmentPollUserId=null, appointmentPollSalonIds=[], appointmentKnownPendingIds=new Set(), appointmentHasLoaded=false;
+// Evita que o clique em «Entrar» e o evento SIGNED_IN carreguem o mesmo painel em simultâneo.
+let ownerDashboardLoadPromise=null, ownerDashboardLoadUserId=null;
 function ownerMessage(message,type='info'){
  const box=$('ownerMessage');box.textContent=message;
  box.className='owner-message'+(type==='error'?' error':type==='success'?' success':'');box.hidden=false;
@@ -499,6 +501,15 @@ function leaveOwnerWorkspace(){
 }
 async function loadOwnerDashboard(session){
  if(!session?.user)return;
+ const userId=session.user.id;
+ if(ownerDashboardLoadPromise&&ownerDashboardLoadUserId===userId)return ownerDashboardLoadPromise;
+ ownerDashboardLoadUserId=userId;
+ ownerDashboardLoadPromise=loadOwnerDashboardInternal(session);
+ try{return await ownerDashboardLoadPromise;}
+ finally{if(ownerDashboardLoadUserId===userId){ownerDashboardLoadPromise=null;ownerDashboardLoadUserId=null;}}
+}
+async function loadOwnerDashboardInternal(session){
+ if(!session?.user)return;
  ownerSession=session;
  $('ownerSection').hidden=false;
  $('ownerLoginForm').hidden=true;
@@ -514,6 +525,8 @@ async function loadOwnerDashboard(session){
   ]);
   if(profileError)throw new Error('Não foi possível confirmar o perfil da conta: '+profileError.message);
   if(salonError)throw new Error('Não foi possível carregar os teus salões: '+salonError.message);
+  // Uma resposta atrasada nunca pode reabrir o painel depois de o utilizador sair.
+  if(ownerSession?.user?.id!==session.user.id)return;
   if(profile?.role==='admin'){
    leaveOwnerWorkspace();
    openAdminSection();
@@ -560,8 +573,9 @@ async function loadOwnerDashboard(session){
    ownerMessage('A tua conta está pronta. Podes registar o teu primeiro salão ou serviço.','success');
   }
  }catch(error){
+  if(ownerSession?.user?.id!==session.user.id)return;
   enterOwnerWorkspace();
-  ownerMessage('A sessão foi iniciada, mas não foi possível carregar os dados principais do painel: '+(error.message||'erro desconhecido')+'. Actualiza a página ou tenta novamente.','error');
+  ownerMessage('A sessão foi iniciada, mas não foi possível carregar os dados principais do painel: '+(error.message||'erro desconhecido')+'. Toca em «Actualizar dados» para tentar novamente.','error');
  }
 }
 $('ownerLogoutBtn').addEventListener('click',async()=>{
@@ -569,6 +583,12 @@ $('ownerLogoutBtn').addEventListener('click',async()=>{
  try{
   const {error}=await supabaseClient.auth.signOut();
   if(error)throw error;
+  // Fecha imediatamente a área privada; o directório público volta a ficar disponível.
+  ownerSession=null;ownerDashboardLoadPromise=null;ownerDashboardLoadUserId=null;
+  stopAppointmentPolling();leaveOwnerWorkspace();
+  history.replaceState(null,'',location.pathname+location.search+'#saloes');
+  await init();
+  $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
  }catch(error){ownerMessage('Não foi possível terminar a sessão: '+(error.message||'erro desconhecido'),'error');button.disabled=false;button.textContent='Terminar sessão e explorar salões';}
 });
 
