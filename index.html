@@ -495,16 +495,21 @@ function leaveOwnerWorkspace(){
 }
 async function loadOwnerDashboard(session){
  if(!session?.user)return;
- ownerSession=session;$('ownerSection').hidden=false;
- $('ownerLoginForm').hidden=true;$('ownerDashboard').hidden=false;
+ ownerSession=session;
+ $('ownerSection').hidden=false;
+ $('ownerLoginForm').hidden=true;
+ $('ownerDashboard').hidden=false;
  $('ownerIdentity').textContent='Sessão: '+(session.user.email||'proprietário');
  enterOwnerWorkspace();
+ $('ownerMessage').hidden=true;
+ $('ownerSalonList').innerHTML='<span class="owner-muted">A carregar os teus salões…</span>';
  try{
   const [{data:profile,error:profileError},{data:salons,error:salonError}]=await Promise.all([
    supabaseClient.from('profiles').select('id,full_name,role').eq('id',session.user.id).maybeSingle(),
    supabaseClient.from('salons').select('id,owner_id,name,status,description,phone,whatsapp,email,province,district,municipality,city,neighborhood,address,provider_type,service_mode,service_address,service_areas,experience_years,specialties,certificates,languages').eq('owner_id',session.user.id).order('created_at',{ascending:false})
   ]);
-  if(profileError)throw profileError;if(salonError)throw salonError;
+  if(profileError)throw new Error('Não foi possível confirmar o perfil da conta: '+profileError.message);
+  if(salonError)throw new Error('Não foi possível carregar os teus salões: '+salonError.message);
   if(profile?.role==='admin'){
    leaveOwnerWorkspace();
    openAdminSection();
@@ -512,25 +517,48 @@ async function loadOwnerDashboard(session){
    return;
   }
   ownerProfilesCache=salons||[];
-  populateOwnerSettingsSelectors(salons||[]);
+  populateOwnerSettingsSelectors(ownerProfilesCache);
   $('ownerRegistration').hidden=true;
-  $('ownerStartCard').hidden=(salons||[]).length>0;
-  $('ownerSalonManager').hidden=!(salons||[]).length;
-  $('ownerSalonList').innerHTML=(salons||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(s.provider_type==='independent'?'Profissional independente':'Salão')+' · '+safe([s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', '))+'</div><div class="owner-muted">'+safe(s.provider_type==='independent'?({at_location:'No próprio local',home:'Ao domicílio',both:'No local e ao domicílio'}[s.service_mode]||''): '')+'</div></div><strong>'+safe(s.status==='active'?'Publicado':s.status==='pending'?'A aguardar aprovação':s.status)+'</strong></div>').join('')||'';
-  const profileSelect=$('ownerProfileSalon');profileSelect.innerHTML='';(salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;profileSelect.appendChild(o);});if((salons||[]).length)fillOwnerProfileForm(salons[0]);
+  $('ownerStartCard').hidden=ownerProfilesCache.length>0;
+  $('ownerSalonManager').hidden=!ownerProfilesCache.length;
+  $('ownerSalonList').innerHTML=ownerProfilesCache.map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(s.provider_type==='independent'?'Profissional independente':'Salão')+' · '+safe([s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', '))+'</div><div class="owner-muted">'+safe(s.provider_type==='independent'?({at_location:'No próprio local',home:'Ao domicílio',both:'No local e ao domicílio'}[s.service_mode]||''): '')+'</div></div><strong>'+safe(s.status==='active'?'Publicado':s.status==='pending'?'A aguardar aprovação':s.status)+'</strong></div>').join('')||'';
+  const profileSelect=$('ownerProfileSalon');profileSelect.innerHTML='';
+  ownerProfilesCache.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;profileSelect.appendChild(o);});
+  if(ownerProfilesCache.length)fillOwnerProfileForm(ownerProfilesCache[0]);
   const serviceSalon=$('ownerServiceSalon');serviceSalon.innerHTML='';
-  (salons||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;serviceSalon.appendChild(o);});
-  const {data:cats,error:catsError}=await supabaseClient.from('categories').select('id,name').eq('active',true).order('name');
-  if(catsError)throw catsError;
-  const serviceCategory=$('ownerServiceCategory');serviceCategory.innerHTML='<option value="">Sem categoria</option>';populateInitialServiceCategories();
-  (cats||[]).forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;serviceCategory.appendChild(o);});
-  await refreshOwnerServiceList();
-  const salonIds=(salons||[]).map(x=>x.id);
-  await loadAppointments(session.user.id,salonIds);
-  startAppointmentPolling(session.user.id,salonIds);
-  if((salons||[]).length)ownerMessage('Os teus registos estão na plataforma. A publicação é gratuita; salões e profissionais aparecem no directório depois da aprovação administrativa.','success');
-  else ownerMessage('A tua conta está pronta. Podes registar um salão ou os teus serviços. Para consultar outros salões, termina sessão.','success');
- }catch(error){enterOwnerWorkspace();ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
+  ownerProfilesCache.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;serviceSalon.appendChild(o);});
+
+  // Carregamento secundário: uma falha numa secção não impede a entrada no painel.
+  const sectionErrors=[];
+  try{
+   const {data:cats,error:catsError}=await supabaseClient.from('categories').select('id,name').eq('active',true).order('name');
+   if(catsError)throw catsError;
+   const serviceCategory=$('ownerServiceCategory');
+   serviceCategory.innerHTML='<option value="">Sem categoria</option>';
+   populateInitialServiceCategories();
+   (cats||[]).forEach(cat=>{const o=document.createElement('option');o.value=cat.id;o.textContent=cat.name;serviceCategory.appendChild(o);});
+  }catch(err){sectionErrors.push('categorias: '+err.message);}
+  try{await refreshOwnerServiceList();}catch(err){sectionErrors.push('serviços: '+err.message);}
+  const salonIds=ownerProfilesCache.map(x=>x.id);
+  try{
+   await loadAppointments(session.user.id,salonIds);
+   startAppointmentPolling(session.user.id,salonIds);
+  }catch(err){
+   $('ownerAppointmentNotice').hidden=false;
+   $('ownerAppointmentNotice').textContent='Não foi possível carregar as marcações agora. O teu acesso e os teus salões continuam disponíveis. '+err.message;
+   sectionErrors.push('marcações: '+err.message);
+  }
+  if(sectionErrors.length){
+   ownerMessage('Entraste na tua conta. Algumas informações não carregaram: '+sectionErrors.join(' | '),'error');
+  }else if(ownerProfilesCache.length){
+   ownerMessage('Sessão iniciada. Aqui estão os teus salões e serviços. Não precisas de voltar a registá-los.','success');
+  }else{
+   ownerMessage('A tua conta está pronta. Podes registar o teu primeiro salão ou serviço.','success');
+  }
+ }catch(error){
+  enterOwnerWorkspace();
+  ownerMessage('A sessão foi iniciada, mas não foi possível carregar os dados principais do painel: '+(error.message||'erro desconhecido')+'. Actualiza a página ou tenta novamente.','error');
+ }
 }
 $('ownerLogoutBtn').addEventListener('click',async()=>{
  const button=$('ownerLogoutBtn');button.disabled=true;button.textContent='A terminar sessão…';
