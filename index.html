@@ -1068,10 +1068,25 @@ $('sortPrice').addEventListener('change',render);
  const intro=document.getElementById('mozIntro');
  const enter=document.getElementById('enterMozSite');
  if(!intro||!enter)return;
+ function replayMozIntro(){
+  intro.hidden=false;
+  intro.classList.remove('is-leaving');
+  intro.classList.add('is-active');
+  const content=intro.querySelector('.intro-content');
+  if(content){content.style.animation='none';void content.offsetWidth;content.style.animation='';}
+ }
  enter.addEventListener('click',()=>{
   intro.classList.add('is-leaving');
   intro.classList.remove('is-active');
   window.setTimeout(()=>{intro.hidden=true;},600);
+ });
+ // Repor a abertura quando a página regressa do histórico do navegador.
+ window.addEventListener('pageshow',()=>{
+  if(intro.hidden||intro.classList.contains('is-leaving'))replayMozIntro();
+ });
+ // Garantir a animação também quando a sessão administrativa é restaurada.
+ window.addEventListener('moz-admin-ready',()=>{
+  if(location.hash==='#silda-acesso'&&(intro.hidden||intro.classList.contains('is-leaving')))replayMozIntro();
  });
 })();
 </script>
