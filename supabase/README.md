@@ -4,69 +4,47 @@ Project ref: `wxwbxvvjsgmsrukdfmzq`
 Region: London (`eu-west-2`)
 Database: PostgreSQL 17
 
-## Verified live status
+## Estado verificado em 24-11-2026
 
-- Project status: active and healthy.
-- Eight migration versions are recorded by the remote database (2026-11-16).
-- All eight SQL migration files have been restored to `supabase/migrations/` from the exact SQL statements retained in `supabase_migrations.schema_migrations`.
-- An incompatible, unapplied draft migration dated 2026-11-17 was moved to `supabase/recovery/quarantine/` with a `.disabled` extension; it is not executable.
-- The security advisor returned no lints at the last check.
-- Performance advisor warnings include unused indexes and multiple permissive RLS policies. Do not remove indexes or rewrite policies solely to silence these notices; review them after real workload data exists.
+- O projecto remoto está activo e saudável na última verificação disponível.
+- O histórico remoto contém **18 versões de migração**.
+- A pasta `supabase/migrations/` contém as primeiras 13 migrações, incluindo as oito versões iniciais.
+- As cinco versões mais recentes (2026-11-22 a 2026-11-24) constam no histórico remoto, mas os respectivos SQL originais não foram recuperados para a pasta executável.
+- Os ficheiros com essas cinco versões em `supabase/recovery/reconstructed/` são notas documentais baseadas na inspecção do catálogo actual. **Não são cópias dos SQL originais e não devem ser executados.**
+- O frontend administrativo em `admin.js` consulta `admin_notifications`, apresenta notificações e subscreve eventos Realtime; a criação das notificações é feita pelos triggers no Supabase.
+- A sincronização de esquema e migrações ainda não está completa.
 
-## Migration history recovery
+## Migrações e recuperação
 
-The files in `supabase/migrations/` are the eight migration sources recovered from the active project's remote migration records. The files in `supabase/recovery/reconstructed/` remain documentary reconstructions based on the current database catalog; they are not executable migrations.
+O histórico remoto regista as versões seguintes que ainda precisam de fonte SQL recuperada ou reconstruída e validada:
 
-Do not:
-- move recovery files into `supabase/migrations/`;
-- run them with `supabase db push`;
-- use `migration repair` to mark old versions as reverted/applied;
-- push schema changes to production before reviewing a verified snapshot and testing on a separate project.
+- `20261122141630_add_independent_beauty_providers`
+- `20261123164401_add_optional_owner_profile_settings`
+- `20261124040110_admin_notifications_and_registration_triggers`
+- `20261124093624_private_owner_workspace_directory_access`
+- `20261124095621_promote_salon_accounts_to_owner`
 
-## GitHub automation prepared
+A base de dados remota guarda a versão e o nome das migrações, mas não mantém necessariamente o texto SQL original. Por isso, não afirmar que os documentos de recuperação são os originais. A próxima recuperação deve ser feita a partir de um dump de esquema verificado e das definições actuais de funções, triggers, políticas, índices, constraints e grants.
 
-### Repository safety checks
+**Não** mover nem executar os documentos de `supabase/recovery/reconstructed/`. Não executar novamente migrações já aplicadas. Não usar `migration repair` para mascarar diferenças. Antes de qualquer alteração de esquema em produção, criar e validar um backup e testar num ambiente separado.
 
-`.github/workflows/repository-safety.yml` runs on pushes and pull requests. It checks the configured project reference and ensures recovery documents remain outside the executable migrations directory.
+## GitHub automation
 
-### Read-only schema backup
+- `.github/workflows/repository-safety.yml`: validações estáticas do repositório.
+- `.github/workflows/supabase-schema-backup.yml`: exportação manual e apenas de leitura do esquema, usando Supabase CLI.
+- `.github/workflows/supabase-migrations.yml`: aplicação de migrações. A validação deve bloquear deploy enquanto qualquer fonte histórica estiver ausente, para evitar divergência.
 
-`.github/workflows/supabase-schema-backup.yml` is manual-only. It exports the current schema using the official Supabase CLI command `supabase db dump --db-url ... -f schema.sql` and uploads a seven-day artifact. It does not modify the database or its migration history.
+### Backup manual
 
-To activate the backup workflow, add this one repository secret:
+O workflow de backup requer o secret `SUPABASE_DB_URL` em GitHub → Settings → Secrets and variables → Actions. Copiar a connection string do painel Supabase → Connect directamente para o secret; nunca a partilhar no chat nem a guardar no repositório.
 
-1. Open GitHub repository **Settings**.
-2. Select **Secrets and variables → Actions**.
-3. Select **New repository secret**.
-4. Name: `SUPABASE_DB_URL`.
-5. Value: the database connection string copied from Supabase Dashboard → **Connect**. Do not share it in chat or commit it.
+### Credenciais de migração
 
-Then open **Actions → Supabase schema backup → Run workflow**. If the secret is missing or invalid, the workflow will stop rather than change the database.
+O workflow de migrações usa secrets guardados directamente no GitHub. Nunca colocar passwords, tokens, `service_role` ou `sb_secret` no código. No frontend, usar apenas a chave publishable/anon e políticas RLS correctas.
 
-## Migration deployment secrets
+## Configuração local
 
-The migration workflow requires these repository secrets under **Settings → Secrets and variables → Actions**:
+`supabase/config.toml` aponta para `wxwbxvvjsgmsrukdfmzq`.
 
-- `SUPABASE_ACCESS_TOKEN`: a Supabase personal access token.
-- `SUPABASE_DB_PASSWORD`: the database password for this project.
+Antes de qualquer deploy futuro, verificar a versão da CLI, comparar migrações locais/remotas, rever o SQL e testar num ambiente separado.
 
-Add them directly in GitHub. Never paste either value into chat or commit them to the repository. Until both are configured, the migration workflow deliberately skips all deployment commands.
-
-## Local CLI configuration
-
-The file `config.toml` already points to project `wxwbxvvjsgmsrukdfmzq`.
-
-After installing the Supabase CLI on a trusted computer:
-
-```sh
-supabase --version
-supabase login
-supabase link --project-ref wxwbxvvjsgmsrukdfmzq
-supabase migration list --remote
-```
-
-The remote migration baseline is now restored locally. Before deploying any new migration, review its SQL and verify it against a backup and a test environment. The quarantined draft is not part of the baseline.
-
-## Secrets and browser safety
-
-Never commit database passwords, Supabase access tokens, `service_role` keys, or `sb_secret` keys. Only a publishable/anon key may be used in browser code, together with correctly configured RLS.
