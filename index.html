@@ -720,9 +720,24 @@ $('ownerLoginForm').addEventListener('submit',async event=>{
   }else{
    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
    if(error)throw error;
-   if(data.session){await loadOwnerDashboard(data.session);if(publishServiceIntent||publishSalonIntent){const type=publishServiceIntent?'independent':'salon';showOwnerRegistration(type);ownerMessage(type==='independent'?'Sessão iniciada. Completa o teu perfil profissional e regista o primeiro serviço.':'Sessão iniciada. Continua o registo preenchendo os dados do teu salão.','success');}if(pendingBookingSalonId)showBookingForm(pendingBookingSalonId);}
+   if(!data.session)throw new Error('A autenticação não devolveu uma sessão. Tenta novamente.');
+   // Abrir a área privada imediatamente após a autenticação, sem esperar pelo evento SIGNED_IN.
+   ownerSession=data.session;
+   enterOwnerWorkspace();
+   $('ownerSection').hidden=false;
+   $('ownerLoginForm').hidden=true;
+   $('ownerDashboard').hidden=false;
+   $('ownerIdentity').textContent='Sessão: '+(data.session.user.email||'proprietário');
+   $('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});
+   await loadOwnerDashboard(data.session);
+   if(publishServiceIntent||publishSalonIntent){const type=publishServiceIntent?'independent':'salon';showOwnerRegistration(type);ownerMessage(type==='independent'?'Sessão iniciada. Completa o teu perfil profissional e regista o primeiro serviço.':'Sessão iniciada. Continua o registo preenchendo os dados do teu salão.','success');}
+   if(pendingBookingSalonId)showBookingForm(pendingBookingSalonId);
   }
- }catch(error){ownerMessage('Não foi possível continuar: '+(error.message||'erro de autenticação'),'error');}
+ }catch(error){
+  const message=String(error?.message||'erro de autenticação');
+  const friendly=/invalid login credentials/i.test(message)?'Email ou palavra-passe incorrectos. Confirma os dados e tenta novamente.':/email not confirmed/i.test(message)?'Confirma o teu email antes de entrar.':message;
+  ownerMessage('Não foi possível entrar: '+friendly,'error');
+ }
  finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta':'Entrar';}
 });
 $('ownerForgotBtn').addEventListener('click',async()=>{
