@@ -761,6 +761,7 @@ $('ownerStartServiceBtn').addEventListener('click',()=>showOwnerRegistration('in
  const ownerExploreBtn=$('ownerExploreBtn');
  if(ownerExploreBtn)ownerExploreBtn.addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
 let ownerAuthMode='login';
+let ownerAuthSubmitting=false;
 function setOwnerAuthMode(mode){
  ownerAuthMode=mode;
  const registering=mode==='register';
@@ -782,6 +783,8 @@ $('ownerRegisterMode').addEventListener('click',()=>setOwnerAuthMode('register')
 setOwnerAuthMode('login');
 $('ownerLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
+ if(ownerAuthSubmitting)return;
+ ownerAuthSubmitting=true;
  const email=$('ownerEmail').value.trim().toLowerCase();
  const password=$('ownerPassword').value;
  const fullName=$('ownerFullName').value.trim();
@@ -816,7 +819,14 @@ $('ownerLoginForm').addEventListener('submit',async event=>{
   const friendly=/invalid login credentials/i.test(message)?'Email ou palavra-passe incorrectos. Confirma os dados e tenta novamente.':/email not confirmed/i.test(message)?'Confirma o teu email antes de entrar.':message;
   ownerMessage('Não foi possível entrar: '+friendly,'error');
  }
- finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta':'Entrar';}
+ finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta':'Entrar';ownerAuthSubmitting=false;}
+});
+// No telemóvel, concluir a palavra-passe (tecla «Concluído»/perder foco) inicia a sessão automaticamente.
+// O botão continua disponível; não iniciar se o utilizador estiver a abrir a recuperação de palavra-passe.
+$('ownerPassword').addEventListener('blur',event=>{
+ if(ownerAuthMode!=='login'||ownerAuthSubmitting||event.relatedTarget?.id==='ownerForgotBtn')return;
+ if(!$('ownerLoginForm').checkValidity())return;
+ $('ownerLoginForm').requestSubmit();
 });
 $('ownerForgotBtn').addEventListener('click',async()=>{
  const email=$('ownerEmail').value.trim().toLowerCase();
