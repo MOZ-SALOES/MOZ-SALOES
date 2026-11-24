@@ -498,6 +498,7 @@ async function loadOwnerDashboard(session){
  ownerSession=session;$('ownerSection').hidden=false;
  $('ownerLoginForm').hidden=true;$('ownerDashboard').hidden=false;
  $('ownerIdentity').textContent='Sessão: '+(session.user.email||'proprietário');
+ enterOwnerWorkspace();
  try{
   const [{data:profile,error:profileError},{data:salons,error:salonError}]=await Promise.all([
    supabaseClient.from('profiles').select('id,full_name,role').eq('id',session.user.id).maybeSingle(),
@@ -510,7 +511,6 @@ async function loadOwnerDashboard(session){
    await verifyAdminSession(session);
    return;
   }
-  enterOwnerWorkspace();
   ownerProfilesCache=salons||[];
   populateOwnerSettingsSelectors(salons||[]);
   $('ownerRegistration').hidden=true;
