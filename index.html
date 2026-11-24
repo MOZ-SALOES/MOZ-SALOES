@@ -107,6 +107,24 @@ body.owner-workspace header .main-nav{display:none!important}
 body.owner-workspace main{margin:18px auto;min-height:calc(100dvh - 100px)}
 body.owner-workspace #ownerSection{display:block!important;margin:0 auto;max-width:760px}
 body.owner-workspace .owner-auth-switch{display:none!important}
+
+/* Categorias de serviços em destaque na página inicial */
+.featured-categories{margin:28px 0 8px}
+.featured-categories h2{margin:0 0 6px;color:#102b63;font-size:1.35rem}
+.featured-categories p{margin:0 0 14px;color:#68778e;font-size:.9rem}
+.featured-category-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.featured-category{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:14px 8px;border:1px solid #e1e7f0;border-radius:15px;background:#fff;color:#173d70;font-weight:800;cursor:pointer;box-shadow:0 5px 18px #102b6309;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.featured-category:hover,.featured-category:focus-visible{transform:translateY(-2px);border-color:#1761b1;box-shadow:0 9px 22px #102b6318;outline:none}
+.featured-category .category-icon{width:52px;height:52px;display:grid;place-items:center;border-radius:15px;font-size:1.8rem}
+.featured-category[data-slug="manicure"] .category-icon{background:#fce7f3}
+.featured-category[data-slug="pedicure"] .category-icon{background:#f3e8ff}
+.featured-category[data-slug="lavagem"] .category-icon{background:#fef3c7}
+.featured-category[data-slug="trancas"] .category-icon{background:#dcfce7}
+.featured-category[data-slug="corte"] .category-icon{background:#dbeafe}
+.featured-category[data-slug="retoque"] .category-icon{background:#e0e7ff}
+@media(max-width:760px){.featured-category-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:380px){.featured-category{padding:11px 5px;font-size:.84rem}.featured-category .category-icon{width:46px;height:46px}}
+
 </style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
 </head>
@@ -133,6 +151,13 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 </header>
 <main>
  <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
+ <section class="featured-categories" aria-label="Categorias de serviços">
+  <h2>Explore por categoria</h2>
+  <p>Escolhe o serviço que procuras e encontra quem o oferece.</p>
+  <div class="featured-category-grid" id="featuredCategories">
+   <div class="empty">A carregar categorias…</div>
+  </div>
+ </section>
  <section class="search" aria-label="Pesquisar salões">
   <div class="filters">
    <input id="q" type="search" placeholder="Pesquisar por nome, serviço ou localidade…" aria-label="Pesquisar">
@@ -970,6 +995,19 @@ $('ownerLogoutBtn').addEventListener('click',async()=>{
 function populate(select,items){
  for(const item of items){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;select.appendChild(option);}
 }
+function renderFeaturedCategories(){
+ const root=$('featuredCategories');if(!root)return;
+ const featured=[
+  {slug:'manicure',icon:'💅',label:'Manicure'},
+  {slug:'pedicure',icon:'🦶',label:'Pedicure'},
+  {slug:'lavagem',icon:'🧴',label:'Lavagem'},
+  {slug:'trancas',icon:'💇🏾',label:'Tranças'},
+  {slug:'corte',icon:'✂️',label:'Corte'},
+  {slug:'retoque',icon:'💆🏾',label:'Retoque'}
+ ];
+ const available=featured.map(item=>({...item,category:(state.categories||[]).find(c=>c.slug===item.slug)})).filter(item=>item.category);
+ root.innerHTML=available.length?available.map(item=>'<button type="button" class="featured-category" data-featured-category="'+safe(item.category.id)+'" data-slug="'+item.slug+'" aria-label="Ver salões e profissionais de '+item.label+'"><span class="category-icon" aria-hidden="true">'+item.icon+'</span><span>'+item.label+'</span></button>').join(''):'<div class="empty">As categorias estarão disponíveis em breve.</div>';
+}
 function normalizeMozPhone(value){
  let digits=String(value||'').replace(/\D/g,'');
  // Aceita formatos locais (8xxxxxxxx), nacionais (08xxxxxxxx),
@@ -1039,6 +1077,7 @@ async function init(){
   ]);
   for(const result of [categoriesResult,salonsResult,servicesResult,imagesResult,hoursResult])if(result.error)throw result.error;
   state.categories=categoriesResult.data||[];state.salons=salonsResult.data||[];state.services=servicesResult.data||[];state.images=imagesResult.data||[];state.hours=hoursResult.data||[];
+  renderFeaturedCategories();
   const selectedCategory=$('category').value,selectedProvince=$('province').value;
   populate($('category'),state.categories.map(x=>({value:x.id,label:x.name})));
   const provinces=[...new Set(state.salons.map(x=>x.province).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
@@ -1059,6 +1098,12 @@ $('searchBtn').addEventListener('click',render);
 $('q').addEventListener('input',render);
 $('province').addEventListener('change',render);
 $('category').addEventListener('change',render);
+$('featuredCategories').addEventListener('click',event=>{
+ const button=event.target.closest('[data-featured-category]');if(!button)return;
+ $('category').value=button.dataset.featuredCategory;
+ render();
+ $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
+});
 $('sortPrice').addEventListener('change',render);
 // A sessão é verificada antes de abrir o directório público.
 }
