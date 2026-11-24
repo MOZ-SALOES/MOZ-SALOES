@@ -420,7 +420,7 @@ $('adminLogout').addEventListener('click',async()=>{
  adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();adminMessage('Sessão terminada com segurança. Para voltar, selecciona «Entrar como administrador».','success');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT'){stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');init();}
+ if(event==='SIGNED_OUT'){stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');window.setTimeout(()=>{if(!ownerSession)init();},0);}
  if(event==='PASSWORD_RECOVERY'){
   if(new URLSearchParams(location.search).get('admin-recovery')==='1'||location.hash==='#silda-acesso'){
    $('adminSection').hidden=false;adminLoginVisible=false;showAdminSession(false);$('adminRecoveryForm').hidden=false;$('adminAccessToggle').hidden=true;
@@ -431,9 +431,9 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
    $('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});
   }
  }
- if(event==='SIGNED_IN')window.setTimeout(()=>{
+ if(event==='SIGNED_IN'&&session?.user)window.setTimeout(()=>{
   if(location.hash==='#silda-acesso')verifyAdminSession(session);
-  else if(location.hash==='#owner'&&event!=='PASSWORD_RECOVERY')loadOwnerDashboard(session);
+  else if(ownerSession?.user?.id!==session.user.id)loadOwnerDashboard(session);
  },0);
 });
 supabaseClient.auth.getSession().then(({data,error})=>{
