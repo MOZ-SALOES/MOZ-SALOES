@@ -758,7 +758,8 @@ $('publishSalonNav').addEventListener('click',async event=>{
 $('ownerAddAnotherSalon').addEventListener('click',()=>showOwnerRegistration('salon'));
 $('ownerStartSalonBtn').addEventListener('click',()=>showOwnerRegistration('salon'));
 $('ownerStartServiceBtn').addEventListener('click',()=>showOwnerRegistration('independent'));
- $('ownerExploreBtn').addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
+ const ownerExploreBtn=$('ownerExploreBtn');
+ if(ownerExploreBtn)ownerExploreBtn.addEventListener('click',()=>{$('ownerSection').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');$('saloes').scrollIntoView({behavior:'smooth',block:'start'});});
 let ownerAuthMode='login';
 function setOwnerAuthMode(mode){
  ownerAuthMode=mode;
