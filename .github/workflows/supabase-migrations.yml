@@ -37,12 +37,19 @@ jobs:
             echo "::warning::Add SUPABASE_DB_URL under Settings > Secrets and variables > Actions."
           fi
 
-      - name: Verify historical migration sources are present
+      - name: Verify all historical migration sources are present
         id: history
         shell: bash
         run: |
           missing=0
-          for version in 20261116142902 20261116142926 20261116143053 20261116143243 20261116145347 20261116145917 20261116150303 20261116150701; do
+          versions=(
+            20261116142902 20261116142926 20261116143053 20261116143243
+            20261116145347 20261116145917 20261116150303 20261116150701
+            20261121170000 20261121171000 20261121173000 20261121201500
+            20261121202500 20261122141630 20261123164401 20261124040110
+            20261124093624 20261124095621
+          )
+          for version in "${versions[@]}"; do
             if ! compgen -G "supabase/migrations/${version}_*.sql" > /dev/null; then
               echo "::warning::Missing historical migration source for version ${version}."
               missing=1
@@ -52,7 +59,7 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Deployment blocked to prevent migration-history drift. Restore all eight SQL files recovered from the remote migration records before deploying."
+            echo "::warning::Deployment blocked: one or more historical SQL sources are missing. Restore and validate the sources before production deployment."
           fi
 
       - name: Install Supabase CLI
@@ -67,7 +74,7 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: supabase migration list --db-url="$SUPABASE_DB_URL"
 
-      - name: Apply pending migrations
+      - name: Apply pending Supabase migrations
         if: steps.credentials.outputs.ready == 'true' && steps.history.outputs.ready == 'true'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -81,4 +88,4 @@ jobs:
 
       - name: Report deployment safely blocked
         if: steps.credentials.outputs.ready != 'true' || steps.history.outputs.ready != 'true'
-        run: echo "Deployment was not attempted because the database URL secret is missing or the migration baseline is incomplete."
+        run: echo "Deployment was not attempted because credentials or the complete migration baseline are missing."
