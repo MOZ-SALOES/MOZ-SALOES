@@ -94,6 +94,19 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .compare-row strong{color:#102b63}.compare-price{font-weight:900;color:#145ca8;white-space:nowrap}.compare-place{font-size:.82rem;color:#68778e;margin-top:3px}
 @media(max-width:560px){.catalog-tools{grid-template-columns:1fr}.compare-row{align-items:flex-start}}
 
+/* Sessão autenticada: área do proprietário isolada do directório público */
+body.owner-workspace #mozIntro,
+body.owner-workspace main > .hero,
+body.owner-workspace main > .search,
+body.owner-workspace main > #saloes,
+body.owner-workspace main > #bookingSection,
+body.owner-workspace main > #adminSection,
+body.owner-workspace footer,
+body.owner-workspace .salon-image-viewer{display:none!important}
+body.owner-workspace header .main-nav{display:none!important}
+body.owner-workspace main{margin:18px auto;min-height:calc(100dvh - 100px)}
+body.owner-workspace #ownerSection{display:block!important;margin:0 auto;max-width:760px}
+body.owner-workspace .owner-auth-switch{display:none!important}
 </style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
 </head>
@@ -200,7 +213,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
    <div id="ownerStartCard" class="owner-card" hidden>
     <h3>A tua conta está pronta</h3>
     <p>Escolhe o tipo de registo: cria a ficha de um estabelecimento ou divulga os teus serviços como profissional independente, sem precisares de ter um salão.</p>
-    <div class="owner-actions"><button class="btn" id="ownerStartSalonBtn" type="button">Registar salão</button><button class="btn" id="ownerStartServiceBtn" type="button" style="background:#1761b1">Registar serviços</button><button class="btn" id="ownerExploreBtn" type="button" style="background:#64748b">Continuar a explorar</button></div>
+    <div class="owner-actions"><button class="btn" id="ownerStartSalonBtn" type="button">Registar salão</button><button class="btn" id="ownerStartServiceBtn" type="button" style="background:#1761b1">Registar serviços</button></div><p class="owner-muted">Para consultar outros salões, termina primeiro a tua sessão.</p>
    </div>
    <div id="ownerRegistration" class="owner-card" hidden>
     <h3 id="registrationHeading">Registar no MOZ SALÕES</h3><p id="registrationIntro">Escolhe o tipo de actividade. Tudo funciona dentro do mesmo MOZ SALÕES.</p>
@@ -407,13 +420,13 @@ $('adminLogout').addEventListener('click',async()=>{
  adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();adminMessage('Sessão terminada com segurança. Para voltar, selecciona «Entrar como administrador».','success');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT'){stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;}
+ if(event==='SIGNED_OUT'){stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');init();}
  if(event==='PASSWORD_RECOVERY'){
   if(new URLSearchParams(location.search).get('admin-recovery')==='1'||location.hash==='#silda-acesso'){
    $('adminSection').hidden=false;adminLoginVisible=false;showAdminSession(false);$('adminRecoveryForm').hidden=false;$('adminAccessToggle').hidden=true;
    adminMessage('Define uma nova palavra-passe para a conta administrativa.','success');
   }else{
-   $('ownerSection').hidden=false;$('ownerLoginForm').hidden=true;$('ownerRecoveryForm').hidden=false;
+   enterOwnerWorkspace();$('ownerLoginForm').hidden=true;$('ownerRecoveryForm').hidden=false;
    ownerMessage('Link de recuperação validado. Define uma nova palavra-passe.','info');
    $('ownerSection').scrollIntoView({behavior:'smooth',block:'start'});
   }
@@ -424,11 +437,11 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
  },0);
 });
 supabaseClient.auth.getSession().then(({data,error})=>{
- if(error)adminMessage('Não foi possível verificar a sessão: '+error.message,'error');
- else if(data.session){
+ if(error){adminMessage('Não foi possível verificar a sessão: '+error.message,'error');init();}
+ else if(data?.session){
   if(location.hash==='#silda-acesso')verifyAdminSession(data.session);
-  else if(location.hash==='#owner')loadOwnerDashboard(data.session);
- }
+  else loadOwnerDashboard(data.session);
+ }else init();
 });
 const recoveryParams=new URLSearchParams(location.search);
 const recoveryHash=new URLSearchParams(location.hash.replace(/^#/,''));
@@ -464,6 +477,22 @@ function ownerPhone(value){
  if(digits.length===9&&digits.startsWith('8'))digits='258'+digits;
  return digits;
 }
+function enterOwnerWorkspace(){
+ document.body.classList.add('owner-workspace');
+ $('ownerSection').hidden=false;$('adminSection').hidden=true;$('bookingSection').hidden=true;
+ $('ownerSectionTitle').textContent='Painel do proprietário';
+ $('ownerSectionIntro').textContent='Esta é a tua área privada. Só aparecem os teus salões, serviços, marcações e dados da tua conta.';
+ $('ownerLogoutBtn').textContent='Terminar sessão e explorar salões';
+ document.title='MOZ SALÕES — Painel privado';
+ if(location.hash!=='#owner')history.replaceState(null,'',location.pathname+location.search+'#owner');
+ if(publicRealtimeChannel){supabaseClient.removeChannel(publicRealtimeChannel);publicRealtimeChannel=null;}
+ clearTimeout(publicRealtimeTimer);pendingPublicRealtimeTables.clear();
+}
+function leaveOwnerWorkspace(){
+ document.body.classList.remove('owner-workspace');
+ $('ownerSection').hidden=true;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;
+ document.title='MOZ SALÕES — Directório de salões de Moçambique';
+}
 async function loadOwnerDashboard(session){
  if(!session?.user)return;
  ownerSession=session;$('ownerSection').hidden=false;
@@ -476,11 +505,12 @@ async function loadOwnerDashboard(session){
   ]);
   if(profileError)throw profileError;if(salonError)throw salonError;
   if(profile?.role==='admin'){
-   $('ownerSection').hidden=true;
+   leaveOwnerWorkspace();
    openAdminSection();
    await verifyAdminSession(session);
    return;
   }
+  enterOwnerWorkspace();
   ownerProfilesCache=salons||[];
   populateOwnerSettingsSelectors(salons||[]);
   $('ownerRegistration').hidden=true;
@@ -499,9 +529,16 @@ async function loadOwnerDashboard(session){
   await loadAppointments(session.user.id,salonIds);
   startAppointmentPolling(session.user.id,salonIds);
   if((salons||[]).length)ownerMessage('Os teus registos estão na plataforma. A publicação é gratuita; salões e profissionais aparecem no directório depois da aprovação administrativa.','success');
-  else ownerMessage('A tua conta está pronta. Podes explorar o directório ou registar um salão ou os teus serviços de beleza.','success');
- }catch(error){ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
+  else ownerMessage('A tua conta está pronta. Podes registar um salão ou os teus serviços. Para consultar outros salões, termina sessão.','success');
+ }catch(error){enterOwnerWorkspace();ownerMessage('Não foi possível carregar a área do proprietário: '+(error.message||'erro desconhecido'),'error');}
 }
+$('ownerLogoutBtn').addEventListener('click',async()=>{
+ const button=$('ownerLogoutBtn');button.disabled=true;button.textContent='A terminar sessão…';
+ try{
+  const {error}=await supabaseClient.auth.signOut();
+  if(error)throw error;
+ }catch(error){ownerMessage('Não foi possível terminar a sessão: '+(error.message||'erro desconhecido'),'error');button.disabled=false;button.textContent='Terminar sessão e explorar salões';}
+});
 
 let ownerProfilesCache=[];
 function fillOwnerProfileForm(s){
@@ -829,7 +866,7 @@ async function refreshAppointmentFeed(){
  finally{appointmentPollBusy=false;}
 }
 window.addEventListener('online',()=>{if(ownerSession?.user)refreshAppointmentFeed();});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){init();if(ownerSession?.user)refreshAppointmentFeed();}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(ownerSession?.user){refreshOwnerLiveData();refreshAppointmentFeed();}else init();}});
 async function loadAppointments(userId,salonIds){
  const ownerBox=$('ownerAppointments'),customerBox=$('customerAppointments');
  const [own, mine]=await Promise.all([
@@ -945,7 +982,7 @@ $('q').addEventListener('input',render);
 $('province').addEventListener('change',render);
 $('category').addEventListener('change',render);
 $('sortPrice').addEventListener('change',render);
-init();
+// A sessão é verificada antes de abrir o directório público.
 }
 </script>
 <script>
