@@ -475,9 +475,7 @@ async function openOwnerSection(){
  if(data?.session)await loadOwnerDashboard(data.session);
 }
 function ownerPhone(value){
- let digits=String(value||'').replace(/\D/g,'');
- if(digits.length===9&&digits.startsWith('8'))digits='258'+digits;
- return digits;
+ return normalizeMozPhone(value);
 }
 function enterOwnerWorkspace(){
  document.body.classList.add('owner-workspace');
