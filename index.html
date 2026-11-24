@@ -587,7 +587,7 @@ $('ownerLogoutBtn').addEventListener('click',async()=>{
   ownerSession=null;ownerDashboardLoadPromise=null;ownerDashboardLoadUserId=null;
   stopAppointmentPolling();leaveOwnerWorkspace();
   history.replaceState(null,'',location.pathname+location.search+'#saloes');
-  await init();
+  // O evento SIGNED_OUT já actualiza o directório; evita fazer duas consultas iguais.
   $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
  }catch(error){ownerMessage('Não foi possível terminar a sessão: '+(error.message||'erro desconhecido'),'error');button.disabled=false;button.textContent='Terminar sessão e explorar salões';}
 });
