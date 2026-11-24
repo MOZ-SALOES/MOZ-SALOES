@@ -954,8 +954,19 @@ function populate(select,items){
 }
 function normalizeMozPhone(value){
  let digits=String(value||'').replace(/\D/g,'');
+ // Aceita formatos locais (8xxxxxxxx), nacionais (08xxxxxxxx),
+ // internacionais (+258 8xxxxxxxx) e internacionais com prefixo 00.
+ if(digits.startsWith('00'))digits=digits.slice(2);
+ if(digits.startsWith('258'))digits=digits.slice(3);
+ if(digits.length===10&&digits.startsWith('0'))digits=digits.slice(1);
  if(digits.length===9&&digits.startsWith('8'))digits='258'+digits;
+ else if(digits.length===9)digits='';
+ if(!/^2588\d{8}$/.test(digits))return '';
  return digits;
+}
+function salonWhatsAppNumber(salon){
+ // Se o WhatsApp estiver inválido, tenta o telefone público como alternativa.
+ return normalizeMozPhone(salon?.whatsapp)||normalizeMozPhone(salon?.phone);
 }
 function mapUrl(salon){
  if(salon.latitude!==null&&salon.latitude!==undefined&&salon.longitude!==null&&salon.longitude!==undefined){
@@ -991,8 +1002,8 @@ function render(){
   const profileExtras=[(s.experience_years!==null&&s.experience_years!==undefined?Number(s.experience_years)+' anos de experiência':''),(s.specialties||[]).join(' · '),(s.languages||[]).length?'Idiomas: '+s.languages.join(', '):'',s.certificates?'Formação: '+s.certificates:''].filter(Boolean).join(' · ');
   const salonHours=state.hours.filter(h=>h.salon_id===s.id).sort((a,b)=>a.weekday-b.weekday);const hoursText=salonHours.length?'Horário: '+salonHours.map(h=>['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][h.weekday]+' '+(h.closed?'folga':String(h.opens_at).slice(0,5)+'–'+String(h.closes_at).slice(0,5))).join(' · '):'';
   const extraGallery=state.images.filter(x=>x.salon_id===s.id&&x.image_path).slice(1,4).map(x=>{const u=String(x.image_path).startsWith('http')?x.image_path:supabaseClient.storage.from('salon-images').getPublicUrl(x.image_path).data.publicUrl;return '<img src="'+safe(u)+'" alt="'+safe(x.caption||'Trabalho do salão')+'" loading="lazy">';}).join('');
-  const phone=normalizeMozPhone(s.whatsapp||s.phone);
-  const contact=phone?'<a href="https://wa.me/'+safe(phone)+'" target="_blank" rel="noopener noreferrer">Contactar pelo WhatsApp</a>':'<span class="muted">Contacto não disponível</span>';
+  const phone=salonWhatsAppNumber(s);
+  const contact=phone?'<a href="https://wa.me/'+phone+'" target="_blank" rel="noopener noreferrer" aria-label="Contactar '+safe(s.name)+' pelo WhatsApp">Contactar pelo WhatsApp</a>':'<span class="muted">WhatsApp não disponível</span>';
   const map=mapUrl(s);
   const mapLink=map?'<a href="'+safe(map)+'" target="_blank" rel="noopener noreferrer">Ver localização</a>':'';
   const photo=salonPhoto(s);return '<article class="card"><div class="salon-visual"><img src="'+safe(photo.src)+'" alt="'+safe(photo.label+' — '+s.name)+'" loading="lazy"><span>'+safe(photo.label)+'</span></div><span class="muted">'+providerLabel+'</span><h3>'+safe(s.name)+'</h3><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||(s.provider_type==='independent'?'Profissional de beleza independente. Consulta os serviços disponíveis.':'Salão de beleza. Consulta os serviços disponíveis.'))+'</p><p class="muted">'+safe(serviceModeLabel)+(servicePlace?' · '+safe(servicePlace):'')+'</p>'+(profileExtras?'<p class="muted">'+safe(profileExtras)+'</p>':'')+(hoursText?'<p class="muted">'+safe(hoursText)+'</p>':'')+(extraGallery?'<div class="owner-public-gallery">'+extraGallery+'</div>':'')+'<div class="service-list"><strong class="service-heading">Serviços e preços</strong>'+serviceLines+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+'</p><p><button class="btn" type="button" data-book-salon="'+safe(s.id)+'">Marcar atendimento</button></p></article>';
