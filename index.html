@@ -432,6 +432,8 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
   }
  }
  if(event==='SIGNED_IN'&&session?.user)window.setTimeout(()=>{
+  // O evento pode chegar antes de signInWithPassword terminar. Verificar a sessão
+  // novamente dentro do timeout evita abrir o mesmo painel duas vezes em paralelo.
   if(location.hash==='#silda-acesso')verifyAdminSession(session);
   else if(ownerSession?.user?.id!==session.user.id)loadOwnerDashboard(session);
  },0);
