@@ -493,6 +493,10 @@ function enterOwnerWorkspace(){
 function leaveOwnerWorkspace(){
  document.body.classList.remove('owner-workspace');
  $('ownerSection').hidden=true;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;
+ // Ao sair, repor sempre o formulário em modo de entrada. Evita que uma conta
+ // criada anteriormente deixe o formulário preso no modo «Criar conta».
+ setOwnerAuthMode('login');
+ $('ownerLoginForm').reset();
  document.title='MOZ SALÕES — Directório de salões de Moçambique';
 }
 async function loadOwnerDashboard(session){
