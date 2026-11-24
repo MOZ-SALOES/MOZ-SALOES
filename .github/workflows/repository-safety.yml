@@ -47,7 +47,7 @@ jobs:
             exit 1
           fi
           while IFS= read -r file; do
-            grep -q 'NAO E A FONTE SQL ORIGINAL' "$file" || {
+            grep -q 'NAO E O SQL ORIGINAL' "$file" || {
               echo "ERROR: missing reconstruction warning in $file"
               exit 1
             }
