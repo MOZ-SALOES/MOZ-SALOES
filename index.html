@@ -998,10 +998,7 @@ $('ownerAppointments').addEventListener('click',async event=>{
  }catch(error){ownerMessage('Não foi possível actualizar: '+(error.message||'erro desconhecido'),'error');b.disabled=false;}
 });
 
-$('ownerLogoutBtn').addEventListener('click',async()=>{
- const {error}=await supabaseClient.auth.signOut();if(error){ownerMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
- stopAppointmentPolling();ownerSession=null;$('ownerDashboard').hidden=true;$('ownerLoginForm').hidden=false;ownerMessage('Sessão terminada.','success');
-});
+// O encerramento da sessão é tratado por um único listener acima, evitando chamadas signOut concorrentes.
 
 function populate(select,items){
  for(const item of items){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;select.appendChild(option);}
