@@ -1111,6 +1111,8 @@ async function queryDirectoryWithRetry(makeQuery,label){
  }
  throw new Error('Não foi possível carregar '+label+' depois de 3 tentativas. '+(lastError?.message||'Verifica a ligação à Internet.'));
 }
+let directoryRecoveryAttempts=0;
+let directoryRecoveryTimer=null;
 async function init(){
  try{
   const [categoriesResult,salonsResult,servicesResult,imagesResult,hoursResult]=await Promise.all([
@@ -1129,16 +1131,30 @@ async function init(){
   populate($('province'),provinces.map(x=>({value:x,label:x})));
   if(state.categories.some(x=>x.id===selectedCategory))$('category').value=selectedCategory;
   if(provinces.includes(selectedProvince))$('province').value=selectedProvince;
+  clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;
   $('dot').className='dot ok';$('status').textContent='Ligação ao Supabase estabelecida';$('detail').textContent='Dados carregados com sucesso.';$('retryConnection').hidden=true;
   render();
   connectPublicRealtime();
  }catch(error){
-  $('dot').className='dot err';$('status').textContent='Não foi possível carregar o directório';$('detail').textContent=error.message||'Erro de ligação';
-  $('count').textContent='A ligação precisa de ser verificada';
-  $('results').innerHTML='<div class="empty">O directório não conseguiu carregar os dados. Verifica a ligação e tenta novamente.</div>';$('retryConnection').hidden=false;
+  const message=String(error?.message||error||'').toLowerCase();
+  const transient=error?.name==='AbortError'||error?.name==='TypeError'||message.includes('abort')||message.includes('fetch')||message.includes('network')||message.includes('timeout')||message.includes('3 tentativas')||message.includes('failed to fetch')||message.includes('load failed');
+  if(transient){
+   $('dot').className='dot';$('status').textContent='A restabelecer a ligação automaticamente…';
+   $('detail').textContent='A ligação teve uma interrupção temporária. Não precisas de recarregar a página.';
+   $('count').textContent='A recuperar a ligação ao directório…';
+   $('retryConnection').hidden=false;
+   const delay=Math.min(30000,2000*Math.pow(2,Math.min(directoryRecoveryAttempts,4)));
+   directoryRecoveryAttempts++;
+   clearTimeout(directoryRecoveryTimer);
+   directoryRecoveryTimer=setTimeout(()=>init(),delay);
+  }else{
+   $('dot').className='dot err';$('status').textContent='Não foi possível carregar o directório';$('detail').textContent=error.message||'Erro de ligação';
+   $('count').textContent='A ligação precisa de ser verificada';
+   $('results').innerHTML='<div class="empty">O directório não conseguiu carregar os dados. Verifica a ligação e tenta novamente.</div>';$('retryConnection').hidden=false;
+  }
  }
 }
-$('retryConnection').addEventListener('click',()=>{ $('retryConnection').hidden=true;$('dot').className='dot';$('status').textContent='A tentar ligar novamente…';$('detail').textContent='';$('count').textContent='A carregar directório…';$('results').innerHTML='<div class="empty">A carregar salões…</div>';init();});
+$('retryConnection').addEventListener('click',()=>{ clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;$('retryConnection').hidden=true;$('dot').className='dot';$('status').textContent='A tentar ligar novamente…';$('detail').textContent='';$('count').textContent='A carregar directório…';$('results').innerHTML='<div class="empty">A carregar salões…</div>';init();});
 $('searchBtn').addEventListener('click',render);
 $('q').addEventListener('input',render);
 $('province').addEventListener('change',render);
