@@ -147,7 +147,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 
 <header>
  <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
- <nav class="main-nav" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a><a href="#owner" id="publishSalonNav" class="publish-salon-link">＋ Registar serviços</a></nav>
+ <nav class="main-nav" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a><a href="#owner" id="ownerAccountNav" hidden> A minha conta </a><a href="#owner" id="publishSalonNav" class="publish-salon-link">＋ Registar serviços</a></nav>
 </header>
 <main>
  <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
@@ -445,7 +445,7 @@ $('adminLogout').addEventListener('click',async()=>{
  adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();adminMessage('Sessão terminada com segurança. Para voltar, selecciona «Entrar como administrador».','success');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT'){$('ownerNav').textContent='Entrar / Criar conta';stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');window.setTimeout(()=>{if(!ownerSession)init();},0);}
+ if(event==='SIGNED_OUT'){$('ownerNav').hidden=false;$('ownerAccountNav').hidden=true;stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');window.setTimeout(()=>{if(!ownerSession)init();},0);}
  if(event==='PASSWORD_RECOVERY'){
   if(new URLSearchParams(location.search).get('admin-recovery')==='1'||location.hash==='#silda-acesso'){
    $('adminSection').hidden=false;adminLoginVisible=false;showAdminSession(false);$('adminRecoveryForm').hidden=false;$('adminAccessToggle').hidden=true;
@@ -524,7 +524,7 @@ async function browsePublicDirectory(){
  $('ownerSection').hidden=true;
  $('adminSection').hidden=true;
  $('bookingSection').hidden=true;
- $('ownerNav').textContent=ownerSession?.user?'A minha conta':'Entrar / Criar conta';
+ $('ownerNav').hidden=!ownerSession?.user;$('ownerAccountNav').hidden=!ownerSession?.user;
  document.title='MOZ SALÕES — Directório de salões de Moçambique';
  history.replaceState(null,'',location.pathname+location.search+'#saloes');
  $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
@@ -555,7 +555,7 @@ async function loadOwnerDashboardInternal(session){
  $('ownerLoginForm').hidden=true;
  $('ownerDashboard').hidden=false;
  $('ownerIdentity').textContent='Sessão: '+(session.user.email||'proprietário');
- $('ownerNav').textContent='A minha conta';
+ $('ownerNav').hidden=true;$('ownerAccountNav').hidden=false;
  enterOwnerWorkspace();
  $('ownerMessage').hidden=true;
  $('ownerSalonList').innerHTML='<span class="owner-muted">A carregar os teus salões…</span>';
@@ -759,6 +759,7 @@ async function refreshOwnerLiveData(){
  await loadOwnerDashboard(ownerSession);
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
+$('ownerAccountNav').addEventListener('click',event=>{event.preventDefault();openOwnerSection();});
 function showOwnerRegistration(type){
  $('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;
  $('providerType').value=type;$('providerTypeWrap').hidden=true;updateRegistrationType();
