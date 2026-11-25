@@ -308,13 +308,8 @@ if(!window.supabase?.createClient){
 const SUPABASE_URL='https://wxwbxvvjsgmsrukdfmzq.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_W7Kyr0OpmOnGqApgnK8Oyg_uyT7RiXB';
 const ADMIN_NAME='Silda';
-const fetchWithTimeout=(input,init={})=>{
- const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),15000);
- if(init.signal)init.signal.addEventListener('abort',()=>controller.abort(),{once:true});
- return fetch(input,{...init,signal:controller.signal}).finally(()=>clearTimeout(timer));
-};
-const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},global:{fetch:fetchWithTimeout}});
+// Não interromper pedidos legítimos após 15 segundos: a rede móvel pode ser lenta.
+const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
 const state={salons:[],services:[],categories:[],images:[],hours:[]};
 let publicRealtimeChannel=null,publicRealtimeTimer=null;
@@ -1095,14 +1090,35 @@ function render(){
  }).join('');
 }
 
+async function queryDirectoryWithRetry(makeQuery,label){
+ let lastError=null;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const result=await makeQuery();
+   if(!result.error)return result;
+   lastError=result.error;
+   const status=Number(result.error.status||result.status||0);
+   const message=String(result.error.message||'').toLowerCase();
+   const transient=status===0||status===408||status===429||status>=500||message.includes('abort')||message.includes('fetch')||message.includes('network')||message.includes('timeout');
+   if(!transient)throw result.error;
+  }catch(error){
+   lastError=error;
+   const message=String(error?.message||error||'').toLowerCase();
+   const transient=error?.name==='AbortError'||error?.name==='TypeError'||message.includes('abort')||message.includes('fetch')||message.includes('network')||message.includes('timeout');
+   if(!transient)throw error;
+  }
+  if(attempt<2)await new Promise(resolve=>setTimeout(resolve,700*Math.pow(2,attempt)));
+ }
+ throw new Error('Não foi possível carregar '+label+' depois de 3 tentativas. '+(lastError?.message||'Verifica a ligação à Internet.'));
+}
 async function init(){
  try{
   const [categoriesResult,salonsResult,servicesResult,imagesResult,hoursResult]=await Promise.all([
-   supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),
-   supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude,provider_type,service_mode,service_address,service_areas,experience_years,specialties,languages,certificates').eq('status','active').order('name',{ascending:true}),
-   supabaseClient.from('services').select('id,salon_id,category_id,name,price_mzn').eq('active',true),
-   supabaseClient.from('salon_images').select('salon_id,image_path,caption,sort_order').order('sort_order',{ascending:true}),
-   supabaseClient.from('salon_hours').select('salon_id,weekday,opens_at,closes_at,closed')
+   queryDirectoryWithRetry(()=>supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),'as categorias'),
+   queryDirectoryWithRetry(()=>supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude,provider_type,service_mode,service_address,service_areas,experience_years,specialties,languages,certificates').eq('status','active').order('name',{ascending:true}),'os salões'),
+   queryDirectoryWithRetry(()=>supabaseClient.from('services').select('id,salon_id,category_id,name,price_mzn').eq('active',true),'os serviços'),
+   queryDirectoryWithRetry(()=>supabaseClient.from('salon_images').select('salon_id,image_path,caption,sort_order').order('sort_order',{ascending:true}),'as fotografias'),
+   queryDirectoryWithRetry(()=>supabaseClient.from('salon_hours').select('salon_id,weekday,opens_at,closes_at,closed'),'os horários')
   ]);
   for(const result of [categoriesResult,salonsResult,servicesResult,imagesResult,hoursResult])if(result.error)throw result.error;
   state.categories=categoriesResult.data||[];state.salons=salonsResult.data||[];state.services=servicesResult.data||[];state.images=imagesResult.data||[];state.hours=hoursResult.data||[];
