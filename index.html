@@ -284,7 +284,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
    <div id="ownerAppointmentNotice" class="appointment-notice" role="status" aria-live="polite">A preparar avisos de marcação…</div><div class="owner-card" id="ownerAppointmentsCard"><h3>Marcações dos meus salões</h3><p class="owner-muted">Aceita ou recusa os pedidos dos clientes. Só as aceites ficam confirmadas.</p><div id="ownerAppointments" class="owner-list">A carregar…</div></div>
    <div class="owner-card"><h3>As minhas marcações</h3><p class="owner-muted">Consulta os pedidos que enviaste aos salões.</p><div id="customerAppointments" class="owner-list">A carregar…</div></div>
    
-   <div class="owner-actions"><button class="btn" id="ownerRefreshBtn" type="button">Actualizar dados</button><button class="btn" id="ownerLogoutBtn" type="button" style="background:#64748b">Terminar sessão</button></div>
+   <div class="owner-actions"><button class="btn" id="ownerRefreshBtn" type="button">Actualizar dados</button><button class="btn" id="ownerBrowseSalonsBtn" type="button">Ver outros salões</button><button class="btn" id="ownerLogoutBtn" type="button" style="background:#64748b">Terminar sessão</button></div>
   </div>
  </section>
 
@@ -445,7 +445,7 @@ $('adminLogout').addEventListener('click',async()=>{
  adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();adminMessage('Sessão terminada com segurança. Para voltar, selecciona «Entrar como administrador».','success');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT'){stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');window.setTimeout(()=>{if(!ownerSession)init();},0);}
+ if(event==='SIGNED_OUT'){$('ownerNav').textContent='Entrar / Criar conta';stopAppointmentPolling();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');window.setTimeout(()=>{if(!ownerSession)init();},0);}
  if(event==='PASSWORD_RECOVERY'){
   if(new URLSearchParams(location.search).get('admin-recovery')==='1'||location.hash==='#silda-acesso'){
    $('adminSection').hidden=false;adminLoginVisible=false;showAdminSession(false);$('adminRecoveryForm').hidden=false;$('adminAccessToggle').hidden=true;
@@ -509,11 +509,26 @@ function enterOwnerWorkspace(){
  $('ownerSection').hidden=false;$('adminSection').hidden=true;$('bookingSection').hidden=true;
  $('ownerSectionTitle').textContent='Painel do proprietário';
  $('ownerSectionIntro').textContent='Esta é a tua área privada. Só aparecem os teus salões, serviços, marcações e dados da tua conta.';
- $('ownerLogoutBtn').textContent='Terminar sessão e explorar salões';
+ $('ownerLogoutBtn').textContent='Terminar sessão';
  document.title='MOZ SALÕES — Painel privado';
  if(location.hash!=='#owner')history.replaceState(null,'',location.pathname+location.search+'#owner');
  if(publicRealtimeChannel){supabaseClient.removeChannel(publicRealtimeChannel);publicRealtimeChannel=null;}
  clearTimeout(publicRealtimeTimer);pendingPublicRealtimeTables.clear();
+}
+async function browsePublicDirectory(){
+ const {data,error}=await supabaseClient.auth.getSession();
+ if(error){ownerMessage('Não foi possível confirmar a sessão: '+error.message,'error');return;}
+ // Mantém a sessão autenticada: apenas muda da área privada para o directório público.
+ ownerSession=data?.session||null;
+ document.body.classList.remove('owner-workspace');
+ $('ownerSection').hidden=true;
+ $('adminSection').hidden=true;
+ $('bookingSection').hidden=true;
+ $('ownerNav').textContent=ownerSession?.user?'A minha conta':'Entrar / Criar conta';
+ document.title='MOZ SALÕES — Directório de salões de Moçambique';
+ history.replaceState(null,'',location.pathname+location.search+'#saloes');
+ $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
+ await init();
 }
 function leaveOwnerWorkspace(){
  document.body.classList.remove('owner-workspace');
@@ -540,6 +555,7 @@ async function loadOwnerDashboardInternal(session){
  $('ownerLoginForm').hidden=true;
  $('ownerDashboard').hidden=false;
  $('ownerIdentity').textContent='Sessão: '+(session.user.email||'proprietário');
+ $('ownerNav').textContent='A minha conta';
  enterOwnerWorkspace();
  $('ownerMessage').hidden=true;
  $('ownerSalonList').innerHTML='<span class="owner-muted">A carregar os teus salões…</span>';
@@ -603,6 +619,7 @@ async function loadOwnerDashboardInternal(session){
   ownerMessage('A sessão foi iniciada, mas não foi possível carregar os dados principais do painel: '+(error.message||'erro desconhecido')+'. Toca em «Actualizar dados» para tentar novamente.','error');
  }
 }
+$('ownerBrowseSalonsBtn').addEventListener('click',browsePublicDirectory);
 $('ownerLogoutBtn').addEventListener('click',async()=>{
  const button=$('ownerLogoutBtn');button.disabled=true;button.textContent='A terminar sessão…';
  try{
@@ -614,7 +631,7 @@ $('ownerLogoutBtn').addEventListener('click',async()=>{
   history.replaceState(null,'',location.pathname+location.search+'#saloes');
   // O evento SIGNED_OUT já actualiza o directório; evita fazer duas consultas iguais.
   $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
- }catch(error){ownerMessage('Não foi possível terminar a sessão: '+(error.message||'erro desconhecido'),'error');button.disabled=false;button.textContent='Terminar sessão e explorar salões';}
+ }catch(error){ownerMessage('Não foi possível terminar a sessão: '+(error.message||'erro desconhecido'),'error');button.disabled=false;button.textContent='Terminar sessão';}
 });
 
 let ownerProfilesCache=[];
