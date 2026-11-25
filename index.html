@@ -4,31 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<!-- moz-mobile-only-guard: permite telemóveis/tablets e bloqueia computadores e modo desktop em ecrãs pequenos -->
-<style id="moz-mobile-only-guard">
-html.moz-device-blocked,html.moz-device-blocked body{min-height:100%;background:#071b3d!important}
-html.moz-device-blocked body>*{display:none!important}
-html.moz-device-blocked body:before{content:"O MOZ SALÕES está disponível apenas em dispositivos móveis. Desactive a opção «Site para computador» no navegador e volte a carregar a página.";position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:28px;background:radial-gradient(ellipse at 50% 35%,#174b91,#061936 65%,#020918);color:#fff;font:600 17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center}
-</style>
-<script id="moz-mobile-only-guard-script">
-(function(){
-  var ua=navigator.userAgent||"";
-  var touchPoints=navigator.maxTouchPoints||0;
-  var sw=Math.max(screen.width||0,screen.height||0);
-  var shortScreen=Math.min(screen.width||0,screen.height||0);
-  var viewportWidth=Math.max(document.documentElement.clientWidth||0,window.innerWidth||0);
-  var iosPhone=/iPhone|iPod/i.test(ua);
-  var iosTablet=/iPad/i.test(ua)||( /Macintosh/i.test(ua) && touchPoints>1 && sw>=700 );
-  var android=/Android/i.test(ua);
-  var mobileUA=/Mobi|Mobile|iPhone|iPod|Windows Phone/i.test(ua);
-  var smallTouchDevice=touchPoints>0 && shortScreen>0 && shortScreen<=600;
-  // "Site para computador" em telemóveis costuma alargar o viewport virtual
-  // muito além da largura física do ecrã.
-  var desktopSiteOnSmallScreen=shortScreen>0 && shortScreen<=600 && viewportWidth>shortScreen*1.4;
-  var allowed=(iosPhone||iosTablet||mobileUA||android||smallTouchDevice) && !desktopSiteOnSmallScreen;
-  if(!allowed) document.documentElement.classList.add("moz-device-blocked");
-})();
-</script>
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
