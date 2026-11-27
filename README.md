@@ -14,7 +14,7 @@ Directório digital de salões de beleza em Moçambique. A interface pública pe
 
 ## Base de dados
 
-As 21 migrações aplicadas no projecto remoto estão registadas no repositório:
+As 22 migrações aplicadas no projecto remoto estão registadas no repositório:
 
 | Versão | Migração |
 |---|---|
@@ -39,6 +39,7 @@ As 21 migrações aplicadas no projecto remoto estão registadas no repositório
 | 20261127182024 | add_query_performance_indexes |
 | 20261127182047 | remove_duplicate_inquiry_index |
 | 20261127182951 | persistent_user_notifications |
+| 20261127183605 | least_privilege_user_notifications |
 
 A migração de notificações cria a tabela privada por utilizador `user_notifications`, com RLS, índices para histórico/avisos por ler e um trigger que notifica o proprietário quando recebe uma marcação e o cliente quando o pedido é aceite ou recusado. A tabela está incluída no Supabase Realtime.
 
