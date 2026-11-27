@@ -488,13 +488,12 @@ body.owner-workspace .owner-auth-switch{display:none!important}
   </div><p class="muted" style="margin:10px 2px">O assistente fornece orientações automáticas com base nas funcionalidades documentadas. Não consulta dados privados nem executa alterações na tua conta.</p>
  </section>
 <footer><span class="mjo-signature" aria-label="MJO"><span class="mjo-blue">M</span><span class="mjo-black">J</span><span class="mjo-blue">O</span></span><span class="footer-credit"><span class="footer-brand" aria-label="MOZ SALÕES"><span class="brand-black">M</span><span class="brand-blue">O</span><span class="brand-black">Z</span><span> </span><span class="brand-blue">S</span><span class="brand-black">A</span><span class="brand-blue">L</span><span class="brand-black">Õ</span><span class="brand-blue">E</span><span class="brand-black">S</span></span><span class="footer-tagline">· Descobre beleza com confiança.</span></span></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-/* Carregar a alternativa de forma síncrona antes do código principal.
-   document.write mantém a ordem de execução: o módulo tem de existir
-   antes de inicializarmos os botões e formulários do MOZ SALÕES. */
+/* O SDK é carregado antes do código da aplicação. Usamos o ficheiro UMD
+   explícito para evitar diferenças de resolução do pacote entre CDNs. */
 if(!window.supabase?.createClient){
- document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
+ document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"><\/script>');
 }
 </script>
 <script>
@@ -503,7 +502,8 @@ if(!window.supabase?.createClient){
  if(dot)dot.className='dot err';
  if(status)status.textContent='Não foi possível carregar o módulo de ligação';
  if(detail)detail.textContent='Verifica a Internet e tenta novamente.';
- if(retry){retry.hidden=false;retry.onclick=()=>location.reload();}
+ if(retry){retry.hidden=false;retry.textContent='Tentar novamente';retry.onclick=()=>location.reload();}
+ window.addEventListener('online',()=>location.reload(),{once:true});
  document.getElementById('count').textContent='Directório temporariamente indisponível';
  document.getElementById('results').innerHTML='<div class="empty">Não foi possível iniciar a ligação ao directório. Verifica a Internet e tenta novamente.</div>';
 }else{
