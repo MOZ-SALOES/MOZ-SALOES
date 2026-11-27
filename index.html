@@ -1111,7 +1111,7 @@ function mapUrl(salon){
  return address?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(address+', Mozambique'):'';
 }
 function salonSeoPath(salon){
- const slug=String(salon?.name||'').replace(/\\s+/g,' ').trim().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,70)||'salao';
+ const slug=String(salon?.name||'').replace(/\s+/g,' ').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,70)||'salao';
  return 'saloes/'+slug+'-'+String(salon.id)+'/';
 }
 function render(){
