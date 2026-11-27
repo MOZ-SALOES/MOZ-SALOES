@@ -14,7 +14,7 @@ Directório digital de salões de beleza em Moçambique. A interface pública pe
 
 ## Base de dados
 
-As 24 migrações aplicadas no projecto remoto estão registadas no repositório:
+O histórico remoto contém 24 migrações. A tabela abaixo documenta todas as versões aplicadas; 19 ficheiros SQL de origem estão presentes no repositório. As fontes originais destas cinco migrações históricas ainda não foram recuperadas: `20261122141630`, `20261123164401`, `20261124040110`, `20261124093624` e `20261124095621`. Por segurança, o workflow automático bloqueia `db push` enquanto estas fontes estiverem ausentes. Não substituir os originais por ficheiros vazios nem mover documentação reconstruída de `supabase/recovery/` para `supabase/migrations/`.
 
 | Versão | Migração |
 |---|---|
@@ -79,7 +79,7 @@ Nunca partilhar estes valores no chat nem os guardar no repositório.
 
 ## Estado funcional e próximos passos
 
-A estrutura da base de dados e as migrações estão sincronizadas. Existem salões publicados e pendentes, e já existe um perfil administrativo. O fluxo de notificações de marcações está preparado para proprietários e clientes autenticados.
+A base de dados de produção foi actualizada e verificada. O histórico remoto tem 24 migrações; o workflow automático mantém-se bloqueado em segurança até serem recuperadas as cinco fontes históricas indicadas acima. Existem salões publicados e pendentes, e já existe um perfil administrativo. O fluxo de notificações de marcações está preparado para proprietários, clientes e administração.
 
 O site está publicado no GitHub Pages em https://moz-saloes.github.io/MOZ-SALOES/. As funcionalidades que dependem de autenticação e Internet continuam a exigir ligação activa; as notificações do painel são persistentes e actualizadas em tempo real enquanto a conta está ligada.
 
