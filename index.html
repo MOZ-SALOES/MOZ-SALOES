@@ -1284,7 +1284,7 @@ function startUserNotificationSync(userId){
  loadUserNotifications(userId);
  userNotificationChannel=supabaseClient.channel('moz-saloes-user-notifications-'+userId)
   .on('postgres_changes',{event:'*',schema:'public',table:'user_notifications',filter:'recipient_id=eq.'+userId},payload=>{
-   if(payload.eventType==='INSERT'&&payload.new?.recipient_id===userId)showUserSystemNotification(payload.new);
+   if(payload.eventType==='INSERT'&&payload.new?.recipient_id===userId){showUserSystemNotification(payload.new);refreshAppointmentFeed();}
    loadUserNotifications(userId);
   }).subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Notificações em tempo real indisponíveis; a actualização automática continuará activa.');});
  userNotificationPollTimer=setInterval(()=>loadUserNotifications(userId),45000);
