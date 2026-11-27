@@ -1,0 +1,46 @@
+name: Reportar um problema
+description: Comunicar um erro no site ou na aplicação MOZ SALÕES
+title: "[BUG] "
+labels: ["bug", "triagem"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Não publique palavras-passe, tokens, chaves privadas, dados pessoais de clientes ou informações de pagamento.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Onde ocorreu?
+      options:
+        - Site público
+        - Aplicação instalada (PWA)
+        - Conta do proprietário
+        - Marcação de atendimento
+        - Painel administrativo
+        - Outro
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: O que aconteceu?
+      description: Descreva os passos para reproduzir o problema.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: O que deveria acontecer?
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Dispositivo e navegador
+      placeholder: Ex. Android 14, Chrome
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Captura de ecrã ou mensagem de erro (sem dados privados)
+    validations:
+      required: false
