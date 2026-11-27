@@ -224,6 +224,8 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 .network-notice{position:sticky;top:0;z-index:8500;padding:9px 14px;text-align:center;font-size:.84rem;font-weight:750;background:#fff4d6;color:#79530a;border-bottom:1px solid #f1d58c}
 .network-notice.is-online{background:#e7f7ed;color:#17643a;border-color:#c6e8d1}
 @media(max-width:760px){header .pwa-install{display:inline-block;padding:8px 10px;font-size:.76rem}.network-notice{font-size:.78rem}}
+
+.smart-match{display:grid;grid-template-columns:1fr 1.15fr;gap:20px;align-items:center;margin:28px 0;padding:clamp(20px,4vw,32px);border:1px solid #cfe0f4;border-radius:22px;background:radial-gradient(circle at 90% 10%,#e5f2ff 0,transparent 38%),linear-gradient(130deg,#fff,#f2f7ff);box-shadow:0 14px 38px #102b630d}.smart-match-kicker{font-size:.7rem;letter-spacing:.13em;font-weight:900;color:#1761b1}.smart-match h2{color:#102b63;font-size:clamp(1.35rem,3vw,1.9rem);line-height:1.15;margin:9px 0}.smart-match-copy p{color:#64748b;line-height:1.55;margin:0}.smart-match-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.smart-match-form label{font-size:.8rem;font-weight:800;color:#34445f}.smart-match-form input,.smart-match-form select{display:block;width:100%;min-width:0;margin-top:6px;padding:12px;border:1px solid #d9e1ed;border-radius:10px;background:#fff;color:#17233b}.smart-match-form button{align-self:end;min-height:44px}.smart-match-note{grid-column:1/-1;margin:0;color:#75839a;font-size:.75rem}@media(max-width:680px){.smart-match{grid-template-columns:1fr}.smart-match-form{grid-template-columns:1fr 1fr}.smart-match-form label:nth-child(3),.smart-match-form button{grid-column:1/-1}}@media(max-width:390px){.smart-match-form{grid-template-columns:1fr}.smart-match-form label,.smart-match-form button{grid-column:auto}}
 </style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
 </head>
@@ -427,6 +429,7 @@ const ADMIN_NAME='Silda';
 const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
 const state={salons:[],services:[],categories:[],images:[],hours:[]};
+let smartMaxPrice=null;
 let sharedSalonId=new URLSearchParams(window.location.search).get('salao');
 let publicRealtimeChannel=null,publicRealtimeTimer=null;
 const pendingPublicRealtimeTables=new Set();
@@ -1240,7 +1243,8 @@ function render(){
   const services=state.services.filter(x=>x.salon_id===s.id);
   const searchable=[s.name,s.description,s.province,s.district,s.municipality,s.city,s.neighborhood,s.address,...services.map(x=>x.name)].join(' ').toLocaleLowerCase('pt');
   const matchesCategory=!category||s.category_id===category||services.some(x=>x.category_id===category);
-  return (!sharedSalonId||s.id===sharedSalonId)&&(!showOnlyFavorites||favoriteSalonIds.has(String(s.id)))&&(!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory;
+  const withinBudget=smartMaxPrice===null||services.some(x=>x.price_mzn!==null&&Number.isFinite(Number(x.price_mzn))&&Number(x.price_mzn)<=smartMaxPrice);
+  return (!sharedSalonId||s.id===sharedSalonId)&&(!showOnlyFavorites||favoriteSalonIds.has(String(s.id)))&&(!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory&&withinBudget;
  });
  if(sort!=='name')filtered.sort((a,b)=>{const minPrice=s=>{const p=state.services.filter(x=>x.salon_id===s.id&&x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);return p.length?Math.min(...p):Number.POSITIVE_INFINITY;};const pa=minPrice(a),pb=minPrice(b);if(!Number.isFinite(pa))return 1;if(!Number.isFinite(pb))return -1;return sort==='price-asc'?pa-pb:pb-pa;});
  $('count').textContent=filtered.length+' resultado(s) encontrado(s)'+(showOnlyFavorites?' · a mostrar favoritos guardados neste dispositivo':'');
@@ -1306,6 +1310,8 @@ async function init(){
   populate($('category'),state.categories.map(x=>({value:x.id,label:x.name})));
   const provinces=['Cabo Delgado','Gaza','Inhambane','Manica','Maputo','Maputo Cidade','Nampula','Niassa','Sofala','Tete','Zambézia'];
   populate($('province'),provinces.map(x=>({value:x,label:x})));
+  populate($('smartCategory'),state.categories.map(x=>({value:x.id,label:x.name})));
+  populate($('smartProvince'),provinces.map(x=>({value:x,label:x})));
   if(state.categories.some(x=>x.id===selectedCategory))$('category').value=selectedCategory;
   if(provinces.includes(selectedProvince))$('province').value=selectedProvince;
   clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;
@@ -1335,6 +1341,7 @@ $('retryConnection').addEventListener('click',()=>{ clearTimeout(directoryRecove
 $('searchArea').addEventListener('click',event=>{
  const quick=event.target.closest('[data-quick-search]');
  if(quick){
+  smartMaxPrice=null;$('smartBudget').value='';$('smartCategory').value='';$('smartProvince').value='';
   $('q').value=quick.dataset.quickSearch;
   $('province').value='';
   $('category').value='';
@@ -1343,12 +1350,22 @@ $('searchArea').addEventListener('click',event=>{
  }
 });
 $('clearDirectoryFilters').addEventListener('click',()=>{
+ smartMaxPrice=null;$('smartBudget').value='';$('smartCategory').value='';$('smartProvince').value='';
  $('q').value='';
  $('province').value='';
  $('category').value='';
  $('sortPrice').value='name';
  render();
  $('q').focus();
+});
+$('smartMatchForm').addEventListener('submit',event=>{
+ event.preventDefault();
+ const budget=$('smartBudget').value.trim();
+ smartMaxPrice=budget===''?null:Number(budget);
+ if(smartMaxPrice!==null&&(!Number.isFinite(smartMaxPrice)||smartMaxPrice<0)){smartMaxPrice=null;$('smartBudget').focus();return;}
+ $('q').value='';$('category').value=$('smartCategory').value;$('province').value=$('smartProvince').value;$('sortPrice').value='price-asc';
+ showOnlyFavorites=false;updateFavoritesButton();render();
+ $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
 });
 $('searchBtn').addEventListener('click',render);
 $('q').addEventListener('input',render);
