@@ -1308,10 +1308,10 @@ function salonWhatsAppNumber(salon){
 function mapUrl(salon){
  if(salon.latitude!==null&&salon.latitude!==undefined&&salon.longitude!==null&&salon.longitude!==undefined){
   const lat=Number(salon.latitude),lon=Number(salon.longitude);
-  if(Number.isFinite(lat)&&Number.isFinite(lon))return 'https://www.google.com/maps?q='+lat+','+lon;
+  if(Number.isFinite(lat)&&Number.isFinite(lon))return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(lat+','+lon);
  }
  const address=[salon.service_address||salon.address,salon.neighborhood,salon.city,salon.district,salon.province].filter(Boolean).join(', ');
- return address?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(address+', Mozambique'):'';
+ return address?'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(address+', Mozambique'):'';
 }
 function salonSeoPath(salon){
  const slug=String(salon?.name||'').replace(/\s+/g,' ').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,70)||'salao';
@@ -1683,7 +1683,7 @@ $('ownerGrowthNativeShare').addEventListener('click',async()=>{
  const caption=document.getElementById('salonImageViewerCaption');
  function close(){viewer.classList.remove('is-open');photo.removeAttribute('src');}
  document.addEventListener('click',function(event){
-  const image=event.target.closest('.salon-visual img,.owner-public-gallery img');
+  const image=event.target.closest('.salon-visual img,.salon-card-gallery img,.owner-public-gallery img');
   if(image){photo.src=image.currentSrc||image.src;photo.alt=image.alt||'Fotografia do salão';caption.textContent=image.alt||'Fotografia do salão';viewer.classList.add('is-open');return;}
   if(event.target===viewer||event.target.closest('#closeSalonImage'))close();
  });
