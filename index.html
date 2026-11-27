@@ -226,7 +226,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 @media(max-width:760px){header .pwa-install{display:inline-block;padding:8px 10px;font-size:.76rem}.network-notice{font-size:.78rem}}
 
 .smart-match{display:grid;grid-template-columns:1fr 1.15fr;gap:20px;align-items:center;margin:28px 0;padding:clamp(20px,4vw,32px);border:1px solid #cfe0f4;border-radius:22px;background:radial-gradient(circle at 90% 10%,#e5f2ff 0,transparent 38%),linear-gradient(130deg,#fff,#f2f7ff);box-shadow:0 14px 38px #102b630d}.smart-match-kicker{font-size:.7rem;letter-spacing:.13em;font-weight:900;color:#1761b1}.smart-match h2{color:#102b63;font-size:clamp(1.35rem,3vw,1.9rem);line-height:1.15;margin:9px 0}.smart-match-copy p{color:#64748b;line-height:1.55;margin:0}.smart-match-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.smart-match-form label{font-size:.8rem;font-weight:800;color:#34445f}.smart-match-form input,.smart-match-form select{display:block;width:100%;min-width:0;margin-top:6px;padding:12px;border:1px solid #d9e1ed;border-radius:10px;background:#fff;color:#17233b}.smart-match-form button{align-self:end;min-height:44px}.smart-match-note{grid-column:1/-1;margin:0;color:#75839a;font-size:.75rem}@media(max-width:680px){.smart-match{grid-template-columns:1fr}.smart-match-form{grid-template-columns:1fr 1fr}.smart-match-form label:nth-child(3),.smart-match-form button{grid-column:1/-1}}@media(max-width:390px){.smart-match-form{grid-template-columns:1fr}.smart-match-form label,.smart-match-form button{grid-column:auto}}
-</style>
+.owner-notification-center{border:1px solid #c8dcf4;background:linear-gradient(120deg,#f0f6ff,#fff)}.owner-notification-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.owner-notification-kicker{font-size:.68rem;letter-spacing:.13em;font-weight:900;color:#1761b1}.owner-notification-heading h3{margin:5px 0}.owner-notification-badge{flex-shrink:0;padding:8px 12px;border-radius:999px;background:#dceafe;color:#123d78;font-weight:900;font-size:.82rem}.owner-notification-badge.has-alerts{background:#fff0d8;color:#925400}.owner-notification-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}.owner-notification-actions .owner-muted{font-size:.8rem}@media(max-width:480px){.owner-notification-heading{flex-direction:column}.owner-notification-actions{align-items:flex-start;flex-direction:column}}.owner-notification-focus{outline:3px solid #4c91e8;outline-offset:3px;transition:outline .2s}</style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
 </head>
 <body>
@@ -362,7 +362,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
   </form>
   <div id="ownerMessage" class="owner-message" role="status" hidden></div>
   <div id="ownerDashboard" class="owner-panel" hidden>
-   <div class="owner-card"><div class="status"><span class="dot ok"></span><strong id="ownerIdentity">Conta autenticada</strong></div><p class="owner-muted">Apenas os salões pertencentes à tua conta aparecem nesta área.</p><div class="owner-actions"><button class="btn" id="ownerSettingsToggle" type="button">⚙ Definições do painel</button><button class="btn" id="ownerEnableNotifications" type="button" style="background:#64748b">Activar notificações</button><span id="ownerNotificationState" class="owner-muted">Avisos dentro do painel activos.</span></div></div><div class="owner-card" id="ownerSettingsHub" hidden><h3>Definições do proprietário</h3><p class="owner-muted">Configura apenas as partes que desejares. Todas são opcionais e podes voltar aqui sempre que precisares.</p><div class="owner-settings-grid"><button type="button" class="owner-settings-link" data-settings-target="ownerAdvancedProfile"><strong>A. Perfil profissional</strong><span>Experiência, especialidades, certificados e idiomas</span></button><button type="button" class="owner-settings-link" data-settings-target="ownerPortfolioSettings"><strong>B. Portefólio</strong><span>Fotografias dos teus trabalhos</span></button><button type="button" class="owner-settings-link" data-settings-target="ownerHoursSettings"><strong>C. Horários</strong><span>Dias, abertura, encerramento e folgas</span></button><button type="button" class="owner-settings-link" data-settings-target="ownerCoverageSettings"><strong>D. Área de atendimento</strong><span>Localização, bairros e deslocações</span></button><button type="button" class="owner-settings-link" data-settings-target="ownerServicesSettings"><strong>E. Serviços e preços</strong><span>Gerir o catálogo de serviços</span></button></div><p class="owner-muted">O preenchimento não é obrigatório. As informações só aparecem no perfil público quando forem guardadas e o perfil estiver publicado.</p></div><div class="owner-card"><h3>Resumo das marcações</h3><div id="ownerAppointmentStats" class="owner-stats"></div></div>
+   <div class="owner-card"><div class="status"><span class="dot ok"></span><strong id="ownerIdentity">Conta autenticada</strong></div><p class="owner-muted">Apenas os salões pertencentes à tua conta aparecem nesta área.</p><div class="owner-actions"><button class="btn" id="ownerSettingsToggle" type="button">⚙ Definições do painel</button><button class="btn" id="ownerEnableNotifications" type="button" style="background:#64748b">Activar notificações</button><span id="ownerNotificationState" class="owner-muted">Avisos dentro do painel activos.</span></div></div><div class="owner-card owner-notification-center" id="ownerNotificationCenter"><div class="owner-notification-heading"><div><span class="owner-notification-kicker">CENTRO DE AVISOS</span><h3>Notificações do teu salão</h3><p class="owner-muted">Acompanha pedidos novos e assuntos que precisam da tua atenção.</p></div><span class="owner-notification-badge" id="ownerNotificationCount" aria-live="polite">0 pendentes</span></div><div class="owner-notification-actions"><button class="btn" type="button" id="ownerOpenNotifications">Ver marcações pendentes</button><span class="owner-muted" id="ownerNotificationSummary">A verificar os teus pedidos…</span></div></div><div class="owner-card" id="ownerSettingsHub" hidden><h3>Definições do proprietário</h3><p class="owner-muted">Configura apenas as partes que desejares. Todas são opcionais e podes voltar aqui sempre que precisares.</p><div class="owner-settings-grid"><button type="button" class="owner-settings-link" data-settings-target="ownerAdvancedProfile"><strong>A. Perfil profissional</strong><span>Experiência, especialidades, certificados e idiomas</span></button><button type="button" class="owner-settings-link" data-settings-target="ownerPortfolioSettings"><strong>B. Portefólio</strong><span>Fotografias dos teus trabalhos</span></button><button type="button" class="owner-settings-link" data-settings-target="ownerHoursSettings"><strong>C. Horários</strong><span>Dias, abertura, encerramento e folgas</span></button><button type="button" class="owner-settings-link" data-settings-target="ownerCoverageSettings"><strong>D. Área de atendimento</strong><span>Localização, bairros e deslocações</span></button><button type="button" class="owner-settings-link" data-settings-target="ownerServicesSettings"><strong>E. Serviços e preços</strong><span>Gerir o catálogo de serviços</span></button></div><p class="owner-muted">O preenchimento não é obrigatório. As informações só aparecem no perfil público quando forem guardadas e o perfil estiver publicado.</p></div><div class="owner-card"><h3>Resumo das marcações</h3><div id="ownerAppointmentStats" class="owner-stats"></div></div>
    <div id="ownerStartCard" class="owner-card" hidden>
     <h3>A tua conta está pronta</h3>
     <p>Escolhe o tipo de registo: cria a ficha de um estabelecimento ou divulga os teus serviços como profissional independente, sem precisares de ter um salão.</p>
@@ -678,6 +678,7 @@ async function loadOwnerDashboard(session){
 async function loadOwnerDashboardInternal(session){
  if(!session?.user)return;
  ownerSession=session;
+ refreshOwnerNotificationPermissionState();
  $('ownerSection').hidden=false;
  $('ownerLoginForm').hidden=true;
  $('ownerDashboard').hidden=false;
@@ -835,9 +836,20 @@ $('ownerProfilePhotoList').addEventListener('click',async event=>{
   await supabaseClient.storage.from('salon-images').remove([b.dataset.ownerPhotoPath]);await loadOwnerProfilePhotos(owned.id);ownerMessage('Fotografia removida.','success');
  }catch(error){ownerMessage('Não foi possível remover a fotografia: '+error.message,'error');}
 });
+function refreshOwnerNotificationPermissionState(){
+ const button=$('ownerEnableNotifications'),state=$('ownerNotificationState');if(!button||!state)return;
+ if(!('Notification' in window)){button.disabled=true;state.textContent='Este navegador não suporta notificações do sistema. Consulta os avisos dentro do painel.';return;}
+ const permission=Notification.permission;button.textContent=permission==='granted'?'Notificações activadas ✓':'Activar notificações do telemóvel';
+ state.textContent=permission==='granted'?'Avisos do sistema autorizados neste dispositivo.':'Autoriza as notificações para receber alertas de novas marcações.';
+}
 $('ownerEnableNotifications').addEventListener('click',async()=>{
  if(!('Notification' in window)){$('ownerNotificationState').textContent='Este navegador não suporta notificações do sistema.';return;}
- try{const p=await Notification.requestPermission();$('ownerNotificationState').textContent=p==='granted'?'Notificações do sistema activadas.':'Permissão de notificações não concedida.';}catch{$('ownerNotificationState').textContent='Não foi possível activar notificações.';}
+ try{const permission=await Notification.requestPermission();refreshOwnerNotificationPermissionState();if(permission==='granted')$('ownerNotificationState').textContent='Notificações activadas. Vais receber alertas de novas marcações neste dispositivo quando a aplicação estiver a funcionar.';else $('ownerNotificationState').textContent='Permissão não concedida. Podes continuar a consultar os avisos dentro do painel.';}catch{$('ownerNotificationState').textContent='Não foi possível activar notificações neste dispositivo.';}
+});
+$('ownerOpenNotifications').addEventListener('click',()=>{
+ $('ownerAppointmentsCard').scrollIntoView({behavior:'smooth',block:'start'});
+ $('ownerAppointmentsCard').classList.add('owner-notification-focus');
+ setTimeout(()=>{$('ownerAppointmentsCard').classList.remove('owner-notification-focus');},1600);
 });
 
 let ownerServiceCountsBySalon={};
@@ -1133,6 +1145,17 @@ function startAppointmentPolling(userId,salonIds){
  if(appointmentPollTimer)clearInterval(appointmentPollTimer);
  appointmentPollTimer=setInterval(refreshAppointmentFeed,30000);
 }
+function updateOwnerNotificationCenter(pendingCount){
+ const badge=$('ownerNotificationCount'),summary=$('ownerNotificationSummary');if(!badge||!summary)return;
+ const count=Math.max(0,Number(pendingCount)||0);badge.textContent=count+' '+(count===1?'pendente':'pendentes');badge.classList.toggle('has-alerts',count>0);
+ summary.textContent=count?'Tens '+count+' pedido(s) à espera de resposta. Abre as marcações para aceitar ou recusar.':'Está tudo em dia. Avisamos quando chegar um novo pedido enquanto estiveres ligado.';
+}
+async function notifyOwnerAboutPendingAppointments(count){
+ if(!count||!('Notification' in window)||Notification.permission!=='granted')return;
+ const title=count===1?'Nova marcação recebida':'Novas marcações recebidas';
+ const options={body:count===1?'Tens um novo pedido de atendimento. Abre o MOZ SALÕES para responder.':'Recebeste '+count+' novos pedidos. Abre o MOZ SALÕES para responder.',icon:'./favicon.svg',badge:'./favicon.svg',tag:'moz-saloes-pending-appointments',renotify:true,data:{url:'./#owner'}};
+ try{if('serviceWorker' in navigator){const registration=await navigator.serviceWorker.ready;if(registration&&registration.showNotification){await registration.showNotification(title,options);return;}}new Notification(title,options);}catch(error){console.warn('Não foi possível apresentar a notificação do sistema:',error);}
+}
 async function refreshAppointmentFeed(){
  if(!ownerSession?.user||!appointmentPollUserId||ownerSession.user.id!==appointmentPollUserId||appointmentPollBusy||!navigator.onLine)return;
  appointmentPollBusy=true;
@@ -1151,12 +1174,13 @@ async function loadAppointments(userId,salonIds){
  if(own.error)throw own.error;if(mine.error)throw mine.error;
  const statusCounts=(own.data||[]).reduce((acc,a)=>{acc[a.status]=(acc[a.status]||0)+1;return acc;},{});$('ownerAppointmentStats').innerHTML=[['Total',(own.data||[]).length],['Pendentes',statusCounts.pending||0],['Aceites',statusCounts.accepted||0],['Recusadas',statusCounts.rejected||0],['Canceladas',statusCounts.cancelled||0],['Concluídas',statusCounts.completed||0]].map(x=>'<div class="owner-stat"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('');
  const pending=(own.data||[]).filter(a=>a.status==='pending');
+ updateOwnerNotificationCenter(pending.length);
  const fresh=pending.filter(a=>!appointmentKnownPendingIds.has(a.id));
  const firstSnapshot=!appointmentHasLoaded;
  appointmentKnownPendingIds=new Set(pending.map(a=>a.id));appointmentHasLoaded=true;
  const notice=$('ownerAppointmentNotice');notice.hidden=false;notice.className='appointment-notice'+(pending.length?'':' empty');
  notice.textContent=pending.length?'Tens '+pending.length+' pedido(s) de marcação pendente(s). '+(firstSnapshot?'Consulta os detalhes e aceita ou recusa cada pedido.':fresh.length?'Chegou um novo pedido de marcação. Consulta os detalhes abaixo.':'Os pedidos continuam à tua espera.'):'Não tens pedidos de marcação pendentes neste momento. O MOZ SALÕES verifica novas marcações automaticamente enquanto esta página estiver aberta.';
- if(!firstSnapshot&&fresh.length&&document.hidden&&'Notification' in window&&Notification.permission==='granted'){try{new Notification('MOZ SALÕES — Nova marcação',{body:'Recebeste um novo pedido. Abre o site para aceitar ou recusar.'});}catch{}}
+ if(!firstSnapshot&&fresh.length&&document.hidden)notifyOwnerAboutPendingAppointments(fresh.length);
  const salonName=id=>state.salons.find(x=>x.id===id)?.name||'Salão';
  const serviceName=id=>state.services.find(x=>x.id===id)?.name||'Serviço';
  ownerBox.innerHTML=(own.data||[]).length?own.data.map(a=>'<div class="owner-row"><div><strong>'+safe(salonName(a.salon_id))+' · '+safe(serviceName(a.service_id))+'</strong><div class="owner-muted">'+safe(a.appointment_date)+' às '+safe(String(a.appointment_time).slice(0,5))+' · '+safe(a.customer_phone)+'</div><div class="owner-muted">'+safe(a.customer_note||'')+'</div></div><div><strong>'+safe(appointmentStatusLabel(a.status))+'</strong>'+(a.status==='pending'?'<div class="owner-actions"><button class="btn" data-appointment-action="accepted" data-appointment-id="'+safe(a.id)+'">Aceitar</button><button class="btn" style="background:#64748b" data-appointment-action="rejected" data-appointment-id="'+safe(a.id)+'">Recusar</button></div>':'')+'</div></div>').join(''):'<span class="owner-muted">Ainda não recebeste pedidos de marcação.</span>';
