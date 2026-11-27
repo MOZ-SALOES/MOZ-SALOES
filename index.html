@@ -198,6 +198,13 @@ body.owner-workspace .owner-auth-switch{display:none!important}
  .journey-guide{grid-template-columns:1fr}
 }
 
+/* Pesquisa rápida: atalhos úteis sem complicar os filtros */
+.quick-searches{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:12px 0 2px}
+.quick-searches span{font-size:.8rem;color:#68778e;font-weight:750;margin-right:2px}
+.quick-searches button{border:1px solid #dce5f1;background:#f7faff;color:#244a78;border-radius:99px;padding:7px 11px;font-size:.78rem;font-weight:750;cursor:pointer}
+.quick-searches button:hover{border-color:#1761b1;background:#edf5ff}
+.quick-searches button:last-child{background:#fff;color:#64748b}
+@media(max-width:480px){.quick-searches{gap:6px}.quick-searches span{width:100%}.quick-searches button{font-size:.74rem;padding:7px 9px}}
 </style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
 </head>
@@ -244,6 +251,15 @@ body.owner-workspace .owner-auth-switch{display:none!important}
    <select id="category" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
    <select id="sortPrice" aria-label="Ordenar resultados"><option value="name">Ordenar: nome</option><option value="price-asc">Menor preço primeiro</option><option value="price-desc">Maior preço primeiro</option></select>
    <button class="btn" id="searchBtn" type="button">Pesquisar</button>
+  </div>
+  <div class="quick-searches" aria-label="Pesquisas populares">
+   <span>Pesquisas rápidas:</span>
+   <button type="button" data-quick-search="manicure">💅 Manicure</button>
+   <button type="button" data-quick-search="pedicure">🦶 Pedicure</button>
+   <button type="button" data-quick-search="tranças">✨ Tranças</button>
+   <button type="button" data-quick-search="barbearia">✂️ Barbearia</button>
+   <button type="button" data-quick-search="lavagem">🧴 Lavagem</button>
+   <button type="button" id="clearDirectoryFilters">Limpar filtros</button>
   </div>
   <div class="status"><span class="dot" id="dot"></span><strong id="status">A preparar ligação segura…</strong><span id="detail"></span><button class="btn" id="retryConnection" type="button" hidden style="padding:7px 10px;font-size:.78rem">Tentar novamente</button></div>
  </section>
@@ -1253,6 +1269,24 @@ async function init(){
  }
 }
 $('retryConnection').addEventListener('click',()=>{ clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;$('retryConnection').hidden=true;$('dot').className='dot';$('status').textContent='A tentar ligar novamente…';$('detail').textContent='';$('count').textContent='A carregar directório…';$('results').innerHTML='<div class="empty">A carregar salões…</div>';init();});
+$('searchArea').addEventListener('click',event=>{
+ const quick=event.target.closest('[data-quick-search]');
+ if(quick){
+  $('q').value=quick.dataset.quickSearch;
+  $('province').value='';
+  $('category').value='';
+  render();
+  $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
+ }
+});
+$('clearDirectoryFilters').addEventListener('click',()=>{
+ $('q').value='';
+ $('province').value='';
+ $('category').value='';
+ $('sortPrice').value='name';
+ render();
+ $('q').focus();
+});
 $('searchBtn').addEventListener('click',render);
 $('q').addEventListener('input',render);
 $('province').addEventListener('change',render);
