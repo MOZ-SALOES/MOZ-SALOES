@@ -1532,14 +1532,14 @@ $('ownerShareLinkBtn').addEventListener('click',async()=>{
 function ownerMarketingText(item){
  const salon=item.salon,place=[salon.neighborhood,salon.district,salon.province].filter(Boolean).join(', ');
  const description=String(salon.description||'').trim();
- return '✨ Conhece '+item.name+' no MOZ SALÕES!\\n'+(description?description+'\\n':'')+(place?'📍 '+place+'\\n':'')+'Consulta os serviços e preços e entra em contacto directamente: '+item.url+'\\n\\nMOZ SALÕES 🇲🇿 — encontra beleza perto de ti.';
+ return '✨ Conhece '+item.name+' no MOZ SALÕES!\n'+(description?description+'\n':'')+(place?'📍 '+place+'\n':'')+'Consulta os serviços e preços e entra em contacto directamente: '+item.url+'\n\nMOZ SALÕES 🇲🇿 — encontra beleza perto de ti.';
 }
 function updateOwnerGrowthKit(){
  const item=ownerShareUrl(),link=$('ownerGrowthLink'),list=$('ownerGrowthChecklist');
  if(!item){link.textContent='Selecciona um salão publicado para preparar a divulgação.';list.innerHTML='<li>Publica o teu perfil para activar o kit de divulgação.</li>';$('ownerGrowthScore').textContent='0/5';$('ownerGrowthMeter').style.width='0%';return;}
  link.textContent=item.url;
  const salon=item.salon,services=ownerServiceCountsBySalon[salon.id]||0;
- const checks=[['Nome do perfil',!!String(salon.name||'').trim()],['Contacto telefónico',!!String(salon.phone||salon.whatsapp||'').trim()],['Localização completa',!!(salon.province&&salon.district&&salon.neighborhood)],['Descrição do negócio',!!String(salon.description||'').trim()],['Pelo menos um serviço e preço',services>0]];
+ const checks=[['Nome do perfil',!!String(salon.name||'').trim()],['Contacto telefónico',!!String(salon.phone||salon.whatsapp||'').trim()],['Localização completa',!!(salon.province&&salon.district&&salon.neighborhood)],['Descrição do negócio',!!String(salon.description||'').trim()],['Pelo menos um serviço publicado',services>0]];
  const score=checks.filter(x=>x[1]).length;
  $('ownerGrowthScore').textContent=score+'/5';$('ownerGrowthMeter').style.width=(score/5*100)+'%';
  list.innerHTML=checks.map(([label,done])=>'<li class="'+(done?'done':'')+'">'+(done?'Concluído: ':'Falta: ')+safe(label)+'</li>').join('');
