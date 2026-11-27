@@ -1993,5 +1993,34 @@ $('ownerGrowthNativeShare').addEventListener('click',async()=>{
 })();
 </script>
 
+
+<script>
+/* MOZ SALÕES — saída de segurança do ecrã de entrada */
+(function(){
+ const intro=document.getElementById('mozIntro');
+ if(!intro)return;
+ let timer=null;
+ function closeIntro(){
+  if(intro.hidden)return;
+  intro.classList.remove('is-active');
+  intro.classList.add('is-leaving');
+  window.setTimeout(()=>{intro.hidden=true;},600);
+ }
+ function armTimeout(){
+  if(timer)window.clearTimeout(timer);
+  timer=window.setTimeout(closeIntro,7000);
+ }
+ document.addEventListener('pointerdown',event=>{
+  if(intro.hidden||!intro.classList.contains('is-active'))return;
+  if(event.target.closest('#enterMozSite'))return;
+  closeIntro();
+ },true);
+ armTimeout();
+ window.addEventListener('pageshow',()=>{
+  if(!intro.hidden)armTimeout();
+ });
+})();
+</script>
+
 </body>
 </html>
