@@ -12,8 +12,6 @@ on:
       - 'sitemap.xml'
       - 'scripts/generate-salon-pages.mjs'
       - '.github/workflows/salon-seo-pages.yml'
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
