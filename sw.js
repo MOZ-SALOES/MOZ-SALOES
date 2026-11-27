@@ -1,4 +1,4 @@
-const CACHE_NAME='moz-saloes-shell-v3';
+const CACHE_NAME='moz-saloes-shell-v4';
 const OFFLINE_URL='./offline.html';
 const CORE_FILES=['./','./index.html','./manifest.webmanifest','./favicon.svg',OFFLINE_URL];
 self.addEventListener('install',event=>{
