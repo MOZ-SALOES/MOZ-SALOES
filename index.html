@@ -655,13 +655,16 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
   else if(ownerSession?.user?.id!==session.user.id)loadOwnerDashboard(session);
  },0);
 });
-supabaseClient.auth.getSession().then(({data,error})=>{
- if(error){adminMessage('Não foi possível verificar a sessão: '+error.message,'error');init();}
- else if(data?.session){
-  if(location.hash==='#silda-acesso')verifyAdminSession(data.session);
-  else loadOwnerDashboard(data.session);
- }else init();
-});
+// O directório público não deve ficar bloqueado pela leitura da sessão de autenticação.
+ // O temporizador deixa o script terminar de declarar as funções e variáveis antes de iniciar o directório.
+ window.setTimeout(()=>{init();},0);
+ supabaseClient.auth.getSession().then(({data,error})=>{
+  if(error){adminMessage('Não foi possível verificar a sessão: '+error.message,'error');return;}
+  if(data?.session){
+   if(location.hash==='#silda-acesso')verifyAdminSession(data.session);
+   else loadOwnerDashboard(data.session);
+  }
+ }).catch(error=>console.warn('Não foi possível verificar a sessão neste momento:',error));
 const recoveryParams=new URLSearchParams(location.search);
 const recoveryHash=new URLSearchParams(location.hash.replace(/^#/,''));
 const ownerRecoveryRequested=recoveryParams.get('owner-recovery')==='1'||recoveryHash.get('type')==='recovery';
