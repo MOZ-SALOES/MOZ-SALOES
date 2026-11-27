@@ -1453,7 +1453,7 @@ $('smartMatchForm').addEventListener('submit',event=>{
  const budget=$('smartBudget').value.trim();
  smartMaxPrice=budget===''?null:Number(budget);
  if(smartMaxPrice!==null&&(!Number.isFinite(smartMaxPrice)||smartMaxPrice<0)){smartMaxPrice=null;$('smartBudget').focus();return;}
- $('q').value='';$('category').value=$('smartCategory').value;$('province').value=$('smartProvince').value;$('sortPrice').value='price-asc';
+ $('q').value='';$('category').value=$('smartCategory').value;$('province').value=$('smartProvince').value;$('district').value='';$('serviceMode').value='';$('sortPrice').value='price-asc';
  showOnlyFavorites=false;updateFavoritesButton();render();
  $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
 });
