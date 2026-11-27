@@ -39,6 +39,9 @@ jobs:
           test -s /tmp/moz-saloes-inline.js
           node --check /tmp/moz-saloes-inline.js
 
+      - name: Check salon SEO generator syntax
+        run: node --check scripts/generate-salon-pages.mjs
+
       - name: Keep recovery notes out of executable migrations
         shell: bash
         run: |
