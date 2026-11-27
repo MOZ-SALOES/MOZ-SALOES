@@ -1504,7 +1504,7 @@ $('ownerShareLinkBtn').addEventListener('click',async()=>{
  });
  if('serviceWorker' in navigator && location.protocol!=='file:'){
   window.addEventListener('load',()=>{
-   navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(registration=>{
+   navigator.serviceWorker.register('./sw.js').then(registration=>{
     registration.update().catch(()=>{});
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')registration.update().catch(()=>{});});
    }).catch(error=>console.warn('A instalação offline não ficou disponível:',error));
