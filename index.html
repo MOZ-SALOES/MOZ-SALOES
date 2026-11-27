@@ -879,12 +879,12 @@ $('ownerProfilePhotoList').addEventListener('click',async event=>{
 function refreshOwnerNotificationPermissionState(){
  const button=$('ownerEnableNotifications'),state=$('ownerNotificationState');if(!button||!state)return;
  if(!('Notification' in window)){button.disabled=true;state.textContent='Este navegador não suporta notificações do sistema. Consulta os avisos dentro do painel.';return;}
- const permission=Notification.permission;button.textContent=permission==='granted'?'Notificações activadas ✓':'Activar notificações do telemóvel';
- state.textContent=permission==='granted'?'Avisos do sistema autorizados neste dispositivo.':'Autoriza as notificações para receber alertas de novas marcações.';
+ const permission=Notification.permission;const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;button.textContent=permission==='granted'?'Notificações activadas ✓':(installed?'Activar notificações da app':'Activar notificações neste dispositivo');
+ state.textContent=permission==='granted'?'Avisos do sistema autorizados neste dispositivo.':(installed?'As notificações estão prontas. Toca no botão e autoriza o dispositivo.':'Autoriza as notificações para receber alertas de novas marcações.');
 }
 $('ownerEnableNotifications').addEventListener('click',async()=>{
  if(!('Notification' in window)){$('ownerNotificationState').textContent='Este navegador não suporta notificações do sistema.';return;}
- try{const permission=await Notification.requestPermission();refreshOwnerNotificationPermissionState();if(permission==='granted')$('ownerNotificationState').textContent='Notificações activadas. Vais receber alertas de novas marcações neste dispositivo quando a aplicação estiver a funcionar.';else $('ownerNotificationState').textContent='Permissão não concedida. Podes continuar a consultar os avisos dentro do painel.';}catch{$('ownerNotificationState').textContent='Não foi possível activar notificações neste dispositivo.';}
+ try{const permission=await Notification.requestPermission();refreshOwnerNotificationPermissionState();if(permission==='granted')$('ownerNotificationState').textContent='Notificações autorizadas neste dispositivo. Os alertas disponíveis serão apresentados quando a aplicação estiver activa.';else $('ownerNotificationState').textContent='Permissão não concedida. Podes continuar a consultar os avisos dentro do painel e activar mais tarde.';}catch{$('ownerNotificationState').textContent='Não foi possível activar notificações neste dispositivo.';}
 });
 $('ownerOpenNotifications').addEventListener('click',()=>{
  $('ownerAppointmentsCard').scrollIntoView({behavior:'smooth',block:'start'});
@@ -1539,7 +1539,7 @@ $('ownerShareLinkBtn').addEventListener('click',async()=>{
  Object.entries(targets).forEach(([key,selector])=>{const el=document.querySelector(selector);if(el)originals[key]=el.tagName==='INPUT'?el.placeholder:el.textContent;});
  const welcome=document.querySelector('#mozAgentMessages .moz-agent-message.bot');if(welcome)originals.agentWelcome=welcome.textContent;
  const helpEn=translations.en;
- function setText(selector,value){const el=document.querySelector(selector);if(!el)return;if(el.tagName==='INPUT')el.placeholder=value;else el.textContent=value;}
+ function setText(selector,value){const el=document.querySelector(selector);if(!el)return;if(el.tagName==='INPUT')el.placeholder=value;else if(el.tagName==='LABEL'){const textNode=[...el.childNodes].find(node=>node.nodeType===3&&node.nodeValue.trim());if(textNode)textNode.nodeValue=' '+value+' ';}else el.textContent=value;}
  function apply(lang){
   const en=lang==='en';document.documentElement.lang=en?'en':'pt-MZ';
   if(select.value!==lang)select.value=lang;
