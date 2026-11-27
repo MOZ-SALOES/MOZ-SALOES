@@ -1,0 +1,39 @@
+name: Sugerir uma funcionalidade
+description: Propor melhorias para clientes, salões e profissionais
+title: "[IDEIA] "
+labels: ["enhancement", "triagem"]
+body:
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Quem será beneficiado?
+      options:
+        - Clientes
+        - Proprietários de salões
+        - Profissionais independentes
+        - Administração MOZ SALÕES
+        - Todos
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Que necessidade pretende resolver?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Como imagina a solução?
+    validations:
+      required: true
+  - type: dropdown
+    id: cost
+    attributes:
+      label: A proposta deve manter-se gratuita?
+      options:
+        - Sim, sem custos recorrentes
+        - Pode usar ferramentas gratuitas com limites
+        - Ainda não sei
+    validations:
+      required: true
