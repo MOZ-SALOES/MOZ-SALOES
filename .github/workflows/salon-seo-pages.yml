@@ -8,6 +8,8 @@ on:
       - 'admin.js'
       - 'favicon.svg'
       - 'manifest.webmanifest'
+      - 'sw.js'
+      - 'offline.html'
       - 'robots.txt'
       - '404.html'
       - 'sitemap.xml'
@@ -49,7 +51,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p site
-          cp index.html admin.js favicon.svg manifest.webmanifest robots.txt sitemap.xml 404.html site/
+          cp index.html admin.js favicon.svg manifest.webmanifest sw.js offline.html robots.txt sitemap.xml 404.html site/
           cp -R saloes site/saloes
           touch site/.nojekyll
 
