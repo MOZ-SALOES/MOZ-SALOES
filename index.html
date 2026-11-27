@@ -171,7 +171,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
   </div>
   <div class="status"><span class="dot" id="dot"></span><strong id="status">A preparar ligação segura…</strong><span id="detail"></span><button class="btn" id="retryConnection" type="button" hidden style="padding:7px 10px;font-size:.78rem">Tentar novamente</button></div>
  </section>
- <section id="saloes"><div class="section-head"><div><h2>Salões e profissionais de beleza</h2><div class="muted" id="count">A carregar directório…</div></div></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
+ <section id="saloes"><div class="section-head"><div><h2>Salões e profissionais de beleza</h2><div class="muted" id="count">A carregar directório…</div></div></div><div id="sharedSalonNotice" class="owner-card" hidden style="margin:12px 0"><strong id="sharedSalonNoticeText">Estás a consultar um salão partilhado.</strong><p class="owner-muted">Podes explorar este perfil e, se quiseres, consultar todos os outros salões do directório.</p><button class="btn" id="showAllSalonsBtn" type="button">Ver outros salões</button></div><div class="grid" id="results"><div class="empty">A carregar salões…</div></div></section>
  <section id="bookingSection" class="owner-wrap" hidden>
   <h2>Marcar atendimento</h2><p id="bookingSalonName">Escolhe o serviço, a data e a hora pretendidas.</p>
   <form id="bookingForm" class="owner-form">
@@ -268,7 +268,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
     </form>
    </div>
    <div class="owner-card" id="ownerSalonManager" hidden>
-    <h3>Os meus registos</h3><div id="ownerSalonList" class="owner-list"></div><hr class="owner-divider"><h3>Editar dados do perfil</h3><form id="ownerProfileForm" class="owner-form"><label class="wide">Perfil a editar<select id="ownerProfileSalon" required></select></label><label>Nome público<input id="ownerProfileName" maxlength="100" required></label><label>Telefone<input id="ownerProfilePhone" inputmode="tel"></label><label>WhatsApp<input id="ownerProfileWhatsapp" inputmode="tel"></label><label>Email público<input id="ownerProfileEmail" type="email"></label><label>Província<input id="ownerProfileProvince" required></label><label>Distrito / Município<input id="ownerProfileDistrict" required></label><label>Cidade<input id="ownerProfileCity"></label><label>Bairro<input id="ownerProfileNeighborhood"></label><label class="wide">Morada / referência<input id="ownerProfileAddress"></label><label class="wide">Descrição<textarea id="ownerProfileDescription" rows="3" maxlength="500" style="display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;font:inherit"></textarea></label><div id="ownerIndependentEditFields" class="wide" hidden><label>Modalidade<select id="ownerProfileMode"><option value="at_location">No meu local</option><option value="home">Ao domicílio</option><option value="both">No local e ao domicílio</option></select></label><label>Endereço do posto de serviços<input id="ownerProfileServiceAddress"></label><label>Zonas de atendimento ao domicílio<input id="ownerProfileServiceAreas"></label></div><label class="wide">Adicionar fotografia(s) (JPG, PNG ou WEBP, até 5 MB cada)<input id="ownerProfilePhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><div id="ownerProfilePhotoList" class="owner-list wide"></div><div class="owner-actions wide"><button class="btn" id="ownerProfileSave" type="submit">Guardar alterações</button></div></form><hr class="owner-divider"><div class="owner-actions"><button class="btn" id="ownerAddAnotherSalon" type="button">Registar outro salão</button></div>
+    <h3>Os meus registos</h3><div id="ownerSalonList" class="owner-list"></div><div class="owner-card" style="margin-top:14px"><h3>Partilhar o meu salão</h3><p class="owner-muted">Escolhe um dos teus salões publicados para criar um link directo. Quem receber o link abre logo o perfil desse salão e pode depois explorar os restantes.</p><label class="wide">Salão a partilhar<select id="ownerShareSalon" required></select></label><div class="owner-actions"><button class="btn" id="ownerShareLinkBtn" type="button">Partilhar link</button><button class="btn" id="ownerCopyLinkBtn" type="button" style="background:#64748b">Copiar link</button></div><p id="ownerShareMessage" class="owner-muted" role="status" aria-live="polite">Só os salões publicados podem ser partilhados.</p></div><hr class="owner-divider"><h3>Editar dados do perfil</h3><form id="ownerProfileForm" class="owner-form"><label class="wide">Perfil a editar<select id="ownerProfileSalon" required></select></label><label>Nome público<input id="ownerProfileName" maxlength="100" required></label><label>Telefone<input id="ownerProfilePhone" inputmode="tel"></label><label>WhatsApp<input id="ownerProfileWhatsapp" inputmode="tel"></label><label>Email público<input id="ownerProfileEmail" type="email"></label><label>Província<input id="ownerProfileProvince" required></label><label>Distrito / Município<input id="ownerProfileDistrict" required></label><label>Cidade<input id="ownerProfileCity"></label><label>Bairro<input id="ownerProfileNeighborhood"></label><label class="wide">Morada / referência<input id="ownerProfileAddress"></label><label class="wide">Descrição<textarea id="ownerProfileDescription" rows="3" maxlength="500" style="display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;font:inherit"></textarea></label><div id="ownerIndependentEditFields" class="wide" hidden><label>Modalidade<select id="ownerProfileMode"><option value="at_location">No meu local</option><option value="home">Ao domicílio</option><option value="both">No local e ao domicílio</option></select></label><label>Endereço do posto de serviços<input id="ownerProfileServiceAddress"></label><label>Zonas de atendimento ao domicílio<input id="ownerProfileServiceAreas"></label></div><label class="wide">Adicionar fotografia(s) (JPG, PNG ou WEBP, até 5 MB cada)<input id="ownerProfilePhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><div id="ownerProfilePhotoList" class="owner-list wide"></div><div class="owner-actions wide"><button class="btn" id="ownerProfileSave" type="submit">Guardar alterações</button></div></form><hr class="owner-divider"><div class="owner-actions"><button class="btn" id="ownerAddAnotherSalon" type="button">Registar outro salão</button></div>
     <hr class="owner-divider"><h3>Adicionar serviços e preços</h3>
     <form id="ownerServiceForm" class="owner-form">
      <label class="wide">Perfil / salão<select id="ownerServiceSalon" required></select></label>
@@ -312,6 +312,7 @@ const ADMIN_NAME='Silda';
 const supabaseClient=window.supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
 const state={salons:[],services:[],categories:[],images:[],hours:[]};
+let sharedSalonId=new URLSearchParams(window.location.search).get('salao');
 let publicRealtimeChannel=null,publicRealtimeTimer=null;
 const pendingPublicRealtimeTables=new Set();
 function schedulePublicRealtimeRefresh(table){
@@ -581,6 +582,11 @@ async function loadOwnerDashboardInternal(session){
   const profileSelect=$('ownerProfileSalon');profileSelect.innerHTML='';
   ownerProfilesCache.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;profileSelect.appendChild(o);});
   if(ownerProfilesCache.length)fillOwnerProfileForm(ownerProfilesCache[0]);
+  const shareSalon=$('ownerShareSalon');shareSalon.innerHTML='';
+  const publishedSalons=ownerProfilesCache.filter(s=>s.status==='active');
+  publishedSalons.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;shareSalon.appendChild(o);});
+  $('ownerShareLinkBtn').disabled=!publishedSalons.length;$('ownerCopyLinkBtn').disabled=!publishedSalons.length;
+  $('ownerShareMessage').textContent=publishedSalons.length?'Escolhe o salão e partilha o respectivo link.':'Ainda não tens salões publicados para partilhar.';
   const serviceSalon=$('ownerServiceSalon');serviceSalon.innerHTML='';
   ownerProfilesCache.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;serviceSalon.appendChild(o);});
 
@@ -1059,11 +1065,17 @@ function mapUrl(salon){
 function render(){
  const term=$('q').value.trim().toLocaleLowerCase('pt');
  const province=$('province').value,category=$('category').value,sort=$('sortPrice').value;
+ const sharedNotice=$('sharedSalonNotice');
+ if(sharedSalonId){
+  const sharedExists=state.salons.some(s=>s.id===sharedSalonId);
+  sharedNotice.hidden=false;
+  $('sharedSalonNoticeText').textContent=sharedExists?'Estás a ver o salão que foi partilhado contigo.':'Este salão não está disponível ou já não se encontra publicado.';
+ }else sharedNotice.hidden=true;
  const filtered=state.salons.filter(s=>{
   const services=state.services.filter(x=>x.salon_id===s.id);
   const searchable=[s.name,s.description,s.province,s.district,s.municipality,s.city,s.neighborhood,s.address,...services.map(x=>x.name)].join(' ').toLocaleLowerCase('pt');
   const matchesCategory=!category||s.category_id===category||services.some(x=>x.category_id===category);
-  return (!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory;
+  return (!sharedSalonId||s.id===sharedSalonId)&&(!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory;
  });
  if(sort!=='name')filtered.sort((a,b)=>{const minPrice=s=>{const p=state.services.filter(x=>x.salon_id===s.id&&x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);return p.length?Math.min(...p):Number.POSITIVE_INFINITY;};const pa=minPrice(a),pb=minPrice(b);if(!Number.isFinite(pa))return 1;if(!Number.isFinite(pb))return -1;return sort==='price-asc'?pa-pb:pb-pa;});
  $('count').textContent=filtered.length+' resultado(s) encontrado(s)';
@@ -1166,6 +1178,37 @@ $('featuredCategories').addEventListener('click',event=>{
  $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
 });
 $('sortPrice').addEventListener('change',render);
+$('showAllSalonsBtn').addEventListener('click',()=>{
+ const url=new URL(window.location.href);url.searchParams.delete('salao');
+ history.replaceState(null,'',url.pathname+url.search+url.hash);sharedSalonId=null;
+ $('q').value='';$('province').value='';$('category').value='';render();
+ $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
+});
+function ownerShareUrl(){
+ const salonId=$('ownerShareSalon').value;
+ const salon=ownerProfilesCache.find(s=>s.id===salonId&&s.status==='active');
+ if(!salon)return null;
+ const url=new URL(window.location.href);url.search='';url.hash='';url.searchParams.set('salao',salon.id);
+ return {url:url.toString(),name:salon.name};
+}
+async function copyOwnerShareUrl(value){
+ if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return;}
+ const field=document.createElement('textarea');field.value=value;field.style.position='fixed';field.style.opacity='0';document.body.appendChild(field);field.select();
+ const copied=document.execCommand('copy');field.remove();if(!copied)throw new Error('O navegador não permitiu copiar automaticamente.');
+}
+$('ownerCopyLinkBtn').addEventListener('click',async()=>{
+ const item=ownerShareUrl();if(!item)return;const button=$('ownerCopyLinkBtn');button.disabled=true;
+ try{await copyOwnerShareUrl(item.url);$('ownerShareMessage').textContent='Link de '+item.name+' copiado. Já podes enviá-lo ao cliente.';}
+ catch(error){$('ownerShareMessage').textContent='Não foi possível copiar automaticamente. Link: '+item.url;}
+ finally{button.disabled=false;}
+});
+$('ownerShareLinkBtn').addEventListener('click',async()=>{
+ const item=ownerShareUrl();if(!item)return;const button=$('ownerShareLinkBtn');button.disabled=true;
+ try{if(navigator.share){await navigator.share({title:'MOZ SALÕES — '+item.name,text:'Consulta o perfil de '+item.name+' no MOZ SALÕES:',url:item.url});$('ownerShareMessage').textContent='Partilha preparada para '+item.name+'.';}
+ else{await copyOwnerShareUrl(item.url);$('ownerShareMessage').textContent='Este navegador não disponibiliza partilha directa. O link foi copiado.';}}
+ catch(error){if(error?.name!=='AbortError')$('ownerShareMessage').textContent='Não foi possível abrir a partilha. Podes usar «Copiar link».';}
+ finally{button.disabled=false;}
+});
 // A sessão é verificada antes de abrir o directório público.
 }
 </script>
