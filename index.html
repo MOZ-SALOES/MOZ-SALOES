@@ -1279,7 +1279,7 @@ function stopUserNotificationSync(){
 }
 function startUserNotificationSync(userId){
  if(!userId)return;
- if(userNotificationUserId===userId&&userNotificationChannel)return;
+ if(userNotificationUserId===userId&&userNotificationChannel){loadUserNotifications(userId);return;}
  stopUserNotificationSync();userNotificationUserId=userId;
  loadUserNotifications(userId);
  userNotificationChannel=supabaseClient.channel('moz-saloes-user-notifications-'+userId)
