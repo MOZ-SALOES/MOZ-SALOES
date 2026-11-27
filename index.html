@@ -771,6 +771,10 @@ async function loadOwnerDashboardInternal(session){
    return;
   }
   ownerProfilesCache=salons||[];
+  const hasOwnerProfiles=ownerProfilesCache.length>0;
+  $('ownerSectionTitle').textContent=hasOwnerProfiles?'Painel do proprietário':'Painel da tua conta';
+  $('ownerSectionIntro').textContent=hasOwnerProfiles?'Gere os teus salões, serviços, marcações e notificações num espaço privado.':'Consulta as tuas marcações, acompanha respostas dos salões e gere as notificações da tua conta.';
+  const panelKicker=$('ownerDashboard').querySelector('.owner-brand-kicker');if(panelKicker)panelKicker.textContent=hasOwnerProfiles?'PAINEL DO PROPRIETÁRIO':'PAINEL DA CONTA';
   const ownerDisplayName=$('ownerDisplayName');
   const ownerDisplayDescription=$('ownerDisplayDescription');
   const holderName=String(profile?.full_name||session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'Proprietário').trim();
