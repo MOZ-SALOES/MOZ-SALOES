@@ -26,3 +26,13 @@ self.addEventListener('fetch',event=>{
   }).catch(()=>caches.match(request)));
  }
 });
+
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();
+ const target=new URL(event.notification.data?.url||'./#owner',self.registration.scope).href;
+ event.waitUntil((async()=>{
+  const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  for(const client of windows){if('focus' in client){if('navigate' in client)await client.navigate(target);return client.focus();}}
+  if(self.clients.openWindow)return self.clients.openWindow(target);
+ })());
+});
