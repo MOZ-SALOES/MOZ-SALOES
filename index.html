@@ -134,6 +134,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 #mozIntro.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
 .catalog-tools{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:14px}
 .catalog-tools input,.catalog-tools select{width:100%;min-width:0;padding:12px;border:1px solid #d9e1ed;border-radius:10px;background:#fff;color:#17233b}
+.price-compare{margin:28px 0;padding:clamp(20px,4vw,30px);border:1px solid #dce7f5;border-radius:22px;background:linear-gradient(135deg,#fff,#f4f8ff);box-shadow:0 12px 32px #102b630b}.price-compare-heading h2{margin:7px 0;color:#102b63;font-size:clamp(1.35rem,3vw,1.9rem)}.price-compare-heading p{margin:0 0 15px;color:#64748b;line-height:1.5;max-width:70ch}.price-compare .catalog-tools{grid-template-columns:2fr 1fr auto;margin:0 0 14px}.price-compare .catalog-tools select{width:100%;min-width:0;padding:12px;border:1px solid #d9e1ed;border-radius:10px;background:#fff;color:#17233b}.price-compare .compare-row a{color:#145ca8;font-weight:800;text-decoration:none}.price-compare .compare-row a:hover{text-decoration:underline}@media(max-width:650px){.price-compare .catalog-tools{grid-template-columns:1fr}.price-compare .catalog-tools button{width:100%}}
 .compare-list{display:grid;gap:10px}.compare-row{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid #e1e7f0;border-radius:13px;padding:13px 15px}
 .compare-row strong{color:#102b63}.compare-price{font-weight:900;color:#145ca8;white-space:nowrap}.compare-place{font-size:.82rem;color:#68778e;margin-top:3px}
 @media(max-width:560px){.catalog-tools{grid-template-columns:1fr}.compare-row{align-items:flex-start}}
@@ -285,6 +286,16 @@ body.owner-workspace .owner-auth-switch{display:none!important}
   <button class="btn" type="submit">Encontrar opções →</button>
  </form>
  <p class="smart-match-note">Resultados baseados nos serviços e preços publicados pelos próprios profissionais. Sem posições patrocinadas.</p>
+</section>
+<section class="price-compare" id="priceCompare" aria-labelledby="priceCompareTitle">
+ <div class="price-compare-heading"><span class="smart-match-kicker">TRANSPARÊNCIA DE PREÇOS</span><h2 id="priceCompareTitle">Compara preços antes de escolher.</h2><p>Vê quanto diferentes salões e profissionais cobram pelo mesmo serviço. Os valores são os publicados pelos próprios profissionais.</p></div>
+ <form id="priceCompareForm" class="catalog-tools">
+  <select id="compareService" aria-label="Escolher serviço para comparar"><option value="">Escolhe um serviço</option></select>
+  <select id="compareProvince" aria-label="Filtrar comparação por província"><option value="">Todas as províncias</option></select>
+  <button class="btn" type="submit">Comparar preços</button>
+ </form>
+ <div id="priceCompareResults" class="compare-list" aria-live="polite"><div class="empty">Escolhe um serviço para comparar os preços publicados.</div></div>
+ <p class="smart-match-note">A comparação inclui apenas preços informados e perfis actualmente publicados. Confirma o preço final directamente com o profissional.</p>
 </section>
 <section class="search" id="searchArea" aria-label="Pesquisar salões">
   <div class="filters">
@@ -1397,6 +1408,11 @@ async function init(){
   populate($('district'),districts.map(x=>({value:x,label:x})));
   populate($('smartCategory'),state.categories.map(x=>({value:x.id,label:x.name})));
   populate($('smartProvince'),provinces.map(x=>({value:x,label:x})));
+  $('compareService').innerHTML='<option value="">Escolhe um serviço</option>';
+  $('compareProvince').innerHTML='<option value="">Todas as províncias</option>';
+  const compareServices=[...new Map(state.services.map(x=>[String(x.name||'').trim().toLocaleLowerCase('pt'),String(x.name||'').trim()]).filter(x=>x[1])).values()].sort((a,b)=>a.localeCompare(b,'pt'));
+  populate($('compareService'),compareServices.map(x=>({value:x,label:x})));
+  populate($('compareProvince'),provinces.map(x=>({value:x,label:x})));
   if(state.categories.some(x=>x.id===selectedCategory))$('category').value=selectedCategory;
   if(provinces.includes(selectedProvince))$('province').value=selectedProvince;
   if(districts.includes(selectedDistrict))$('district').value=selectedDistrict;
@@ -1447,6 +1463,15 @@ $('clearDirectoryFilters').addEventListener('click',()=>{
  $('sortPrice').value='name';
  render();
  $('q').focus();
+});
+function normalizeCompareText(value){return String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt').trim();}
+$('priceCompareForm').addEventListener('submit',event=>{
+ event.preventDefault();
+ const selected=normalizeCompareText($('compareService').value),province=$('compareProvince').value,root=$('priceCompareResults');
+ if(!selected){root.innerHTML='<div class="empty">Escolhe primeiro o serviço que pretendes comparar.</div>';return;}
+ const matches=state.services.filter(service=>normalizeCompareText(service.name)===selected&&service.price_mzn!==null&&Number.isFinite(Number(service.price_mzn))).map(service=>({service,salon:state.salons.find(s=>s.id===service.salon_id)})).filter(item=>item.salon&&(!province||item.salon.province===province)).sort((a,b)=>Number(a.service.price_mzn)-Number(b.service.price_mzn));
+ if(!matches.length){root.innerHTML='<div class="empty">Ainda não existem preços publicados para este serviço'+(province?' nesta província':'')+'. Podes experimentar outra província ou outro serviço.</div>';return;}
+ root.innerHTML=matches.slice(0,15).map((item,index)=>'<div class="compare-row"><div><strong>'+safe(item.salon.name)+'</strong><div class="compare-place">'+safe([item.salon.neighborhood,item.salon.district,item.salon.province].filter(Boolean).join(', ')||'Moçambique')+' · '+(item.salon.provider_type==='independent'?'Profissional independente':'Salão')+'</div><a href="'+safe(salonSeoPath(item.salon))+'">Ver perfil</a></div><div class="compare-price">'+Number(item.service.price_mzn).toLocaleString('pt-MZ')+' MT</div></div>').join('')+'<p class="muted">A mostrar '+Math.min(matches.length,15)+' de '+matches.length+' opção(ões), ordenadas do menor para o maior preço.</p>';
 });
 $('smartMatchForm').addEventListener('submit',event=>{
  event.preventDefault();
