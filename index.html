@@ -488,7 +488,15 @@ body.owner-workspace .owner-auth-switch{display:none!important}
   </div><p class="muted" style="margin:10px 2px">O assistente fornece orientações automáticas com base nas funcionalidades documentadas. Não consulta dados privados nem executa alterações na tua conta.</p>
  </section>
 <footer><span class="mjo-signature" aria-label="MJO"><span class="mjo-blue">M</span><span class="mjo-black">J</span><span class="mjo-blue">O</span></span><span class="footer-credit"><span class="footer-brand" aria-label="MOZ SALÕES"><span class="brand-black">M</span><span class="brand-blue">O</span><span class="brand-black">Z</span><span> </span><span class="brand-blue">S</span><span class="brand-black">A</span><span class="brand-blue">L</span><span class="brand-black">Õ</span><span class="brand-blue">E</span><span class="brand-black">S</span></span><span class="footer-tagline">· Descobre beleza com confiança.</span></span></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2'"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Carregar a alternativa de forma síncrona antes do código principal.
+   document.write mantém a ordem de execução: o módulo tem de existir
+   antes de inicializarmos os botões e formulários do MOZ SALÕES. */
+if(!window.supabase?.createClient){
+ document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\\/script>');
+}
+</script>
 <script>
 if(!window.supabase?.createClient){
  const dot=document.getElementById('dot'),status=document.getElementById('status'),detail=document.getElementById('detail'),retry=document.getElementById('retryConnection');
