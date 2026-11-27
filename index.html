@@ -1387,7 +1387,7 @@ function render(){
   const extraGallery=galleryRows.slice(1,4).map(x=>{const u=String(x.image_path).startsWith('http')?x.image_path:supabaseClient.storage.from('salon-images').getPublicUrl(x.image_path).data.publicUrl;return '<img src="'+safe(u)+'" alt="'+safe(x.caption||'Trabalho do salão')+'" loading="lazy">';}).join('');
   const phone=salonWhatsAppNumber(s);
   const whatsapp=phone?'<a class="whatsapp" href="https://wa.me/'+phone+'?text='+encodeURIComponent('Olá! Encontrei o vosso perfil no MOZ SALÕES e gostaria de obter mais informações.')+'" target="_blank" rel="noopener noreferrer">WhatsApp</a>':'';
-  const call=normalizeMozPhone(s.phone)?'<a href="tel:+ '+normalizeMozPhone(s.phone).replace(/^258/,'258')+'">Ligar</a>':'';
+  const call=normalizeMozPhone(s.phone)?'<a href="tel:+'+normalizeMozPhone(s.phone)+'">Ligar</a>':'';
   const map=mapUrl(s);
   const mapLink=map?'<a href="'+safe(map)+'" target="_blank" rel="noopener noreferrer">Como chegar</a>':'';
   const profileUrl=salonSeoPath(s),photo=salonPhoto(s),isFavorite=favoriteSalonIds.has(String(s.id));
