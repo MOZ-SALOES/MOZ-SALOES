@@ -1585,5 +1585,31 @@ $('ownerShareLinkBtn').addEventListener('click',async()=>{
 })();
 </script>
 <button type="button" id="mozHelpLauncher" aria-label="Abrir ajuda MOZ SALÕES"><span aria-hidden="true">✦</span>Ajuda</button>
+<script>
+(function(){
+ const form=document.getElementById("mozAgentForm"),input=document.getElementById("mozAgentInput"),messages=document.getElementById("mozAgentMessages"),launcher=document.getElementById("mozHelpLauncher");
+ if(!form||!input||!messages)return;
+ const knowledge=[
+  {re:/regist|criar.*sal[aã]o|publicar.*sal[aã]o|divulgar.*sal[aã]o/,a:"Para divulgar o teu espaço, toca em «Registar serviços» ou «Divulgar o meu trabalho» e segue o formulário. Preenche os dados do salão, localização, contactos e serviços com preços. O registo pode precisar de aprovação antes de aparecer publicamente."},
+  {re:/profissional independente|domic[ií]lio|tranc|manicure|pedicure/,a:"Se trabalhas por conta própria, usa «Registar serviços». Escolhe profissional independente e indica se atendes no teu local, ao domicílio ou das duas formas. Depois adiciona serviços, preços e zonas de atendimento."},
+  {re:/entrar|login|iniciar sess[aã]o|criar conta|conta|palavra.?passe|senha|recuper/,a:"Para gerir o teu espaço, entra em «Entrar / Criar conta» com os dados usados no registo. Confirma o email e a palavra-passe. Se não conseguires entrar, utiliza a recuperação de acesso apresentada pelo sistema, se disponível."},
+  {re:/marca[cç][aã]o|agendamento|reserv|atendimento|pedido/,a:"O cliente abre o perfil do salão e toca em «Marcar atendimento». O proprietário acompanha os pedidos no painel e pode aceitar ou rejeitar. A marcação só deve ser considerada confirmada depois de ser aceite pelo salão."},
+  {re:/notifica|aviso|alerta/,a:"No painel do proprietário existe o «Centro de avisos». Activa as notificações quando o navegador ou telemóvel pedir autorização. Confirma também as permissões nas definições do navegador ou do dispositivo."},
+  {re:/partilh|link.*sal[aã]o|url.*sal[aã]o/,a:"No painel do proprietário, procura a área de partilha. Selecciona o salão e usa «Copiar link» ou «Partilhar link». Esse endereço abre o perfil público do teu próprio salão."},
+  {re:/editar|alterar|actualiz|atualiz|pre[cç]o|servi[cç]os/,a:"Entra na tua conta e abre o painel do proprietário. Aí podes gerir os dados do espaço e os serviços, incluindo nomes e preços, conforme as opções apresentadas. Guarda as alterações para as publicar."},
+  {re:/gr[aá]tis|pagamento|pagar|mensalidade|subscri[cç]/,a:"Actualmente, o MOZ SALÕES está preparado para funcionar sem bloquear o registo por pagamento de mensalidade. Não faças pagamentos a terceiros em nome da plataforma sem comunicação oficial."},
+  {re:/instal|aplica[cç][aã]o|app|play.?store|ecr[aã].?inicial/,a:"No Android, abre o MOZ SALÕES no navegador e escolhe «Instalar aplicação» ou «Adicionar ao ecrã inicial», quando disponível. No iPhone, usa Partilhar e depois «Adicionar ao ecrã principal»."},
+  {re:/offline|sem internet|liga[cç][aã]o|rede/,a:"O MOZ SALÕES pode abrir a estrutura previamente guardada sem Internet. Pesquisar dados actualizados, entrar na conta, enviar marcações e sincronizar alterações dependem de ligação. Quando a Internet regressar, actualiza a página."},
+  {re:/pesquis|encontr|localiza[cç][aã]o|prov[ií]ncia|bairro|categoria/,a:"Na página Explorar salões podes pesquisar pelo nome, serviço ou localização e usar filtros como província e categoria. Os resultados dependem dos espaços publicados no directório."},
+  {re:/foto|imagem|fotografia/,a:"O proprietário pode adicionar fotografias do espaço ou dos seus trabalhos nas opções de gestão do perfil, quando disponíveis. Usa imagens próprias, nítidas e representativas dos serviços."},
+  {re:/admin|administrador|aprova[cç][aã]o|validar/,a:"Os registos podem passar por validação administrativa antes de ficarem visíveis. A aprovação é uma tarefa da administração. Nunca partilhes palavras-passe ou códigos de acesso."}
+ ];
+ function add(text,kind){const el=document.createElement("div");el.className="moz-agent-message "+kind;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
+ function ask(value){const q=String(value||"").trim();if(!q)return;add(q,"user");const item=knowledge.find(x=>x.re.test(q.toLocaleLowerCase("pt")));add(item?item.a:"Ainda não tenho uma orientação confirmada para essa pergunta. Posso ajudar com registo, contas, serviços, marcações, notificações, partilha, pagamentos e utilização da aplicação. Reformula a dúvida com mais detalhes. Não consigo consultar dados privados nem executar alterações na tua conta.","bot");}
+ form.addEventListener("submit",function(e){e.preventDefault();ask(input.value);input.value="";input.focus();});
+ document.querySelectorAll("[data-moz-help]").forEach(b=>b.addEventListener("click",()=>ask(b.dataset.mozHelp)));
+ if(launcher)launcher.addEventListener("click",()=>{document.getElementById("mozHelp").scrollIntoView({behavior:"smooth"});setTimeout(()=>input.focus(),350);});
+})();
+</script>
 </body>
 </html>
