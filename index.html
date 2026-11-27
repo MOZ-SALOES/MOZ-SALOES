@@ -258,9 +258,6 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 .moz-compare-card a{display:inline-block;margin:7px 6px 0 0;color:#145ca8;font-weight:800;text-decoration:none;font-size:.84rem}
 @media(max-width:520px){#mozCompareTray{bottom:10px;align-items:flex-start}#mozCompareTray .btn{padding:9px 11px;font-size:.8rem;white-space:nowrap}#mozCompareDialog{padding:15px}}
 
-
-/* Correcção de emergência: o ecrã de abertura não pode bloquear toques no site. */
-#mozIntro{display:none!important;visibility:hidden!important;pointer-events:none!important}
 </style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
 </head>
@@ -495,8 +492,7 @@ if(!window.supabase?.createClient){
  if(dot)dot.className='dot err';
  if(status)status.textContent='Não foi possível carregar o módulo de ligação';
  if(detail)detail.textContent='Verifica a Internet e tenta novamente.';
- if(retry){retry.hidden=false;retry.textContent='Tentar novamente';retry.onclick=()=>location.reload();}
- window.addEventListener('online',()=>location.reload(),{once:true});
+ if(retry){retry.hidden=false;retry.onclick=()=>location.reload();}
  document.getElementById('count').textContent='Directório temporariamente indisponível';
  document.getElementById('results').innerHTML='<div class="empty">Não foi possível iniciar a ligação ao directório. Verifica a Internet e tenta novamente.</div>';
 }else{
@@ -659,9 +655,6 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
   else if(ownerSession?.user?.id!==session.user.id)loadOwnerDashboard(session);
  },0);
 });
-// O directório público não deve ficar bloqueado à espera da recuperação da sessão de autenticação.
-// A verificação da conta decorre em paralelo; o carregamento público começa imediatamente.
-init();
 supabaseClient.auth.getSession().then(({data,error})=>{
  if(error){adminMessage('Não foi possível verificar a sessão: '+error.message,'error');init();}
  else if(data?.session){
@@ -1997,35 +1990,6 @@ $('ownerGrowthNativeShare').addEventListener('click',async()=>{
  const resultsRoot=document.getElementById('results');
  if(resultsRoot)new MutationObserver(update).observe(resultsRoot,{childList:true,subtree:true});
  update();
-})();
-</script>
-
-
-<script>
-/* MOZ SALÕES — saída de segurança do ecrã de entrada */
-(function(){
- const intro=document.getElementById('mozIntro');
- if(!intro)return;
- let timer=null;
- function closeIntro(){
-  if(intro.hidden)return;
-  intro.classList.remove('is-active');
-  intro.classList.add('is-leaving');
-  window.setTimeout(()=>{intro.hidden=true;},600);
- }
- function armTimeout(){
-  if(timer)window.clearTimeout(timer);
-  timer=window.setTimeout(closeIntro,7000);
- }
- document.addEventListener('pointerdown',event=>{
-  if(intro.hidden||!intro.classList.contains('is-active'))return;
-  if(event.target.closest('#enterMozSite'))return;
-  closeIntro();
- },true);
- armTimeout();
- window.addEventListener('pageshow',()=>{
-  if(!intro.hidden)armTimeout();
- });
 })();
 </script>
 
