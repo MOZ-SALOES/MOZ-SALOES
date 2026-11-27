@@ -1813,11 +1813,14 @@ $('ownerGrowthNativeShare').addEventListener('click',async()=>{
   if(add){const id=String(add.dataset.compareSalon);if(selected.has(id))selected.delete(id);else if(selected.size>=3){alert('Podes comparar até 3 salões de cada vez. Remove um para escolher outro.');return;}else selected.add(id);update();return;}
   const remove=event.target.closest('[data-remove-compare]');
   if(remove){selected.delete(String(remove.dataset.removeCompare));update();if(selected.size)open();else close();return;}
+  if(event.target.closest('[data-book-salon]')&&modal.classList.contains('is-open'))close();
   if(event.target.id==='mozCompareOpen')open();
   if(event.target.id==='mozCompareClear'){selected.clear();update();close();}
   if(event.target.id==='mozCompareClose'||event.target===modal)close();
  });
  document.addEventListener('keydown',event=>{if(event.key==='Escape')close();});
+ const resultsRoot=document.getElementById('results');
+ if(resultsRoot)new MutationObserver(update).observe(resultsRoot,{childList:true,subtree:true});
  update();
 })();
 </script>
