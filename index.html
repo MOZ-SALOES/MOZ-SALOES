@@ -64,7 +64,7 @@ main{max-width:1120px;margin:34px auto;padding:0 18px}.hero{background:linear-gr
 .eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.72rem;font-weight:800;color:#b9d9ff}
 h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700px}.hero p{color:#dceaff;max-width:650px;line-height:1.6;margin:0}
 .search{background:white;border:1px solid #e1e7f0;border-radius:18px;padding:18px;margin-top:-22px;position:relative;box-shadow:0 12px 35px #102b6312}
-.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px}.filters input,.filters select{min-width:0;width:100%;padding:13px;border:1px solid #d9e1ed;border-radius:10px;background:white;color:#17233b}
+.filters{display:grid;grid-template-columns:2fr repeat(5,minmax(0,1fr)) auto;gap:10px}.filters input,.filters select{min-width:0;width:100%;padding:13px;border:1px solid #d9e1ed;border-radius:10px;background:white;color:#17233b}
 .btn{border:0;border-radius:10px;padding:12px 18px;background:#1761b1;color:white;font-weight:750;cursor:pointer}.btn:hover{background:#104b8c}.btn:disabled{opacity:.6;cursor:wait}
 .status{display:flex;align-items:center;gap:9px;color:#64748b;font-size:.86rem;margin-top:13px;flex-wrap:wrap}.dot{width:9px;height:9px;border-radius:50%;background:#d39b2a}.dot.ok{background:#15945c}.dot.err{background:#c33}
 .section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:32px 0 15px}.section-head h2{margin:0;color:#102b63;font-size:1.45rem}.muted{color:#68778e;font-size:.9rem}
@@ -79,7 +79,7 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .admin-message{padding:11px 13px;border-radius:10px;background:#edf4ff;color:#204c80;font-size:.9rem;line-height:1.45;margin-top:12px}
 .admin-message.error{background:#fff0f0;color:#9c2525}.admin-message.success{background:#eaf8f0;color:#17623b}
 [hidden]{display:none!important}footer{max-width:1120px;margin:35px auto;padding:0 18px 35px;color:#7a879a;font-size:.82rem;display:flex;align-items:center;justify-content:space-between;gap:14px}.mjo-signature{font-family:"Allura","Segoe Script","Brush Script MT",cursive;font-size:1.65rem;font-weight:400;letter-spacing:.01em;white-space:nowrap;line-height:1}.mjo-signature .mjo-black{color:#111827}.mjo-signature .mjo-blue{color:#0756c9}.footer-credit{display:inline-flex;align-items:baseline;gap:7px;flex-wrap:wrap;justify-content:flex-end}.footer-brand{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1.05rem;font-weight:800;line-height:1.2;color:#0756c9;letter-spacing:.01em}.footer-brand .brand-black{color:#111827}.footer-brand .brand-blue{color:#0756c9}.footer-tagline{font-size:.82rem;color:#7a879a}@media(max-width:480px){footer{align-items:flex-end;flex-wrap:wrap}}
-@media(max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters input,.filters .btn{grid-column:1/-1}.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.filters{grid-template-columns:repeat(3,minmax(0,1fr))}.filters input,.filters .btn{grid-column:1/-1}}@media(max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters input,.filters .btn{grid-column:1/-1}.grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){header{align-items:flex-start}header a{font-size:.78rem;padding:8px}.grid{grid-template-columns:1fr}.search{padding:13px}.section-head{align-items:start;flex-direction:column}}
 
 .owner-wrap{max-width:760px;margin:30px auto;background:#fff;border:1px solid #e1e7f0;border-radius:18px;padding:22px;box-shadow:0 12px 35px #102b6310}
@@ -290,7 +290,9 @@ body.owner-workspace .owner-auth-switch{display:none!important}
   <div class="filters">
    <input id="q" type="search" placeholder="Pesquisar por nome, serviço ou localidade…" aria-label="Pesquisar">
    <select id="province" aria-label="Filtrar por província"><option value="">Todas as províncias</option></select>
+   <select id="district" aria-label="Filtrar por distrito"><option value="">Todos os distritos</option></select>
    <select id="category" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+   <select id="serviceMode" aria-label="Filtrar por tipo de atendimento"><option value="">Qualquer atendimento</option><option value="at_location">No estabelecimento</option><option value="home">Ao domicílio</option></select>
    <select id="sortPrice" aria-label="Ordenar resultados"><option value="name">Ordenar: nome</option><option value="price-asc">Menor preço primeiro</option><option value="price-desc">Maior preço primeiro</option></select>
    <button class="btn" id="searchBtn" type="button">Pesquisar</button>
   </div>
@@ -1306,7 +1308,7 @@ updateFavoritesButton();
 
 function render(){
  const term=$('q').value.trim().toLocaleLowerCase('pt');
- const province=$('province').value,category=$('category').value,sort=$('sortPrice').value;
+ const province=$('province').value,district=$('district').value,category=$('category').value,serviceMode=$('serviceMode').value,sort=$('sortPrice').value;
  const sharedNotice=$('sharedSalonNotice');
  if(sharedSalonId){
   const sharedExists=state.salons.some(s=>s.id===sharedSalonId);
@@ -1317,8 +1319,10 @@ function render(){
   const services=state.services.filter(x=>x.salon_id===s.id);
   const searchable=[s.name,s.description,s.province,s.district,s.municipality,s.city,s.neighborhood,s.address,...services.map(x=>x.name)].join(' ').toLocaleLowerCase('pt');
   const matchesCategory=!category||s.category_id===category||services.some(x=>x.category_id===category);
+  const matchesDistrict=!district||s.district===district;
+  const matchesMode=!serviceMode||(serviceMode==='home'?s.provider_type==='independent'&&['home','both'].includes(s.service_mode):s.provider_type!=='independent'||['at_location','both'].includes(s.service_mode));
   const withinBudget=smartMaxPrice===null||services.some(x=>x.price_mzn!==null&&Number.isFinite(Number(x.price_mzn))&&Number(x.price_mzn)<=smartMaxPrice);
-  return (!sharedSalonId||s.id===sharedSalonId)&&(!showOnlyFavorites||favoriteSalonIds.has(String(s.id)))&&(!term||searchable.includes(term))&&(!province||s.province===province)&&matchesCategory&&withinBudget;
+  return (!sharedSalonId||s.id===sharedSalonId)&&(!showOnlyFavorites||favoriteSalonIds.has(String(s.id)))&&(!term||searchable.includes(term))&&(!province||s.province===province)&&matchesDistrict&&matchesCategory&&matchesMode&&withinBudget;
  });
  if(sort!=='name')filtered.sort((a,b)=>{const minPrice=s=>{const p=state.services.filter(x=>x.salon_id===s.id&&x.price_mzn!==null).map(x=>Number(x.price_mzn)).filter(Number.isFinite);return p.length?Math.min(...p):Number.POSITIVE_INFINITY;};const pa=minPrice(a),pb=minPrice(b);if(!Number.isFinite(pa))return 1;if(!Number.isFinite(pb))return -1;return sort==='price-asc'?pa-pb:pb-pa;});
  $('count').textContent=filtered.length+' resultado(s) encontrado(s)'+(showOnlyFavorites?' · a mostrar favoritos guardados neste dispositivo':'');
@@ -1380,14 +1384,22 @@ async function init(){
   for(const result of [categoriesResult,salonsResult,servicesResult,imagesResult,hoursResult])if(result.error)throw result.error;
   state.categories=categoriesResult.data||[];state.salons=salonsResult.data||[];state.services=servicesResult.data||[];state.images=imagesResult.data||[];state.hours=hoursResult.data||[];
   renderFeaturedCategories();
-  const selectedCategory=$('category').value,selectedProvince=$('province').value;
+  const selectedCategory=$('category').value,selectedProvince=$('province').value,selectedDistrict=$('district').value;
+  $('category').innerHTML='<option value="">Todas as categorias</option>';
+  $('province').innerHTML='<option value="">Todas as províncias</option>';
+  $('district').innerHTML='<option value="">Todos os distritos</option>';
+  $('smartCategory').innerHTML='<option value="">Qualquer serviço</option>';
+  $('smartProvince').innerHTML='<option value="">Todas as províncias</option>';
   populate($('category'),state.categories.map(x=>({value:x.id,label:x.name})));
   const provinces=['Cabo Delgado','Gaza','Inhambane','Manica','Maputo','Maputo Cidade','Nampula','Niassa','Sofala','Tete','Zambézia'];
   populate($('province'),provinces.map(x=>({value:x,label:x})));
+  const districts=[...new Set(state.salons.map(x=>String(x.district||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+  populate($('district'),districts.map(x=>({value:x,label:x})));
   populate($('smartCategory'),state.categories.map(x=>({value:x.id,label:x.name})));
   populate($('smartProvince'),provinces.map(x=>({value:x,label:x})));
   if(state.categories.some(x=>x.id===selectedCategory))$('category').value=selectedCategory;
   if(provinces.includes(selectedProvince))$('province').value=selectedProvince;
+  if(districts.includes(selectedDistrict))$('district').value=selectedDistrict;
   clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;
   $('dot').className='dot ok';$('status').textContent='Ligação ao Supabase estabelecida';$('detail').textContent='Dados carregados com sucesso.';$('retryConnection').hidden=true;
   render();
@@ -1418,7 +1430,9 @@ $('searchArea').addEventListener('click',event=>{
   smartMaxPrice=null;$('smartBudget').value='';$('smartCategory').value='';$('smartProvince').value='';
   $('q').value=quick.dataset.quickSearch;
   $('province').value='';
+  $('district').value='';
   $('category').value='';
+  $('serviceMode').value='';
   render();
   $('saloes').scrollIntoView({behavior:'smooth',block:'start'});
  }
@@ -1427,7 +1441,9 @@ $('clearDirectoryFilters').addEventListener('click',()=>{
  smartMaxPrice=null;$('smartBudget').value='';$('smartCategory').value='';$('smartProvince').value='';
  $('q').value='';
  $('province').value='';
+ $('district').value='';
  $('category').value='';
+ $('serviceMode').value='';
  $('sortPrice').value='name';
  render();
  $('q').focus();
@@ -1444,7 +1460,9 @@ $('smartMatchForm').addEventListener('submit',event=>{
 $('searchBtn').addEventListener('click',render);
 $('q').addEventListener('input',render);
 $('province').addEventListener('change',render);
+$('district').addEventListener('change',render);
 $('category').addEventListener('change',render);
+$('serviceMode').addEventListener('change',render);
 $('featuredCategories').addEventListener('click',event=>{
  const button=event.target.closest('[data-featured-category]');if(!button)return;
  $('category').value=button.dataset.featuredCategory;
