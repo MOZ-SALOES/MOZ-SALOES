@@ -1699,6 +1699,10 @@ $('ownerGrowthNativeShare').addEventListener('click',async()=>{
  });
  if('serviceWorker' in navigator && location.protocol!=='file:'){
   window.addEventListener('load',()=>{
+   const hadController=!!navigator.serviceWorker.controller;
+   if(hadController)navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!window.__mozAppVersionReloading){window.__mozAppVersionReloading=true;window.location.reload();}
+   });
    navigator.serviceWorker.register('./sw.js').then(registration=>{
     registration.update().catch(()=>{});
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')registration.update().catch(()=>{});});
