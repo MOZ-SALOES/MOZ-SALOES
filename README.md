@@ -14,7 +14,7 @@ Directório digital de salões de beleza em Moçambique. A interface pública pe
 
 ## Base de dados
 
-As oito migrações locais correspondem às oito migrações aplicadas no projecto remoto:
+As 21 migrações aplicadas no projecto remoto estão registadas no repositório:
 
 | Versão | Migração |
 |---|---|
@@ -26,12 +26,25 @@ As oito migrações locais correspondem às oito migrações aplicadas no projec
 | 20261116145917 | enforce_pending_status_on_salon_creation |
 | 20261116150303 | tighten_reviews_inquiries_reports_security |
 | 20261116150701 | secure_salon_image_storage_ownership |
+| 20261121170000 | seed_real_maputo_salons_pending |
+| 20261121171000 | update_publication_plan_prices |
+| 20261121173000 | add_maputo_salon_image |
+| 20261121201500 | enable_moz_saloes_realtime |
+| 20261121202500 | broadcast_public_directory_invalidations |
+| 20261122141630 | add_independent_beauty_providers |
+| 20261123164401 | add_optional_owner_profile_settings |
+| 20261124040110 | admin_notifications_and_registration_triggers |
+| 20261124093624 | private_owner_workspace_directory_access |
+| 20261124095621 | promote_salon_accounts_to_owner |
+| 20261127182024 | add_query_performance_indexes |
+| 20261127182047 | remove_duplicate_inquiry_index |
+| 20261127182951 | persistent_user_notifications |
 
-Última verificação: GitHub Actions workflow #31 concluiu com sucesso. O comando `supabase db push` confirmou que a base de dados estava actualizada e a verificação posterior confirmou que o histórico local e remoto coincide.
+A migração de notificações cria a tabela privada por utilizador `user_notifications`, com RLS, índices para histórico/avisos por ler e um trigger que notifica o proprietário quando recebe uma marcação e o cliente quando o pedido é aceite ou recusado. A tabela está incluída no Supabase Realtime.
 
-Tabelas principais: `profiles`, `categories`, `salons`, `services`, `salon_images`, `salon_hours`, `subscription_plans`, `subscriptions`, `payments`, `payment_events`, `wallet_transactions`, `promotions`, `promotion_salons`, `reviews`, `favorites`, `inquiries`, `reports`, `admin_settings` e `audit_logs`.
+Tabelas principais: `profiles`, `categories`, `salons`, `services`, `salon_images`, `salon_hours`, `appointments`, `user_notifications`, `admin_notifications`, `subscription_plans`, `subscriptions`, `payments`, `payment_events`, `wallet_transactions`, `promotions`, `promotion_salons`, `reviews`, `favorites`, `inquiries`, `reports`, `admin_settings` e `audit_logs`.
 
-Todas as 19 tabelas do schema público foram verificadas com RLS activo. O bucket `salon-images` existe e aceita imagens JPEG, PNG e WebP até 5 MB.
+As 22 tabelas do schema público foram verificadas com RLS activo. O bucket `salon-images` existe e aceita imagens JPEG, PNG e WebP até 5 MB.
 
 ## Frontend
 
@@ -63,9 +76,9 @@ Nunca partilhar estes valores no chat nem os guardar no repositório.
 
 ## Estado funcional e próximos passos
 
-A estrutura da base de dados e as migrações estão sincronizadas. A auditoria confirmou que ainda não existem salões publicados nem utilizador administrativo registado. As categorias e os planos de publicação já têm registos.
+A estrutura da base de dados e as migrações estão sincronizadas. Existem salões publicados e pendentes, e já existe um perfil administrativo. O fluxo de notificações de marcações está preparado para proprietários e clientes autenticados.
 
-A interface foi corrigida para apontar para o projecto certo e consultar o schema existente. Ainda é necessário publicar o frontend num endereço HTTPS, configurar o redirect de autenticação, testar o primeiro acesso administrativo e validar o fluxo de registo/aprovação de salões.
+O site está publicado no GitHub Pages em https://moz-saloes.github.io/MOZ-SALOES/. As funcionalidades que dependem de autenticação e Internet continuam a exigir ligação activa; as notificações do painel são persistentes e actualizadas em tempo real enquanto a conta está ligada.
 
 Pagamentos e levantamentos estão actualmente desactivados na configuração da plataforma. Não activar até a integração e os testes de M-Pesa/e-Mola estarem concluídos.
 
