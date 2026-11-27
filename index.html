@@ -1139,7 +1139,7 @@ async function init(){
   renderFeaturedCategories();
   const selectedCategory=$('category').value,selectedProvince=$('province').value;
   populate($('category'),state.categories.map(x=>({value:x.id,label:x.name})));
-  const provinces=[...new Set(state.salons.map(x=>x.province).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+  const provinces=['Cabo Delgado','Gaza','Inhambane','Manica','Maputo','Maputo Cidade','Nampula','Niassa','Sofala','Tete','Zambézia'];
   populate($('province'),provinces.map(x=>({value:x,label:x})));
   if(state.categories.some(x=>x.id===selectedCategory))$('category').value=selectedCategory;
   if(provinces.includes(selectedProvince))$('province').value=selectedProvince;
