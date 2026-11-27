@@ -175,6 +175,29 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 .skip-link:focus{transform:translateY(0)}
 :focus-visible{outline:3px solid #f0b429;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){html:focus-within{scroll-behavior:auto}*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Navegação rápida e percursos claros para clientes e profissionais */
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.hero-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 18px;border-radius:12px;text-decoration:none;font-weight:850}
+.hero-actions .hero-primary{background:#fff;color:#123d78}
+.hero-actions .hero-secondary{border:1px solid #ffffff85;color:#fff;background:#ffffff12}
+.journey-guide{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}
+.journey-card{background:#fff;border:1px solid #e1e7f0;border-radius:16px;padding:18px;box-shadow:0 6px 20px #102b6308}
+.journey-card h2{font-size:1.05rem;color:#102b63;margin:0 0 8px}
+.journey-card p{font-size:.88rem;line-height:1.55;color:#68778e;margin:0 0 13px}
+.journey-card a{display:inline-flex;padding:9px 13px;border-radius:10px;background:#edf4ff;color:#17477d;text-decoration:none;font-size:.88rem;font-weight:800}
+.mobile-quick-nav{display:none}
+@media(max-width:760px){
+ body{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+ .mobile-quick-nav{position:fixed;z-index:9000;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:7px 8px calc(7px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #dce4ef;box-shadow:0 -8px 24px #102b6318}
+ .mobile-quick-nav a,.mobile-quick-nav button{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;color:#29466f;text-decoration:none;font:inherit;font-size:.68rem;font-weight:800;padding:5px 2px;border-radius:9px}
+ .mobile-quick-nav .nav-icon{font-size:1.18rem;line-height:1.2}
+ .mobile-quick-nav .nav-register{background:#edf4ff;color:#104b8c}
+ body.owner-workspace{padding-bottom:0}
+ body.owner-workspace .mobile-quick-nav{display:none}
+ .journey-guide{grid-template-columns:1fr}
+}
+
 </style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
 </head>
@@ -200,16 +223,21 @@ body.owner-workspace .owner-auth-switch{display:none!important}
  <div><div class="brand">MOZ <span>SALÕES</span> 🇲🇿</div><div class="tag">Directório digital de salões de Moçambique</div></div>
  <nav class="main-nav" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap"><a href="#saloes">Explorar salões</a><a href="#owner" id="ownerNav">Entrar / Criar conta</a><a href="#owner" id="ownerAccountNav" hidden> A minha conta </a><a href="#owner" id="publishSalonNav" class="publish-salon-link">＋ Registar serviços</a></nav>
 </header>
+<nav class="mobile-quick-nav" aria-label="Navegação rápida"><a href="#saloes"><span class="nav-icon" aria-hidden="true">⌕</span><span>Explorar</span></a><a href="#featuredCategoriesSection"><span class="nav-icon" aria-hidden="true">✂</span><span>Serviços</span></a><button type="button" id="mobileAccountNav"><span class="nav-icon" aria-hidden="true">♙</span><span>Minha conta</span></button><button type="button" class="nav-register" id="mobileRegisterNav"><span class="nav-icon" aria-hidden="true">＋</span><span>Divulgar</span></button></nav>
 <main id="main-content" tabindex="-1">
- <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p></section>
- <section class="featured-categories" aria-label="Categorias de serviços">
+ <section class="hero"><div class="eyebrow">Beleza perto de ti</div><h1>Encontra o salão certo, onde estiveres.</h1><p>Descobre salões, serviços, preços e contactos em Moçambique. Pesquisa por província, categoria ou nome e encontra opções na tua região.</p><div class="hero-actions"><a class="hero-primary" href="#searchArea">Encontrar um serviço <span aria-hidden="true">→</span></a><a class="hero-secondary" href="#owner" id="heroProviderLink">Divulgar o meu trabalho</a></div></section>
+ <section class="journey-guide" aria-label="Como utilizar o MOZ SALÕES">
+  <article class="journey-card"><h2>És cliente?</h2><p>Pesquisa por serviço e localização, compara preços, consulta fotografias e contacta o profissional ou pede uma marcação.</p><a href="#searchArea">Começar a explorar</a></article>
+  <article class="journey-card"><h2>Tens um salão ou prestas serviços?</h2><p>Cria a tua conta gratuita, publica o teu perfil e gere os teus serviços e pedidos de atendimento num espaço privado.</p><a href="#owner" id="journeyProviderLink">Publicar o meu perfil</a></article>
+ </section>
+ <section class="featured-categories" id="featuredCategoriesSection" aria-label="Categorias de serviços">
   <h2>Explore por categoria</h2>
   <p>Escolhe o serviço que procuras e encontra quem o oferece.</p>
   <div class="featured-category-grid" id="featuredCategories">
    <div class="empty">A carregar categorias…</div>
   </div>
  </section>
- <section class="search" aria-label="Pesquisar salões">
+ <section class="search" id="searchArea" aria-label="Pesquisar salões">
   <div class="filters">
    <input id="q" type="search" placeholder="Pesquisar por nome, serviço ou localidade…" aria-label="Pesquisar">
    <select id="province" aria-label="Filtrar por província"><option value="">Todas as províncias</option></select>
@@ -811,6 +839,12 @@ async function refreshOwnerLiveData(){
  await loadOwnerDashboard(ownerSession);
 }
 $('ownerNav').addEventListener('click',openOwnerSection);
+
+$('mobileAccountNav').addEventListener('click',()=>{const target=$('ownerAccountNav').hidden?$('ownerNav'):$('ownerAccountNav');target.click();});
+$('mobileRegisterNav').addEventListener('click',()=>$('publishSalonNav').click());
+$('heroProviderLink').addEventListener('click',event=>{event.preventDefault();$('publishSalonNav').click();});
+$('journeyProviderLink').addEventListener('click',event=>{event.preventDefault();$('publishSalonNav').click();});
+
 $('ownerAccountNav').addEventListener('click',event=>{event.preventDefault();openOwnerSection();});
 function showOwnerRegistration(type){
  $('ownerStartCard').hidden=true;$('ownerRegistration').hidden=false;
