@@ -659,6 +659,9 @@ supabaseClient.auth.onAuthStateChange((event,session)=>{
   else if(ownerSession?.user?.id!==session.user.id)loadOwnerDashboard(session);
  },0);
 });
+// O directório público não deve ficar bloqueado à espera da recuperação da sessão de autenticação.
+// A verificação da conta decorre em paralelo; o carregamento público começa imediatamente.
+init();
 supabaseClient.auth.getSession().then(({data,error})=>{
  if(error){adminMessage('Não foi possível verificar a sessão: '+error.message,'error');init();}
  else if(data?.session){
