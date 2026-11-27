@@ -1,34 +1,28 @@
-const CACHE_NAME='moz-saloes-shell-v1';
+const CACHE_NAME='moz-saloes-shell-v2';
 const OFFLINE_URL='./offline.html';
 const CORE_FILES=['./','./index.html','./manifest.webmanifest','./favicon.svg',OFFLINE_URL];
-
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(CORE_FILES)).then(()=>self.skipWaiting()));
 });
 self.addEventListener('activate',event=>{
  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('moz-saloes-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));
 });
+self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
 self.addEventListener('fetch',event=>{
- const request=event.request;
- if(request.method!=='GET')return;
- const url=new URL(request.url);
- if(url.origin!==self.location.origin)return;
+ const request=event.request;if(request.method!=='GET')return;
+ const url=new URL(request.url);if(url.origin!==self.location.origin)return;
  if(!url.pathname.startsWith(new URL('./',self.registration.scope).pathname))return;
  if(request.mode==='navigate'){
-  event.respondWith(fetch(request).then(response=>{
+  event.respondWith(fetch(request,{cache:'no-store'}).then(response=>{
    if(response.ok){const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put('./index.html',copy));}
    return response;
-  }).catch(async()=>{
-   const cache=await caches.open(CACHE_NAME);
-   return (await cache.match(request))||(await cache.match('./index.html'))||(await cache.match(OFFLINE_URL));
-  }));
+  }).catch(async()=>{const cache=await caches.open(CACHE_NAME);return (await cache.match(request))||(await cache.match('./index.html'))||(await cache.match(OFFLINE_URL));}));
   return;
  }
- // Cache apenas ficheiros estáticos locais. Nunca guardar respostas da API/Supabase.
  if(url.pathname.endsWith('.webmanifest')||url.pathname.endsWith('.svg')||url.pathname.endsWith('.png')||url.pathname.endsWith('.jpg')||url.pathname.endsWith('.webp')){
-  event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{
+  event.respondWith(fetch(request,{cache:'no-store'}).then(response=>{
    if(response.ok){const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put(request,copy));}
    return response;
-  })));
+  }).catch(()=>caches.match(request)));
  }
 });
