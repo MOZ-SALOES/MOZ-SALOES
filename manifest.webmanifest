@@ -1,0 +1,26 @@
+{
+  "id": "/MOZ-SALOES/",
+  "name": "MOZ SALÕES — Directório de beleza de Moçambique",
+  "short_name": "MOZ SALÕES",
+  "description": "Encontra salões e profissionais de beleza, serviços, preços e contactos em Moçambique.",
+  "lang": "pt-MZ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f7fb",
+  "theme_color": "#102b63",
+  "categories": [
+    "lifestyle",
+    "beauty",
+    "shopping"
+  ],
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
