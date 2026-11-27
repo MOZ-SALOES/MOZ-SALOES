@@ -238,6 +238,24 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 #mozHelp{margin:34px auto 24px;scroll-margin-top:20px}.moz-help-hero{background:linear-gradient(125deg,#102b63,#174b91);color:#fff;border-radius:18px;padding:22px}.moz-help-hero h2{margin:0 0 7px;font-size:1.5rem}.moz-help-hero p{margin:0;color:#dceaff;line-height:1.5}.moz-help-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.moz-help-topic{background:#fff;border:1px solid #e1e7f0;border-radius:13px;padding:14px}.moz-help-topic strong{display:block;color:#102b63;margin-bottom:5px}.moz-help-topic p{margin:0;color:#64748b;font-size:.88rem;line-height:1.45}.moz-agent{background:#fff;border:1px solid #d9e4f2;border-radius:17px;overflow:hidden;box-shadow:0 10px 30px #102b6310}.moz-agent-head{display:flex;align-items:center;gap:11px;padding:14px 16px;background:#f1f6fd;border-bottom:1px solid #e1e7f0}.moz-agent-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#dcecff;color:#145ca8;font-size:1.3rem}.moz-agent-head strong{display:block;color:#102b63}.moz-agent-head small{color:#64748b}.moz-agent-messages{height:280px;overflow:auto;padding:15px;display:flex;flex-direction:column;gap:10px;background:#fbfdff}.moz-agent-message{max-width:88%;padding:11px 13px;border-radius:13px;background:#edf4ff;color:#24466f;line-height:1.5;font-size:.91rem;white-space:pre-wrap;overflow-wrap:anywhere}.moz-agent-message.user{align-self:flex-end;background:#1761b1;color:#fff;border-bottom-right-radius:4px}.moz-agent-message.bot{align-self:flex-start;border-bottom-left-radius:4px}.moz-agent-suggestions{display:flex;gap:7px;flex-wrap:wrap;padding:10px 13px;border-top:1px solid #e8edf5}.moz-agent-suggestions button{border:1px solid #cbdcf1;background:#fff;color:#24558e;border-radius:99px;padding:7px 10px;font-size:.78rem;cursor:pointer}.moz-agent-form{display:flex;gap:8px;padding:12px;border-top:1px solid #e1e7f0}.moz-agent-form input{min-width:0;flex:1;padding:12px;border:1px solid #d9e1ed;border-radius:10px}.moz-agent-form button{border:0;border-radius:10px;background:#1761b1;color:#fff;font-weight:800;padding:0 17px;cursor:pointer}#mozHelpLauncher{position:fixed;right:17px;bottom:20px;z-index:9990;border:0;border-radius:999px;background:#1256a0;color:#fff;padding:13px 17px;font-weight:850;box-shadow:0 8px 26px #06193655;cursor:pointer}#mozHelpLauncher span{margin-right:6px}@media(max-width:700px){.moz-help-grid{grid-template-columns:1fr}.moz-agent-messages{height:250px}#mozHelpLauncher{right:12px;bottom:76px}}
 
 .moz-language-settings{position:relative;color:#fff;font-size:.86rem}.moz-language-settings summary{list-style:none;cursor:pointer;border:1px solid #ffffff70;border-radius:10px;padding:10px 12px;font-weight:700}.moz-language-settings summary::-webkit-details-marker{display:none}.moz-language-panel{position:absolute;right:0;top:calc(100% + 8px);z-index:10002;min-width:220px;padding:13px;border-radius:12px;background:#fff;color:#18365f;box-shadow:0 12px 35px #071a3860;border:1px solid #dce5f1}.moz-language-panel label,.moz-language-panel small{display:block}.moz-language-panel label{font-weight:800;margin-bottom:7px}.moz-language-panel select{width:100%;padding:10px;border:1px solid #d5dfed;border-radius:9px;background:#fff;color:#17233b}.moz-language-panel small{font-size:.75rem;color:#64748b;margin-top:7px}.moz-language-settings[open] .moz-language-panel{display:block}@media(max-width:760px){.moz-language-settings summary{padding:8px 9px;font-size:.78rem}}
+
+/* Comparação directa de salões para clientes */
+.compare-salon-btn{display:inline-flex;align-items:center;gap:6px;margin:8px 0 2px 5px;padding:8px 11px;border:1px solid #bcd2ed;border-radius:999px;background:#edf5ff;color:#17477d;font-size:.82rem;font-weight:800;cursor:pointer}
+.compare-salon-btn[aria-pressed="true"]{background:#102b63;color:#fff;border-color:#102b63}
+#mozCompareTray{position:fixed;z-index:9000;left:50%;bottom:18px;transform:translateX(-50%);width:min(92vw,620px);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;background:#102b63;color:#fff;border-radius:16px;box-shadow:0 12px 35px #071b3d55}
+#mozCompareTray[hidden]{display:none!important}#mozCompareTray small{display:block;color:#d5e7ff;margin-top:3px}
+#mozCompareModal{position:fixed;inset:0;z-index:100003;background:#071326c9;display:none;place-items:center;padding:14px}
+#mozCompareModal.is-open{display:grid}#mozCompareDialog{width:min(100%,900px);max-height:90dvh;overflow:auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 20px 70px #0006}
+#mozCompareDialog h2{margin:0 0 6px;color:#102b63}#mozCompareDialog .compare-close{float:right;border:0;border-radius:9px;padding:8px 11px;background:#edf2f8;color:#17365f;font-weight:800;cursor:pointer}
+.moz-compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:15px}
+.moz-compare-card{border:1px solid #dce5f1;border-radius:13px;padding:13px;min-width:0}
+.moz-compare-card h3{color:#102b63;margin:0 0 8px;overflow-wrap:anywhere}
+.moz-compare-card p{font-size:.86rem;color:#53627a;line-height:1.45;margin:7px 0}
+.moz-compare-card .compare-service{display:flex;justify-content:space-between;gap:8px;border-top:1px solid #e8edf4;padding:7px 0;font-size:.82rem}
+.moz-compare-card .compare-service strong{white-space:nowrap;color:#17477d}
+.moz-compare-card a{display:inline-block;margin:7px 6px 0 0;color:#145ca8;font-weight:800;text-decoration:none;font-size:.84rem}
+@media(max-width:520px){#mozCompareTray{bottom:10px;align-items:flex-start}#mozCompareTray .btn{padding:9px 11px;font-size:.8rem;white-space:nowrap}#mozCompareDialog{padding:15px}}
+
 </style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
 </head>
@@ -1359,7 +1377,7 @@ function render(){
   const contact=phone?'<a href="https://wa.me/'+phone+'" target="_blank" rel="noopener noreferrer" aria-label="Contactar '+safe(s.name)+' pelo WhatsApp">Contactar pelo WhatsApp</a>':'<span class="muted">WhatsApp não disponível</span>';
   const map=mapUrl(s);
   const mapLink=map?'<a href="'+safe(map)+'" target="_blank" rel="noopener noreferrer">Ver localização</a>':'';
-  const photo=salonPhoto(s);const isFavorite=favoriteSalonIds.has(String(s.id));return '<article class="card"><div class="salon-visual"><img src="'+safe(photo.src)+'" alt="'+safe(photo.label+' — '+s.name)+'" loading="lazy"><span>'+safe(photo.label)+'</span></div><span class="muted">'+providerLabel+'</span><h3>'+safe(s.name)+'</h3><button class="favorite-salon-btn" type="button" data-favorite-salon="'+safe(s.id)+'" aria-pressed="'+String(isFavorite)+'">'+(isFavorite?'♥ Guardado nos favoritos':'♡ Guardar nos favoritos')+'</button><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||(s.provider_type==='independent'?'Profissional de beleza independente. Consulta os serviços disponíveis.':'Salão de beleza. Consulta os serviços disponíveis.'))+'</p><p class="muted">'+safe(serviceModeLabel)+(servicePlace?' · '+safe(servicePlace):'')+'</p>'+(profileExtras?'<p class="muted">'+safe(profileExtras)+'</p>':'')+(hoursText?'<p class="muted">'+safe(hoursText)+'</p>':'')+(extraGallery?'<div class="owner-public-gallery">'+extraGallery+'</div>':'')+'<div class="service-list"><strong class="service-heading">Serviços e preços</strong>'+serviceLines+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+' · <a href="'+safe(salonSeoPath(s))+'" aria-label="Ver página pública de '+safe(s.name)+'">Página do salão</a></p><p><button class="btn" type="button" data-book-salon="'+safe(s.id)+'">Marcar atendimento</button></p></article>';
+  const photo=salonPhoto(s);const isFavorite=favoriteSalonIds.has(String(s.id));return '<article class="card"><div class="salon-visual"><img src="'+safe(photo.src)+'" alt="'+safe(photo.label+' — '+s.name)+'" loading="lazy"><span>'+safe(photo.label)+'</span></div><span class="muted">'+providerLabel+'</span><h3>'+safe(s.name)+'</h3><button class="favorite-salon-btn" type="button" data-favorite-salon="'+safe(s.id)+'" aria-pressed="'+String(isFavorite)+'">'+(isFavorite?'♥ Guardado nos favoritos':'♡ Guardar nos favoritos')+'</button><button class="compare-salon-btn" type="button" data-compare-salon="'+safe(s.id)+'" aria-pressed="false">＋ Comparar</button><div class="muted">'+safe(place||'Moçambique')+'</div><p>'+safe(s.description||(s.provider_type==='independent'?'Profissional de beleza independente. Consulta os serviços disponíveis.':'Salão de beleza. Consulta os serviços disponíveis.'))+'</p><p class="muted">'+safe(serviceModeLabel)+(servicePlace?' · '+safe(servicePlace):'')+'</p>'+(profileExtras?'<p class="muted">'+safe(profileExtras)+'</p>':'')+(hoursText?'<p class="muted">'+safe(hoursText)+'</p>':'')+(extraGallery?'<div class="owner-public-gallery">'+extraGallery+'</div>':'')+'<div class="service-list"><strong class="service-heading">Serviços e preços</strong>'+serviceLines+'</div><p class="price">'+safe(price)+'</p><p>'+contact+(mapLink?' · '+mapLink:'')+' · <a href="'+safe(salonSeoPath(s))+'" aria-label="Ver página pública de '+safe(s.name)+'">Página do salão</a></p><p><button class="btn" type="button" data-book-salon="'+safe(s.id)+'">Marcar atendimento</button></p></article>';
  }).join('');
 }
 
@@ -1760,5 +1778,49 @@ $('ownerGrowthNativeShare').addEventListener('click',async()=>{
  if(launcher)launcher.addEventListener("click",()=>{document.getElementById("mozHelp").scrollIntoView({behavior:"smooth"});setTimeout(()=>input.focus(),350);});
 })();
 </script>
+
+<script>
+/* Ferramenta gratuita: comparar até três salões antes de marcar. */
+(function(){
+ const selected=new Set(),tray=document.createElement('div'),modal=document.createElement('div');
+ tray.id='mozCompareTray';tray.hidden=true;tray.setAttribute('role','region');tray.setAttribute('aria-live','polite');
+ tray.innerHTML='<div><strong id="mozCompareCount">0 de 3 salões seleccionados</strong><small>Compara serviços, preços e localização</small></div><div style="display:flex;gap:7px"><button type="button" class="btn" id="mozCompareOpen">Comparar</button><button type="button" class="btn" id="mozCompareClear" style="background:#64748b">Limpar</button></div>';
+ modal.id='mozCompareModal';modal.innerHTML='<section id="mozCompareDialog" role="dialog" aria-modal="true" aria-labelledby="mozCompareTitle"><button type="button" class="compare-close" id="mozCompareClose">Fechar ✕</button><h2 id="mozCompareTitle">Comparar salões</h2><p class="muted">Compara a informação publicada pelos próprios profissionais. Confirma disponibilidade e preço final antes de marcar.</p><div id="mozCompareCards" class="moz-compare-grid"></div></section>';
+ document.body.append(tray,modal);
+ const byId=id=>document.getElementById(id);
+ function update(){
+  tray.hidden=selected.size===0;
+  byId('mozCompareCount').textContent=selected.size+' de 3 salões seleccionados';
+  document.querySelectorAll('[data-compare-salon]').forEach(button=>{const active=selected.has(String(button.dataset.compareSalon));button.setAttribute('aria-pressed',String(active));button.textContent=active?'✓ A comparar':'＋ Comparar';});
+ }
+ function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+ function close(){modal.classList.remove('is-open');document.body.style.overflow='';}
+ function open(){
+  const salons=[...selected].map(id=>state.salons.find(s=>String(s.id)===id)).filter(Boolean);
+  if(!salons.length)return;
+  byId('mozCompareCards').innerHTML=salons.map(s=>{
+   const services=state.services.filter(x=>x.salon_id===s.id),place=[s.neighborhood,s.city,s.district,s.province].filter(Boolean).join(', ')||'Localização não indicada';
+   const prices=services.map(x=>Number(x.price_mzn)).filter(Number.isFinite),min=prices.length?'A partir de '+Math.min(...prices).toLocaleString('pt-MZ')+' MT':'Preço sob consulta';
+   const mode=s.provider_type==='independent'?({at_location:'No próprio local',home:'Ao domicílio',both:'No local e ao domicílio'}[s.service_mode]||'Por marcação'):'Estabelecimento';
+   const rows=services.length?services.map(x=>'<div class="compare-service"><span>'+esc(x.name)+'</span><strong>'+(x.price_mzn!==null&&Number.isFinite(Number(x.price_mzn))?Number(x.price_mzn).toLocaleString('pt-MZ')+' MT':'Sob consulta')+'</strong></div>').join(''):'<p>Sem serviços publicados.</p>';
+   const phone=salonWhatsAppNumber(s),contact=phone?'<a href="https://wa.me/'+phone+'" target="_blank" rel="noopener noreferrer">WhatsApp</a>':'';
+   return '<article class="moz-compare-card"><h3>'+esc(s.name)+'</h3><p><strong>'+esc(min)+'</strong></p><p>📍 '+esc(place)+'</p><p>Atendimento: '+esc(mode)+'</p><div>'+rows+'</div><a href="'+esc(salonSeoPath(s))+'">Ver perfil</a>'+contact+'<button type="button" class="btn" data-book-salon="'+esc(s.id)+'" style="display:block;margin-top:10px">Marcar atendimento</button><button type="button" data-remove-compare="'+esc(s.id)+'" style="margin-top:8px;border:0;background:none;color:#64748b;cursor:pointer">Remover da comparação</button></article>';
+  }).join('');
+  modal.classList.add('is-open');document.body.style.overflow='hidden';
+ }
+ document.addEventListener('click',event=>{
+  const add=event.target.closest('[data-compare-salon]');
+  if(add){const id=String(add.dataset.compareSalon);if(selected.has(id))selected.delete(id);else if(selected.size>=3){alert('Podes comparar até 3 salões de cada vez. Remove um para escolher outro.');return;}else selected.add(id);update();return;}
+  const remove=event.target.closest('[data-remove-compare]');
+  if(remove){selected.delete(String(remove.dataset.removeCompare));update();if(selected.size)open();else close();return;}
+  if(event.target.id==='mozCompareOpen')open();
+  if(event.target.id==='mozCompareClear'){selected.clear();update();close();}
+  if(event.target.id==='mozCompareClose'||event.target===modal)close();
+ });
+ document.addEventListener('keydown',event=>{if(event.key==='Escape')close();});
+ update();
+})();
+</script>
+
 </body>
 </html>
