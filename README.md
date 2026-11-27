@@ -14,7 +14,7 @@ Directório digital de salões de beleza em Moçambique. A interface pública pe
 
 ## Base de dados
 
-As 22 migrações aplicadas no projecto remoto estão registadas no repositório:
+As 24 migrações aplicadas no projecto remoto estão registadas no repositório:
 
 | Versão | Migração |
 |---|---|
@@ -40,8 +40,10 @@ As 22 migrações aplicadas no projecto remoto estão registadas no repositório
 | 20261127182047 | remove_duplicate_inquiry_index |
 | 20261127182951 | persistent_user_notifications |
 | 20261127183605 | least_privilege_user_notifications |
+| 20261127183742 | admin_appointment_notifications |
+| 20261127183810 | extend_admin_notification_types |
 
-A migração de notificações cria a tabela privada por utilizador `user_notifications`, com RLS, índices para histórico/avisos por ler e um trigger que notifica o proprietário quando recebe uma marcação e o cliente quando o pedido é aceite ou recusado. A tabela está incluída no Supabase Realtime.
+O sistema de notificações cria a tabela privada por utilizador `user_notifications`, com RLS, índices para histórico/avisos por ler e actualização em tempo real. Os proprietários recebem avisos de novas marcações; os clientes recebem avisos quando o pedido é aceite ou recusado; a administração recebe os eventos de entrada e decisão no painel administrativo.
 
 Tabelas principais: `profiles`, `categories`, `salons`, `services`, `salon_images`, `salon_hours`, `appointments`, `user_notifications`, `admin_notifications`, `subscription_plans`, `subscriptions`, `payments`, `payment_events`, `wallet_transactions`, `promotions`, `promotion_salons`, `reviews`, `favorites`, `inquiries`, `reports`, `admin_settings` e `audit_logs`.
 
