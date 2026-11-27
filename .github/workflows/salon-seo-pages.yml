@@ -63,6 +63,11 @@ jobs:
         with:
           path: site
 
+      # GitHub's artifact metadata can take a few seconds to become visible
+      # to deploy-pages after upload-pages-artifact finishes.
+      - name: Wait for Pages artifact availability
+        run: sleep 12
+
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4
