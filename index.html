@@ -138,6 +138,17 @@ h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:12px 0;max-width:700
 .compare-row strong{color:#102b63}.compare-price{font-weight:900;color:#145ca8;white-space:nowrap}.compare-place{font-size:.82rem;color:#68778e;margin-top:3px}
 @media(max-width:560px){.catalog-tools{grid-template-columns:1fr}.compare-row{align-items:flex-start}}
 
+/* Painel profissional do proprietário */
+body.owner-workspace #ownerSection{max-width:980px}body.owner-workspace #ownerDashboard{gap:18px}
+body.owner-workspace #ownerDashboard>.owner-card:first-child{background:linear-gradient(125deg,#102b63,#1c5596);color:#fff;border:0;border-radius:20px;padding:22px;box-shadow:0 14px 34px #102b6330}
+body.owner-workspace #ownerDashboard>.owner-card:first-child .status,body.owner-workspace #ownerDashboard>.owner-card:first-child .owner-muted{color:#e0edff}
+body.owner-workspace #ownerDashboard>.owner-card:first-child .dot{background:#62dfa0}body.owner-workspace #ownerDashboard>.owner-card:first-child .btn{background:#fff;color:#123d78}
+.owner-service-capacity{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;margin:10px 0 14px;border:1px solid #d9e7f8;border-radius:13px;background:linear-gradient(110deg,#f0f6ff,#fff)}
+.owner-service-capacity strong{color:#102b63}.owner-service-meter{height:8px;overflow:hidden;background:#dce7f5;border-radius:99px;margin-top:8px}.owner-service-meter span{display:block;height:100%;background:linear-gradient(90deg,#1761b1,#36a1dc);border-radius:99px;transition:width .2s}
+.owner-service-slot{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px;padding:13px;border:1px solid #e1e7f0;border-radius:13px;background:#f9fbfe}.owner-service-slot[hidden]{display:none}.owner-service-slot-title{grid-column:1/-1;color:#244a78;font-size:.84rem;font-weight:850}.owner-service-slot label{min-width:0}
+.owner-service-add{background:#edf4ff;color:#17477d;border:1px dashed #8eb5e4;border-radius:11px;padding:11px 14px;font-weight:800;cursor:pointer}.owner-service-add:disabled{opacity:.45;cursor:not-allowed}
+.owner-service-list-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 10px}.owner-service-list-heading h4{margin:0;color:#102b63}
+@media(max-width:620px){.owner-service-slot{grid-template-columns:1fr}.owner-service-slot-title{grid-column:auto}}
 /* Sessão autenticada: área do proprietário isolada do directório público */
 body.owner-workspace #mozIntro,
 body.owner-workspace main > .hero,
@@ -371,15 +382,17 @@ body.owner-workspace .owner-auth-switch{display:none!important}
    </div>
    <div class="owner-card" id="ownerSalonManager" hidden>
     <h3>Os meus registos</h3><div id="ownerSalonList" class="owner-list"></div><div class="owner-card" style="margin-top:14px"><h3>Partilhar o meu salão</h3><p class="owner-muted">Escolhe um dos teus salões publicados para criar um link directo. Quem receber o link abre logo o perfil desse salão e pode depois explorar os restantes.</p><label class="wide">Salão a partilhar<select id="ownerShareSalon" required></select></label><div class="owner-actions"><button class="btn" id="ownerShareLinkBtn" type="button">Partilhar link</button><button class="btn" id="ownerCopyLinkBtn" type="button" style="background:#64748b">Copiar link</button></div><p id="ownerShareMessage" class="owner-muted" role="status" aria-live="polite">Só os salões publicados podem ser partilhados.</p></div><hr class="owner-divider"><h3>Editar dados do perfil</h3><form id="ownerProfileForm" class="owner-form"><label class="wide">Perfil a editar<select id="ownerProfileSalon" required></select></label><label>Nome público<input id="ownerProfileName" maxlength="100" required></label><label>Telefone<input id="ownerProfilePhone" inputmode="tel"></label><label>WhatsApp<input id="ownerProfileWhatsapp" inputmode="tel"></label><label>Email público<input id="ownerProfileEmail" type="email"></label><label>Província<input id="ownerProfileProvince" required></label><label>Distrito / Município<input id="ownerProfileDistrict" required></label><label>Cidade<input id="ownerProfileCity"></label><label>Bairro<input id="ownerProfileNeighborhood"></label><label class="wide">Morada / referência<input id="ownerProfileAddress"></label><label class="wide">Descrição<textarea id="ownerProfileDescription" rows="3" maxlength="500" style="display:block;width:100%;padding:12px;border:1px solid #d9e1ed;border-radius:10px;margin-top:6px;font:inherit"></textarea></label><div id="ownerIndependentEditFields" class="wide" hidden><label>Modalidade<select id="ownerProfileMode"><option value="at_location">No meu local</option><option value="home">Ao domicílio</option><option value="both">No local e ao domicílio</option></select></label><label>Endereço do posto de serviços<input id="ownerProfileServiceAddress"></label><label>Zonas de atendimento ao domicílio<input id="ownerProfileServiceAreas"></label></div><label class="wide">Adicionar fotografia(s) (JPG, PNG ou WEBP, até 5 MB cada)<input id="ownerProfilePhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><div id="ownerProfilePhotoList" class="owner-list wide"></div><div class="owner-actions wide"><button class="btn" id="ownerProfileSave" type="submit">Guardar alterações</button></div></form><hr class="owner-divider"><div class="owner-actions"><button class="btn" id="ownerAddAnotherSalon" type="button">Registar outro salão</button></div>
-    <hr class="owner-divider"><h3>Adicionar serviços e preços</h3>
-    <form id="ownerServiceForm" class="owner-form">
-     <label class="wide">Perfil / salão<select id="ownerServiceSalon" required></select></label>
-     <label>Nome do serviço<input id="ownerServiceName" required maxlength="100" placeholder="Ex.: Tranças"></label>
-     <label>Categoria<select id="ownerServiceCategory"><option value="">Sem categoria</option></select></label>
-     <label>Preço em MT<input id="ownerServicePrice" type="number" min="0" step="0.01" required placeholder="Ex.: 500"></label>
-     <div class="owner-actions wide"><button class="btn" id="ownerServiceSubmit" type="submit">Adicionar serviço</button></div>
-    </form>
-    <div id="ownerServiceList" class="owner-list"></div>
+    <hr class="owner-divider"><div class="owner-service-list-heading"><h3>Catálogo de serviços</h3><span class="pill">Até 5 por perfil</span></div><p class="owner-muted">Apresenta até cinco serviços com preços claros. Podes adicionar vários de uma vez, editar ou remover quando quiseres.</p>
+    <div id="ownerServiceCapacity" class="owner-service-capacity" aria-live="polite"><div><strong>Serviços publicados</strong><div class="owner-muted">Selecciona o perfil para ver a capacidade.</div><div class="owner-service-meter"><span style="width:0%"></span></div></div><strong>0/5</strong></div>
+    <form id="ownerServiceForm" class="owner-form"><label class="wide">Perfil / salão<select id="ownerServiceSalon" required></select></label>
+     <div id="ownerServiceSlots" class="wide" style="display:grid;gap:9px">
+      <div class="owner-service-slot" data-service-slot="0"><strong class="owner-service-slot-title">Serviço 1</strong><label>Nome do serviço<input class="owner-service-name" required maxlength="100" placeholder="Ex.: Tranças"></label><label>Categoria<select class="owner-service-category"><option value="">Sem categoria</option></select></label><label>Preço em MT<input class="owner-service-price" type="number" min="0" step="0.01" required placeholder="Ex.: 500"></label></div>
+      <div class="owner-service-slot" data-service-slot="1" hidden><strong class="owner-service-slot-title">Serviço 2</strong><label>Nome do serviço<input class="owner-service-name" maxlength="100" placeholder="Ex.: Manicure"></label><label>Categoria<select class="owner-service-category"><option value="">Sem categoria</option></select></label><label>Preço em MT<input class="owner-service-price" type="number" min="0" step="0.01" placeholder="Ex.: 300"></label></div>
+      <div class="owner-service-slot" data-service-slot="2" hidden><strong class="owner-service-slot-title">Serviço 3</strong><label>Nome do serviço<input class="owner-service-name" maxlength="100" placeholder="Ex.: Pedicure"></label><label>Categoria<select class="owner-service-category"><option value="">Sem categoria</option></select></label><label>Preço em MT<input class="owner-service-price" type="number" min="0" step="0.01" placeholder="Ex.: 400"></label></div>
+      <div class="owner-service-slot" data-service-slot="3" hidden><strong class="owner-service-slot-title">Serviço 4</strong><label>Nome do serviço<input class="owner-service-name" maxlength="100" placeholder="Ex.: Lavagem"></label><label>Categoria<select class="owner-service-category"><option value="">Sem categoria</option></select></label><label>Preço em MT<input class="owner-service-price" type="number" min="0" step="0.01" placeholder="Ex.: 250"></label></div>
+      <div class="owner-service-slot" data-service-slot="4" hidden><strong class="owner-service-slot-title">Serviço 5</strong><label>Nome do serviço<input class="owner-service-name" maxlength="100" placeholder="Ex.: Maquilhagem"></label><label>Categoria<select class="owner-service-category"><option value="">Sem categoria</option></select></label><label>Preço em MT<input class="owner-service-price" type="number" min="0" step="0.01" placeholder="Ex.: 800"></label></div>
+     </div><div class="owner-actions wide"><button class="owner-service-add" id="ownerAddServiceSlot" type="button">＋ Adicionar outro serviço</button><button class="btn" id="ownerServiceSubmit" type="submit">Publicar serviços</button></div>
+    </form><div class="owner-service-list-heading"><h4>Os teus serviços publicados</h4></div><div id="ownerServiceList" class="owner-list"></div>
    </div>
    <div class="owner-card owner-settings-section" id="ownerAdvancedProfile" hidden><h3>A. Perfil profissional</h3><p class="owner-muted">Informações adicionais opcionais para apresentar melhor o teu trabalho.</p><form id="ownerAdvancedProfileForm" class="owner-form"><label class="wide">Perfil<select id="ownerAdvancedSalon" required></select></label><label>Anos de experiência<input id="ownerExperienceYears" type="number" min="0" max="80" placeholder="Ex.: 5"></label><label>Especialidades<input id="ownerSpecialties" maxlength="500" placeholder="Tranças, unhas, cortes"></label><label class="wide">Certificados e formação<textarea id="ownerCertificates" rows="3" maxlength="1200" placeholder="Cursos, formações ou certificados (opcional)"></textarea></label><label class="wide">Idiomas falados<input id="ownerLanguages" maxlength="300" placeholder="Português, Inglês, Changana"></label><div class="owner-actions wide"><button class="btn" type="submit" id="ownerAdvancedSave">Guardar perfil profissional</button></div></form></div>
    <div class="owner-card owner-settings-section" id="ownerPortfolioSettings" hidden><h3>B. Portefólio de trabalhos</h3><p class="owner-muted">Publica fotografias dos teus penteados, unhas, cortes, maquilhagem e outros trabalhos.</p><form id="ownerPortfolioForm" class="owner-form"><label class="wide">Perfil<select id="ownerPortfolioSalon" required></select></label><label class="wide">Fotografia JPG, PNG ou WEBP (até 5 MB)<input id="ownerPortfolioFile" type="file" accept="image/jpeg,image/png,image/webp" required></label><label class="wide">Legenda (opcional)<input id="ownerPortfolioCaption" maxlength="120" placeholder="Ex.: Tranças realizadas esta semana"></label><div class="owner-actions wide"><button class="btn" type="submit" id="ownerPortfolioSave">Publicar fotografia</button></div></form><div id="ownerSettingsPhotoList" class="owner-list"></div></div>
@@ -692,6 +705,7 @@ async function loadOwnerDashboardInternal(session){
   const serviceSalon=$('ownerServiceSalon');serviceSalon.innerHTML='';
   ownerProfilesCache.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;serviceSalon.appendChild(o);});
 
+  updateOwnerServiceCapacity();
   // Carregamento secundário: uma falha numa secção não impede a entrada no painel.
   const sectionErrors=[];
   try{
@@ -701,6 +715,7 @@ async function loadOwnerDashboardInternal(session){
    serviceCategory.innerHTML='<option value="">Sem categoria</option>';
    populateInitialServiceCategories();
    (cats||[]).forEach(cat=>{const o=document.createElement('option');o.value=cat.id;o.textContent=cat.name;serviceCategory.appendChild(o);});
+   populateServiceSlotCategories();
   }catch(err){sectionErrors.push('categorias: '+err.message);}
   try{await refreshOwnerServiceList();}catch(err){sectionErrors.push('serviços: '+err.message);}
   const salonIds=ownerProfilesCache.map(x=>x.id);
@@ -812,31 +827,45 @@ $('ownerEnableNotifications').addEventListener('click',async()=>{
  try{const p=await Notification.requestPermission();$('ownerNotificationState').textContent=p==='granted'?'Notificações do sistema activadas.':'Permissão de notificações não concedida.';}catch{$('ownerNotificationState').textContent='Não foi possível activar notificações.';}
 });
 
+let ownerServiceCountsBySalon={};
+function ownerServiceSlotElements(){return [...document.querySelectorAll('#ownerServiceSlots [data-service-slot]')];}
+function updateOwnerServiceCapacity(){
+ const id=$('ownerServiceSalon').value,count=ownerServiceCountsBySalon[id]||0,remaining=Math.max(0,5-count),slots=ownerServiceSlotElements();
+ $('ownerServiceCapacity').innerHTML='<div><strong>Serviços publicados</strong><div class="owner-muted">'+(remaining?'Podes publicar mais '+remaining+' serviço(s) neste perfil.':'Limite atingido. Remove um serviço para publicar outro.')+'</div><div class="owner-service-meter"><span style="width:'+(count/5*100)+'%"></span></div></div><strong>'+count+'/5</strong>';
+ let visible=slots.filter(x=>!x.hidden).length;slots.forEach((slot,index)=>{slot.hidden=index>=Math.max(1,visible)||index>=remaining;});
+ $('ownerAddServiceSlot').disabled=visible>=remaining||visible>=5;$('ownerAddServiceSlot').textContent=$('ownerAddServiceSlot').disabled?'Limite de serviços atingido':'＋ Adicionar outro serviço';$('ownerServiceSubmit').disabled=remaining===0;
+}
+function populateServiceSlotCategories(){
+ const source=[...$('ownerServiceCategory').options].map(o=>({value:o.value,label:o.textContent}));
+ document.querySelectorAll('.owner-service-category').forEach(select=>{const current=select.value;select.innerHTML='';source.forEach(item=>{const o=document.createElement('option');o.value=item.value;o.textContent=item.label;select.appendChild(o);});select.value=current;});
+}
+$('ownerServiceSalon').addEventListener('change',updateOwnerServiceCapacity);
+$('ownerAddServiceSlot').addEventListener('click',()=>{const next=ownerServiceSlotElements().find(x=>x.hidden);if(next){next.hidden=false;next.querySelector('.owner-service-name').focus();updateOwnerServiceCapacity();}});
 async function refreshOwnerServiceList(){
  if(!ownerSession?.user||$('ownerSection').hidden)return;
- const {data:salons,error:salonError}=await supabaseClient.from('salons').select('id,name').eq('owner_id',ownerSession.user.id);
- if(salonError)throw salonError;
- const ids=(salons||[]).map(s=>s.id);
- if(!ids.length){$('ownerServiceList').innerHTML='';return;}
- const {data:services,error}=await supabaseClient.from('services').select('id,salon_id,name,price_mzn,active').in('salon_id',ids).order('name');
- if(error)throw error;
+ const {data:salons,error:salonError}=await supabaseClient.from('salons').select('id,name').eq('owner_id',ownerSession.user.id);if(salonError)throw salonError;
+ const ids=(salons||[]).map(s=>s.id);if(!ids.length){$('ownerServiceList').innerHTML='';ownerServiceCountsBySalon={};updateOwnerServiceCapacity();return;}
+ const {data:services,error}=await supabaseClient.from('services').select('id,salon_id,name,price_mzn,active').in('salon_id',ids).order('name');if(error)throw error;
+ ownerServiceCountsBySalon={};(services||[]).forEach(s=>{ownerServiceCountsBySalon[s.salon_id]=(ownerServiceCountsBySalon[s.salon_id]||0)+1;});
  const names=new Map((salons||[]).map(s=>[s.id,s.name]));
- $('ownerServiceList').innerHTML=(services||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(names.get(s.salon_id)||'')+' · '+safe(s.price_mzn===null?'Preço sob consulta':Number(s.price_mzn).toLocaleString('pt-MZ')+' MT')+'</div></div><div class="owner-actions"><button class="btn" type="button" data-owner-service-edit="'+safe(s.id)+'">Editar</button><button class="btn" type="button" data-owner-service-delete="'+safe(s.id)+'" style="background:#64748b">Remover</button></div></div>').join('')||'<span class="owner-muted">Ainda não adicionaste serviços.</span>';
+ $('ownerServiceList').innerHTML=(services||[]).map(s=>'<div class="owner-row"><div><strong>'+safe(s.name)+'</strong><div class="owner-muted">'+safe(names.get(s.salon_id)||'')+' · '+safe(s.price_mzn===null?'Preço sob consulta':Number(s.price_mzn).toLocaleString('pt-MZ')+' MT')+' · '+(s.active?'Publicado':'Inactivo')+'</div></div><div class="owner-actions"><button class="btn" type="button" data-owner-service-edit="'+safe(s.id)+'">Editar</button><button class="btn" type="button" data-owner-service-delete="'+safe(s.id)+'" style="background:#64748b">Remover</button></div></div>').join('')||'<span class="owner-muted">Ainda não adicionaste serviços.</span>';
+ updateOwnerServiceCapacity();
 }
 $('ownerServiceForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!ownerSession?.user)return;
- const salonId=$('ownerServiceSalon').value,name=$('ownerServiceName').value.trim(),price=Number($('ownerServicePrice').value);
- if(!salonId||!name||!Number.isFinite(price)||price<0){ownerMessage('Confirma o salão, o serviço e o preço.','error');return;}
- const button=$('ownerServiceSubmit');button.disabled=true;button.textContent='A guardar…';
+ const salonId=$('ownerServiceSalon').value,slots=ownerServiceSlotElements(),entries=slots.filter(x=>!x.hidden).map(slot=>({name:slot.querySelector('.owner-service-name').value.trim(),category_id:slot.querySelector('.owner-service-category').value||null,raw:slot.querySelector('.owner-service-price').value.trim()})).filter(x=>x.name);
+ if(!salonId||!entries.length){ownerMessage('Preenche pelo menos um serviço.','error');return;}
+ if(entries.some(x=>x.raw===''||!Number.isFinite(Number(x.raw))||Number(x.raw)<0)){ownerMessage('Indica um preço válido para cada serviço preenchido.','error');return;}
+ const button=$('ownerServiceSubmit');button.disabled=true;button.textContent='A publicar…';
  try{
-  const {data:owned,error:ownedError}=await supabaseClient.from('salons').select('id').eq('id',salonId).eq('owner_id',ownerSession.user.id).maybeSingle();
-  if(ownedError)throw ownedError;if(!owned)throw new Error('Este salão não pertence à tua conta.');
-  const payload={salon_id:salonId,name,category_id:$('ownerServiceCategory').value||null,price_mzn:price,active:true};
-  const {error}=await supabaseClient.from('services').insert(payload);if(error)throw error;
-  $('ownerServiceName').value='';$('ownerServicePrice').value='';
-  await refreshOwnerServiceList();ownerMessage('Serviço adicionado com sucesso.','success');
- }catch(error){ownerMessage('Não foi possível adicionar o serviço: '+(error.message||'erro desconhecido'),'error');}
- finally{button.disabled=false;button.textContent='Adicionar serviço';}
+  const {data:owned,error:ownedError}=await supabaseClient.from('salons').select('id').eq('id',salonId).eq('owner_id',ownerSession.user.id).maybeSingle();if(ownedError)throw ownedError;if(!owned)throw new Error('Este perfil não pertence à tua conta.');
+  const {count,error:countError}=await supabaseClient.from('services').select('id',{count:'exact',head:true}).eq('salon_id',salonId);if(countError)throw countError;
+  if((count||0)+entries.length>5)throw new Error('Este perfil pode ter no máximo cinco serviços. Ainda podes adicionar '+Math.max(0,5-(count||0))+'.');
+  const {error}=await supabaseClient.from('services').insert(entries.map(x=>({salon_id:salonId,name:x.name,category_id:x.category_id,price_mzn:Number(x.raw),active:true})));if(error)throw error;
+  slots.forEach((slot,index)=>{slot.querySelector('.owner-service-name').value='';slot.querySelector('.owner-service-price').value='';slot.querySelector('.owner-service-category').value='';slot.hidden=index!==0;});
+  await refreshOwnerServiceList();ownerMessage(entries.length===1?'Serviço publicado com sucesso.':'Foram publicados '+entries.length+' serviços com sucesso.','success');
+ }catch(error){ownerMessage('Não foi possível publicar os serviços: '+(error.message||'erro desconhecido'),'error');}
+ finally{button.disabled=false;button.textContent='Publicar serviços';updateOwnerServiceCapacity();}
 });
 $('ownerServiceList').addEventListener('click',async event=>{
  const edit=event.target.closest('[data-owner-service-edit]'),remove=event.target.closest('[data-owner-service-delete]');
