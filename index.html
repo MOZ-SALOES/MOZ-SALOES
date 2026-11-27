@@ -514,7 +514,7 @@ function schedulePublicRealtimeRefresh(table){
  publicRealtimeTimer=setTimeout(async()=>{
   const changed=[...pendingPublicRealtimeTables];pendingPublicRealtimeTables.clear();
   try{
-   if(changed.includes('directory')||changed.some(t=>['salons','services','categories','salon_images'].includes(t)))await init();
+   if(changed.includes('directory')||changed.some(t=>['salons','services','categories','salon_images'].includes(t)))await init(true);
    if((changed.includes('directory')||changed.includes('salons'))&&ownerSession?.user)await refreshOwnerLiveData();
    if(changed.includes('appointments')&&ownerSession?.user)await refreshAppointmentFeed();
   }catch(error){console.warn('Actualização em tempo real:',error);}
@@ -1317,7 +1317,7 @@ async function refreshAppointmentFeed(){
  finally{appointmentPollBusy=false;}
 }
 window.addEventListener('online',()=>{if(ownerSession?.user){refreshAppointmentFeed();loadUserNotifications(ownerSession.user.id);}});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(ownerSession?.user){refreshOwnerLiveData();refreshAppointmentFeed();loadUserNotifications(ownerSession.user.id);}else init();}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(ownerSession?.user){refreshOwnerLiveData();refreshAppointmentFeed();loadUserNotifications(ownerSession.user.id);}else if(!directoryLoaded)init();}});
 async function loadAppointments(userId,salonIds){
  const ownerBox=$('ownerAppointments'),customerBox=$('customerAppointments');
  const [own, mine]=await Promise.all([
@@ -1512,7 +1512,19 @@ async function queryDirectoryWithRetry(makeQuery,label){
 }
 let directoryRecoveryAttempts=0;
 let directoryRecoveryTimer=null;
-async function init(){
+let directoryInitPromise=null;
+let directoryLoaded=false;
+let directoryRefreshQueued=false;
+function init(force=false){
+ if(directoryInitPromise){if(force)directoryRefreshQueued=true;return directoryInitPromise;}
+ if(directoryLoaded&&!force)return Promise.resolve();
+ directoryInitPromise=initDirectory().finally(()=>{
+  directoryInitPromise=null;
+  if(directoryRefreshQueued){directoryRefreshQueued=false;init(true);}
+ });
+ return directoryInitPromise;
+}
+async function initDirectory(){
  try{
   const [categoriesResult,salonsResult,servicesResult,imagesResult,hoursResult]=await Promise.all([
    queryDirectoryWithRetry(()=>supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),'as categorias'),
@@ -1545,11 +1557,12 @@ async function init(){
   if(state.categories.some(x=>x.id===selectedCategory))$('category').value=selectedCategory;
   if(provinces.includes(selectedProvince))$('province').value=selectedProvince;
   if(districts.includes(selectedDistrict))$('district').value=selectedDistrict;
-  clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;
+  clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;directoryLoaded=true;
   $('dot').className='dot ok';$('status').textContent='Ligação ao Supabase estabelecida';$('detail').textContent='Dados carregados com sucesso.';$('retryConnection').hidden=true;
   render();
   connectPublicRealtime();
  }catch(error){
+  directoryLoaded=false;
   const message=String(error?.message||error||'').toLowerCase();
   const transient=error?.name==='AbortError'||error?.name==='TypeError'||message.includes('abort')||message.includes('fetch')||message.includes('network')||message.includes('timeout')||message.includes('3 tentativas')||message.includes('failed to fetch')||message.includes('load failed');
   if(transient){
@@ -1568,7 +1581,7 @@ async function init(){
   }
  }
 }
-$('retryConnection').addEventListener('click',()=>{ clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;$('retryConnection').hidden=true;$('dot').className='dot';$('status').textContent='A tentar ligar novamente…';$('detail').textContent='';$('count').textContent='A carregar directório…';$('results').innerHTML='<div class="empty">A carregar salões…</div>';init();});
+$('retryConnection').addEventListener('click',()=>{ clearTimeout(directoryRecoveryTimer);directoryRecoveryAttempts=0;directoryLoaded=false;$('retryConnection').hidden=true;$('dot').className='dot';$('status').textContent='A tentar ligar novamente…';$('detail').textContent='';$('count').textContent='A carregar directório…';$('results').innerHTML='<div class="empty">A carregar salões…</div>';init(true);});
 $('searchArea').addEventListener('click',event=>{
  const quick=event.target.closest('[data-quick-search]');
  if(quick){
