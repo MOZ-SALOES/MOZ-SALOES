@@ -221,6 +221,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 @media(max-width:480px){.quick-searches{gap:6px}.quick-searches span{width:100%}.quick-searches button{font-size:.74rem;padding:7px 9px}}
 /* PWA e estado da ligação */
 .pwa-install{border:0;border-radius:10px;padding:10px 13px;background:#dcecff;color:#123d78;font-weight:850;cursor:pointer}
+.pwa-install[hidden]{display:none!important}
 .network-notice{position:sticky;top:0;z-index:8500;padding:9px 14px;text-align:center;font-size:.84rem;font-weight:750;background:#fff4d6;color:#79530a;border-bottom:1px solid #f1d58c}
 .network-notice.is-online{background:#e7f7ed;color:#17643a;border-color:#c6e8d1}
 @media(max-width:760px){header .pwa-install{display:inline-block;padding:8px 10px;font-size:.76rem}.network-notice{font-size:.78rem}}
@@ -1498,9 +1499,19 @@ $('ownerShareLinkBtn').addEventListener('click',async()=>{
 /* Instalação gratuita e indicador de ligação — não interfere com autenticação ou marcações. */
 (function(){
  const installButton=document.getElementById('mozPwaInstall');
- if(installButton)installButton.hidden=false;
  const notice=document.getElementById('mozNetworkNotice');
  let installPrompt=null;
+ const standaloneQuery=window.matchMedia('(display-mode: standalone)');
+ function isAppInstalledMode(){
+  return standaloneQuery.matches||window.matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true;
+ }
+ function syncInstallButton(){
+  if(!installButton)return;
+  installButton.hidden=isAppInstalledMode();
+ }
+ syncInstallButton();
+ if(standaloneQuery.addEventListener)standaloneQuery.addEventListener('change',syncInstallButton);
+ else if(standaloneQuery.addListener)standaloneQuery.addListener(syncInstallButton);
  function updateNetwork(){
   if(!notice)return;
   if(navigator.onLine){notice.textContent='Ligação à Internet disponível.';notice.classList.add('is-online');notice.hidden=false;window.setTimeout(()=>{if(navigator.onLine)notice.hidden=true;},3500);}
@@ -1514,7 +1525,7 @@ $('ownerShareLinkBtn').addEventListener('click',async()=>{
   if(installButton)installButton.hidden=false;
  });
  window.addEventListener('appinstalled',()=>{
-  installPrompt=null;if(installButton)installButton.hidden=true;
+  installPrompt=null;syncInstallButton();
   if(notice){notice.textContent='MOZ SALÕES instalado com sucesso no teu dispositivo.';notice.classList.add('is-online');notice.hidden=false;}
  });
  if(installButton)installButton.addEventListener('click',async()=>{
