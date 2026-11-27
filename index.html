@@ -266,7 +266,17 @@ body.owner-workspace .owner-auth-switch{display:none!important}
    <div class="empty">A carregar categorias…</div>
   </div>
  </section>
- <section class="search" id="searchArea" aria-label="Pesquisar salões">
+ <section class="smart-match" id="smartMatchSection" aria-labelledby="smartMatchTitle">
+ <div class="smart-match-copy"><span class="smart-match-kicker">FERRAMENTA EXCLUSIVA · MOZ SALÕES</span><h2 id="smartMatchTitle">Encontra a opção certa para o teu bolso.</h2><p>Escolhe o serviço, a província e o teu orçamento. Procuramos nos perfis publicados e mostramos opções com preços dentro do limite indicado.</p></div>
+ <form id="smartMatchForm" class="smart-match-form">
+  <label>Que serviço procuras?<select id="smartCategory"><option value="">Qualquer serviço</option></select></label>
+  <label>Em que província?<select id="smartProvince"><option value="">Todas as províncias</option></select></label>
+  <label>Orçamento máximo (MT)<input id="smartBudget" type="number" min="0" step="10" inputmode="numeric" placeholder="Ex.: 500"></label>
+  <button class="btn" type="submit">Encontrar opções →</button>
+ </form>
+ <p class="smart-match-note">Resultados baseados nos serviços e preços publicados pelos próprios profissionais. Sem posições patrocinadas.</p>
+</section>
+<section class="search" id="searchArea" aria-label="Pesquisar salões">
   <div class="filters">
    <input id="q" type="search" placeholder="Pesquisar por nome, serviço ou localidade…" aria-label="Pesquisar">
    <select id="province" aria-label="Filtrar por província"><option value="">Todas as províncias</option></select>
@@ -1494,7 +1504,10 @@ $('ownerShareLinkBtn').addEventListener('click',async()=>{
  });
  if('serviceWorker' in navigator && location.protocol!=='file:'){
   window.addEventListener('load',()=>{
-   navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('A instalação offline não ficou disponível:',error));
+   navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(registration=>{
+    registration.update().catch(()=>{});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')registration.update().catch(()=>{});});
+   }).catch(error=>console.warn('A instalação offline não ficou disponível:',error));
   });
  }
 })();
