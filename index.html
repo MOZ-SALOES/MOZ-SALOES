@@ -1464,7 +1464,7 @@ $('clearDirectoryFilters').addEventListener('click',()=>{
  render();
  $('q').focus();
 });
-function normalizeCompareText(value){return String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt').trim();}
+function normalizeCompareText(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt').trim();}
 $('priceCompareForm').addEventListener('submit',event=>{
  event.preventDefault();
  const selected=normalizeCompareText($('compareService').value),province=$('compareProvince').value,root=$('priceCompareResults');
