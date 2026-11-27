@@ -1,8 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#102b63"/>
-  <circle cx="256" cy="256" r="184" fill="#174b91" stroke="#8fc5ff" stroke-width="12"/>
-  <path d="M148 142 364 370M364 142 148 370" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round"/>
-  <circle cx="148" cy="142" r="35" fill="#8fc5ff"/>
-  <circle cx="364" cy="370" r="35" fill="#8fc5ff"/>
-  <circle cx="256" cy="256" r="17" fill="#fff"/>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#020817"/><stop offset=".48" stop-color="#061b50"/><stop offset="1" stop-color="#020817"/></linearGradient>
+ <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#43baff"/><stop offset=".5" stop-color="#075bff"/><stop offset="1" stop-color="#8bd8ff"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a6"/><stop offset=".5" stop-color="#e7ae39"/><stop offset="1" stop-color="#9d5d08"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<path d="M-20 90 Q130 -10 270 70 T550 30 M-20 430 Q130 330 270 410 T550 370" fill="none" stroke="#075bff" stroke-width="12" opacity=".45" filter="url(#glow)"/>
+<text x="256" y="205" text-anchor="middle" font-family="Arial,sans-serif" font-size="88" font-weight="900" letter-spacing="-5" filter="url(#glow)">
+<tspan fill="#147cff">MOZ</tspan><tspan fill="#f4f7ff"> SALÕES</tspan></text>
+<path d="M110 244 H402" stroke="url(#gold)" stroke-width="3" opacity=".9"/>
+<g transform="translate(256 337)" filter="url(#glow)">
+ <path d="M-46 -56 L-36 -86 L-15 -65 L0 -103 L15 -65 L36 -86 L46 -56 Z" fill="url(#gold)" stroke="#ffe7a0" stroke-width="3"/>
+ <path d="M-48 -52 Q-57 -8 -34 31 Q-15 59 0 69 Q20 52 35 26 Q53 -8 45 -52 Q22 -25 0 -39 Q-25 -20 -48 -52Z" fill="#06122e" stroke="url(#blue)" stroke-width="7"/>
+ <path d="M-24 -37 Q-13 -12 -21 19 Q-11 9 -4 -11 Q2 10 13 25 Q17 -3 11 -30 Q27 -13 29 8 Q47 -26 30 -48 Q10 -63 -10 -49Z" fill="url(#blue)"/>
+ <path d="M15 -28 Q37 -33 34 -12 Q31 2 15 4" fill="none" stroke="#d8efff" stroke-width="4" stroke-linecap="round"/>
+ <path d="M-76 -39 L-44 -8 M-85 -30 L-53 1" stroke="url(#gold)" stroke-width="6" stroke-linecap="round"/>
+ <circle cx="-82" cy="-36" r="10" fill="none" stroke="url(#gold)" stroke-width="5"/><circle cx="-49" cy="-3" r="10" fill="none" stroke="url(#gold)" stroke-width="5"/>
+ <path d="M55 -43 L94 14 M62 -47 L101 10 M65 -36 L77 -44 M72 -25 L84 -33 M79 -14 L91 -22 M86 -3 L98 -11" fill="none" stroke="url(#gold)" stroke-width="5" stroke-linecap="round"/>
+</g>
+<text x="256" y="463" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="4" fill="#d8e9ff">MOÇAMBIQUE</text>
 </svg>
