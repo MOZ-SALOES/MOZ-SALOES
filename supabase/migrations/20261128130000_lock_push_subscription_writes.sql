@@ -2,10 +2,12 @@
 -- A globally unique endpoint prevents a shared browser/device from remaining attached to a previous account.
 alter table public.push_subscriptions
   drop constraint if exists push_subscriptions_user_endpoint_unique;
-do $
+
+do $$
 begin
   if not exists (
-    select 1 from pg_constraint
+    select 1
+      from pg_constraint
      where conrelid = 'public.push_subscriptions'::regclass
        and conname = 'push_subscriptions_endpoint_unique'
   ) then
@@ -13,7 +15,7 @@ begin
       add constraint push_subscriptions_endpoint_unique unique (endpoint);
   end if;
 end;
-$;
+$$;
 
 revoke insert, update, delete on table public.push_subscriptions from anon, public, authenticated;
 grant select on table public.push_subscriptions to authenticated;
@@ -21,8 +23,8 @@ grant select on table public.push_subscriptions to authenticated;
 drop policy if exists push_subscriptions_insert_own on public.push_subscriptions;
 drop policy if exists push_subscriptions_update_own on public.push_subscriptions;
 drop policy if exists push_subscriptions_delete_own on public.push_subscriptions;
-
 drop policy if exists push_subscriptions_select_own on public.push_subscriptions;
+
 create policy push_subscriptions_select_own
   on public.push_subscriptions for select to authenticated
   using ((select auth.uid()) = user_id);
