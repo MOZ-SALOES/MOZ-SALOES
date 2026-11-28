@@ -133,3 +133,19 @@ Para cada alteração, acrescentar:
 - Revisão adicional do sender push: se a notificação já tiver sido lida antes do webhook ser processado, o envio é ignorado; o push continua sem detalhes pessoais.
 - Revisão final após as últimas alterações: 7/7 scripts inline válidos, Service Worker válido, zero IDs duplicados, zero IDs em falta nos listeners, zero contadores/badges de notificações.
 - A chave pública VAPID permanece intencionalmente vazia em `push-config.js`; por isso, o botão não afirma que o push está activo. A activação real depende de segredos e configuração no Supabase.
+
+
+### 2026-11-28 — revisão complementar de segurança e encaminhamento push
+- Confirmado em produção: RLS activo em `push_subscriptions`, `user_notifications` e `admin_notifications`; notificações e marcações estão incluídas na publicação `supabase_realtime`.
+- Confirmado que `push_subscriptions` tem endpoint globalmente único, referência a `auth.users`, limites de tamanho e apenas leitura própria para `authenticated`; as escritas são feitas pela Edge Function com credenciais de servidor.
+- Confirmado que os avisos administrativos usam políticas com destinatário autenticado e verificação de administrador; os avisos comuns usam `recipient_id = auth.uid()`.
+- Corrigido na branch o destino de push administrativo para `#silda-acesso` (antes apontava para `#admin`, que não corresponde ao hash usado pelo painel administrativo).
+- Corrigido o destino de fallback do Service Worker para a área pública `#saloes`, evitando abrir o painel de proprietário sem contexto de autenticação.
+- Unificado o identificador (`tag`) das notificações de sistema em tempo real e push, reduzindo notificações duplicadas para o mesmo evento.
+- Endurecida a migração inicial de subscrições para nunca conceder escrita directa a `authenticated`; a gestão fica exclusivamente na função de servidor.
+- Tornada idempotente a migração de unicidade do endpoint para não tentar criar uma constraint que já existe na produção.
+- Adicionada à migração de privacidade a restrição de execução de `private.is_admin()` para utilizadores autenticados, mantendo as políticas RLS administrativas funcionais.
+- Security Advisor: 1 aviso de Auth para protecção contra palavras-passe comprometidas desactivada; 7 avisos de políticas permissivas sobrepostas classificados como optimização/performance; 24 índices sem utilização observada (não remover sem análise de carga). Advisor de saúde sem alertas.
+- Logs Edge das últimas 24 horas: 3 eventos observados, incluindo 2 respostas 401 e 1 resposta 405; nenhum POST foi observado. Não existe ainda prova de envio push ponta a ponta.
+- Nenhuma migração foi aplicada à produção, nenhuma Edge Function foi publicada nesta revisão e nenhuma alteração foi feita na branch `main`/GitHub Pages.
+- Pendência de segurança: `private.is_admin()` ainda concede EXECUTE a `anon` na base actual por herança de PUBLIC. A branch prepara a revogação desse acesso e mantém EXECUTE para `authenticated`; aplicar apenas com a migração revista e aprovada.
