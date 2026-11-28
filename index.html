@@ -1204,7 +1204,7 @@ function showBookingForm(salonId){
  bookingSalonId=salon.id;pendingBookingSalonId=salon.id;
  $('bookingSalonName').textContent='Marcação para '+(salon?.name||'o salão')+'. O pedido só fica confirmado depois da aceitação do proprietário.';
  const select=$('bookingService');select.innerHTML='<option value="">Escolher serviço (opcional)</option>';
- state.services.filter(x=>x.salon_id===salonId).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+(x.price_mzn!==null?' — '+Number(x.price_mzn).toLocaleString('pt-MZ')+' MT':'');select.appendChild(o);});
+ uniquePublishedServices(state.services.filter(x=>x.salon_id===salonId)).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+(x.price_mzn!==null?' — '+Number(x.price_mzn).toLocaleString('pt-MZ')+' MT':'');select.appendChild(o);});
  const d=new Date();$('bookingDate').min=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
  $('bookingPhone').value=ownerSession?.user?.phone||'';$('bookingSection').hidden=false;$('bookingMessage').hidden=true;
  $('bookingSection').scrollIntoView({behavior:'smooth',block:'start'});
@@ -1365,6 +1365,17 @@ $('ownerAppointments').addEventListener('click',async event=>{
 function populate(select,items){
  for(const item of items){const option=document.createElement('option');option.value=item.value;option.textContent=item.label;select.appendChild(option);}
 }
+function uniquePublishedServices(items){
+ const seen=new Set();
+ return (items||[]).filter(service=>{
+  const name=String(service.name||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt').trim();
+  const price=service.price_mzn===null||service.price_mzn===undefined?'sem-preco':Number(service.price_mzn).toFixed(2);
+  const key=String(service.salon_id||'')+'|'+name+'|'+price;
+  if(seen.has(key))return false;
+  seen.add(key);return true;
+ });
+}
+
 function renderFeaturedCategories(){
  const root=$('featuredCategories');if(!root)return;
  const featured=[
@@ -1461,7 +1472,7 @@ function render(){
   $('sharedSalonNoticeText').textContent=sharedExists?'Estás a ver o salão que foi partilhado contigo.':'Este salão não está disponível ou já não se encontra publicado.';
  }else sharedNotice.hidden=true;
  const filtered=state.salons.filter(s=>{
-  const services=state.services.filter(x=>x.salon_id===s.id);
+  const services=uniquePublishedServices(state.services.filter(x=>x.salon_id===s.id));
   const searchable=[s.name,s.description,s.province,s.district,s.municipality,s.city,s.neighborhood,s.address,...services.map(x=>x.name)].join(' ').toLocaleLowerCase('pt');
   const matchesCategory=!category||s.category_id===category||services.some(x=>x.category_id===category);
   const matchesDistrict=!district||s.district===district;
@@ -1540,7 +1551,7 @@ function init(force=false){
 async function initDirectory(){
  try{
   const [categoriesResult,salonsResult,servicesResult,imagesResult,hoursResult]=await Promise.all([
-   queryDirectoryWithRetry(()=>supabaseClient.from('categories').select('id,name,sort_order').eq('active',true).order('sort_order',{ascending:true}),'as categorias'),
+   queryDirectoryWithRetry(()=>supabaseClient.from('categories').select('id,name,slug,sort_order').eq('active',true).order('sort_order',{ascending:true}),'as categorias'),
    queryDirectoryWithRetry(()=>supabaseClient.from('salons').select('id,name,description,category_id,phone,whatsapp,province,district,municipality,city,neighborhood,address,latitude,longitude,provider_type,service_mode,service_address,service_areas,experience_years,specialties,languages,certificates').eq('status','active').order('name',{ascending:true}),'os salões'),
    queryDirectoryWithRetry(()=>supabaseClient.from('services').select('id,salon_id,category_id,name,price_mzn').eq('active',true),'os serviços'),
    queryDirectoryWithRetry(()=>supabaseClient.from('salon_images').select('salon_id,image_path,caption,sort_order').order('sort_order',{ascending:true}),'as fotografias'),
@@ -1624,7 +1635,7 @@ $('priceCompareForm').addEventListener('submit',event=>{
  event.preventDefault();
  const selected=normalizeCompareText($('compareService').value),province=$('compareProvince').value,root=$('priceCompareResults');
  if(!selected){root.innerHTML='<div class="empty">Escolhe primeiro o serviço que pretendes comparar.</div>';return;}
- const matches=state.services.filter(service=>normalizeCompareText(service.name)===selected&&service.price_mzn!==null&&Number.isFinite(Number(service.price_mzn))).map(service=>({service,salon:state.salons.find(s=>s.id===service.salon_id)})).filter(item=>item.salon&&(!province||item.salon.province===province)).sort((a,b)=>Number(a.service.price_mzn)-Number(b.service.price_mzn));
+ const matches=uniquePublishedServices(state.services.filter(service=>normalizeCompareText(service.name)===selected&&service.price_mzn!==null&&Number.isFinite(Number(service.price_mzn)))).map(service=>({service,salon:state.salons.find(s=>s.id===service.salon_id)})).filter(item=>item.salon&&(!province||item.salon.province===province)).sort((a,b)=>Number(a.service.price_mzn)-Number(b.service.price_mzn));
  if(!matches.length){root.innerHTML='<div class="empty">Ainda não existem preços publicados para este serviço'+(province?' nesta província':'')+'. Podes experimentar outra província ou outro serviço.</div>';return;}
  root.innerHTML=matches.slice(0,15).map((item,index)=>'<div class="compare-row"><div><strong>'+safe(item.salon.name)+'</strong><div class="compare-place">'+safe([item.salon.neighborhood,item.salon.district,item.salon.province].filter(Boolean).join(', ')||'Moçambique')+' · '+(item.salon.provider_type==='independent'?'Profissional independente':'Salão')+'</div><a href="'+safe(salonSeoPath(item.salon))+'">Ver perfil</a></div><div class="compare-price">'+Number(item.service.price_mzn).toLocaleString('pt-MZ')+' MT</div></div>').join('')+'<p class="muted">A mostrar '+Math.min(matches.length,15)+' de '+matches.length+' opção(ões), ordenadas do menor para o maior preço.</p>';
 });
