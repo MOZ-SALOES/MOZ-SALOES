@@ -1,4 +1,4 @@
-const CACHE_NAME='moz-saloes-shell-v7';
+const CACHE_NAME='moz-saloes-shell-v8';
 const OFFLINE_URL='./offline.html';
 const CORE_FILES=['./','./index.html','./manifest.webmanifest','./favicon.svg',OFFLINE_URL];
 self.addEventListener('install',event=>{
@@ -27,6 +27,17 @@ self.addEventListener('fetch',event=>{
  }
 });
 
+self.addEventListener('push',event=>{
+ let payload={};
+ try{payload=event.data?event.data.json():{};}catch{payload={body:event.data?.text?.()||''};}
+ const title=String(payload.title||'MOZ SALÕES').slice(0,100);
+ const body=String(payload.body||payload.message||'Tens uma nova notificação.').slice(0,240);
+ const rawUrl=typeof payload.url==='string'?payload.url:'./';
+ let target='./';
+ try{const parsed=new URL(rawUrl,self.registration.scope);if(parsed.origin===self.location.origin&&parsed.pathname.startsWith(new URL('./',self.registration.scope).pathname))target=parsed.href;}catch{}
+ const options={body,icon:'./favicon.svg',badge:'./favicon.svg',tag:String(payload.tag||'moz-saloes-notification').slice(0,100),data:{url:target}};
+ event.waitUntil(self.registration.showNotification(title,options));
+});
 self.addEventListener('notificationclick',event=>{
  event.notification.close();
  const target=new URL(event.notification.data?.url||'./#owner',self.registration.scope).href;
