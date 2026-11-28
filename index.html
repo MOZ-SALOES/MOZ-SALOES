@@ -952,12 +952,12 @@ $('ownerProfilePhotoList').addEventListener('click',async event=>{
 function refreshOwnerNotificationPermissionState(){
  const button=$('ownerEnableNotifications'),state=$('ownerNotificationState');if(!button||!state)return;
  if(!('Notification' in window)){button.disabled=true;state.textContent='Este navegador não suporta notificações do sistema. Consulta os avisos dentro do painel.';return;}
- const permission=Notification.permission;const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;const english=document.documentElement.lang==='en';button.textContent=permission==='granted'?(english?'Notifications enabled ✓':'Notificações activadas ✓'):(english?(installed?'Enable app notifications':'Enable notifications on this device'):(installed?'Activar notificações da app':'Activar notificações neste dispositivo'));
+ const permission=Notification.permission;const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;const english=document.documentElement.lang==='en';button.textContent=permission==='granted'?(window.MOZ_PUSH_VAPID_PUBLIC_KEY?(english?'Push notifications enabled ✓':'Notificações push activadas ✓'):(english?'Permission granted':'Permissão concedida')):(english?(installed?'Enable app notifications':'Enable notifications on this device'):(installed?'Activar notificações da app':'Activar notificações neste dispositivo'));
  state.textContent=permission==='granted'?(window.MOZ_PUSH_VAPID_PUBLIC_KEY?(english?'System alerts are allowed on this device.':'Avisos do sistema autorizados neste dispositivo.'):(english?'Permission is allowed; push setup is still being completed.':'A permissão está concedida; a configuração do envio push ainda está a ser concluída.')):(english?(installed?'Notifications are ready. Tap the button and allow them on your device.':'Allow notifications to receive new appointment alerts.'):(installed?'As notificações estão prontas. Toca no botão e autoriza o dispositivo.':'Autoriza as notificações para receber alertas de novas marcações.'));
 }
 $('ownerEnableNotifications').addEventListener('click',async()=>{
  if(!('Notification' in window)){$('ownerNotificationState').textContent='Este navegador não suporta notificações do sistema.';return;}
- try{if(!ownerSession?.user){$('ownerNotificationState').textContent='Entra na tua conta para activar notificações.';return;}await registerCurrentPushSubscription(ownerSession.user.id,true,'ownerNotificationState');$('ownerEnableNotifications').textContent=Notification.permission==='granted'?'Notificações autorizadas ✓':'Activar notificações neste dispositivo';}catch(error){$('ownerNotificationState').textContent='Não foi possível activar as notificações push. As mensagens continuam guardadas no painel.';console.warn(error);}
+ try{if(!ownerSession?.user){$('ownerNotificationState').textContent='Entra na tua conta para activar notificações.';return;}const activated=await registerCurrentPushSubscription(ownerSession.user.id,true,'ownerNotificationState');if(activated)$('ownerEnableNotifications').textContent='Notificações push activadas ✓';else refreshOwnerNotificationPermissionState();}catch(error){$('ownerNotificationState').textContent='Não foi possível activar as notificações push. As mensagens continuam guardadas no painel.';console.warn(error);}
 });
 $('ownerOpenNotifications').addEventListener('click',()=>{
  $('ownerAppointmentsCard').scrollIntoView({behavior:'smooth',block:'start'});
@@ -1327,12 +1327,12 @@ function showAdminSystemNotification(n){
 function refreshAdminNotificationPermissionState(){
  const button=$('adminEnableNotifications'),state=$('adminNotificationState');if(!button||!state)return;
  if(!('Notification' in window)){button.disabled=true;state.textContent='Este navegador não suporta notificações do sistema.';return;}
- button.textContent=Notification.permission==='granted'?'Notificações activadas ✓':'Activar notificações neste dispositivo';
+ button.textContent=Notification.permission==='granted'?(window.MOZ_PUSH_VAPID_PUBLIC_KEY?'Notificações push activadas ✓':'Permissão concedida'):'Activar notificações neste dispositivo';
  state.textContent=Notification.permission==='granted'?(window.MOZ_PUSH_VAPID_PUBLIC_KEY?'Este dispositivo autorizou avisos do sistema.':'A permissão está concedida; falta concluir a configuração do envio push.'):'A autorização do dispositivo é necessária para avisos fora do painel.';
 }
 $('adminEnableNotifications').addEventListener('click',async()=>{
  if(!('Notification' in window)){refreshAdminNotificationPermissionState();return;}
- try{if(!adminNotificationUserId||!window.mozAdminReady)return;await registerCurrentPushSubscription(adminNotificationUserId,true,'adminNotificationState');$('adminEnableNotifications').textContent=Notification.permission==='granted'?'Notificações autorizadas ✓':'Activar notificações neste dispositivo';}
+ try{if(!adminNotificationUserId||!window.mozAdminReady)return;const activated=await registerCurrentPushSubscription(adminNotificationUserId,true,'adminNotificationState');if(activated)$('adminEnableNotifications').textContent='Notificações push activadas ✓';else refreshAdminNotificationPermissionState();}
  catch(error){$('adminNotificationState').textContent='Não foi possível activar as notificações push. As mensagens continuam guardadas no painel.';console.warn(error);}
 });
 $('adminMarkAllNotificationsRead').addEventListener('click',async()=>{
