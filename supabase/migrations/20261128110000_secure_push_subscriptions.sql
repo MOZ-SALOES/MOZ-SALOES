@@ -13,7 +13,7 @@ create table if not exists public.push_subscriptions (
   constraint push_subscriptions_endpoint_length check (char_length(endpoint) between 20 and 2048),
   constraint push_subscriptions_p256dh_length check (char_length(p256dh) between 20 and 256),
   constraint push_subscriptions_auth_length check (char_length(auth) between 8 and 128),
-  constraint push_subscriptions_user_endpoint_unique unique (user_id, endpoint)
+  constraint push_subscriptions_endpoint_unique unique (endpoint)
 );
 
 create index if not exists push_subscriptions_active_user_idx
@@ -23,7 +23,8 @@ create index if not exists push_subscriptions_active_user_idx
 alter table public.push_subscriptions enable row level security;
 
 revoke all on table public.push_subscriptions from anon, public;
-grant select, insert, update, delete on table public.push_subscriptions to authenticated;
+revoke insert, update, delete on table public.push_subscriptions from authenticated;
+grant select on table public.push_subscriptions to authenticated;
 
 drop policy if exists push_subscriptions_select_own on public.push_subscriptions;
 create policy push_subscriptions_select_own
@@ -31,20 +32,8 @@ create policy push_subscriptions_select_own
   using ((select auth.uid()) = user_id);
 
 drop policy if exists push_subscriptions_insert_own on public.push_subscriptions;
-create policy push_subscriptions_insert_own
-  on public.push_subscriptions for insert to authenticated
-  with check ((select auth.uid()) = user_id);
-
 drop policy if exists push_subscriptions_update_own on public.push_subscriptions;
-create policy push_subscriptions_update_own
-  on public.push_subscriptions for update to authenticated
-  using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
-
 drop policy if exists push_subscriptions_delete_own on public.push_subscriptions;
-create policy push_subscriptions_delete_own
-  on public.push_subscriptions for delete to authenticated
-  using ((select auth.uid()) = user_id);
 
 comment on table public.push_subscriptions is
   'Private Web Push endpoints. Each authenticated user can manage only their own device subscriptions. Never expose endpoint keys to other users.';
