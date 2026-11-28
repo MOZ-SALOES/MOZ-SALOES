@@ -1071,13 +1071,15 @@ setOwnerAuthMode('login');
 $('ownerLoginForm').addEventListener('submit',async event=>{
  event.preventDefault();
  if(ownerAuthSubmitting)return;
- ownerAuthSubmitting=true;
  const email=$('ownerEmail').value.trim().toLowerCase();
  const password=$('ownerPassword').value;
  const fullName=$('ownerFullName').value.trim();
+ // Validar antes de bloquear o formulário. Uma validação falhada nunca deixa
+ // a conta presa num estado de submissão.
  if(!email){ownerMessage('Introduz o teu email.','error');return;}
  if(password.length<8){ownerMessage('A palavra-passe deve ter pelo menos 8 caracteres.','error');return;}
  if(ownerAuthMode==='register'&&!fullName){ownerMessage('Introduz o teu nome completo para criar a conta.','error');return;}
+ ownerAuthSubmitting=true;
  const button=$('ownerLoginBtn');button.disabled=true;button.textContent=ownerAuthMode==='register'?'A criar conta…':'A entrar…';
  try{
   if(ownerAuthMode==='register'){
@@ -1089,7 +1091,6 @@ $('ownerLoginForm').addEventListener('submit',async event=>{
    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
    if(error)throw error;
    if(!data.session)throw new Error('A autenticação não devolveu uma sessão. Tenta novamente.');
-   // Abrir a área privada imediatamente após a autenticação, sem esperar pelo evento SIGNED_IN.
    ownerSession=data.session;
    enterOwnerWorkspace();
    $('ownerSection').hidden=false;
@@ -1108,13 +1109,8 @@ $('ownerLoginForm').addEventListener('submit',async event=>{
  }
  finally{button.disabled=false;button.textContent=ownerAuthMode==='register'?'Criar conta':'Entrar';ownerAuthSubmitting=false;}
 });
-// No telemóvel, concluir a palavra-passe (tecla «Concluído»/perder foco) inicia a sessão automaticamente.
-// O botão continua disponível; não iniciar se o utilizador estiver a abrir a recuperação de palavra-passe.
-$('ownerPassword').addEventListener('blur',event=>{
- if(ownerAuthMode!=='login'||ownerAuthSubmitting||event.relatedTarget?.id==='ownerForgotBtn')return;
- if(!$('ownerLoginForm').checkValidity())return;
- $('ownerLoginForm').requestSubmit();
-});
+// Não submeter automaticamente ao sair do campo da palavra-passe: tocar noutro
+// controlo deve apenas permitir continuar a preencher ou navegar no formulário.
 $('ownerForgotBtn').addEventListener('click',async()=>{
  const email=$('ownerEmail').value.trim().toLowerCase();
  if(!email){ownerMessage('Introduz primeiro o email da tua conta.','error');return;}
