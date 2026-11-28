@@ -1,11 +1,11 @@
 -- Tighten notification data permissions and ensure customers receive a persistent acknowledgement.
 -- Users may read their own messages and update only read_at; they cannot rewrite/delete message content.
 
-revoke update, delete on table public.user_notifications from authenticated;
+revoke update, delete on table public.user_notifications from anon, public, authenticated;
 grant update (read_at) on table public.user_notifications to authenticated;
 drop policy if exists user_notifications_delete_own on public.user_notifications;
 
-revoke update, delete on table public.admin_notifications from authenticated;
+revoke update, delete on table public.admin_notifications from anon, public, authenticated;
 grant update (read_at) on table public.admin_notifications to authenticated;
 drop policy if exists admin_notifications_admin_delete on public.admin_notifications;
 
