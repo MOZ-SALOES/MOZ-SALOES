@@ -144,8 +144,8 @@ Para cada alteração, acrescentar:
 - Unificado o identificador (`tag`) das notificações de sistema em tempo real e push, reduzindo notificações duplicadas para o mesmo evento.
 - Endurecida a migração inicial de subscrições para nunca conceder escrita directa a `authenticated`; a gestão fica exclusivamente na função de servidor.
 - Tornada idempotente a migração de unicidade do endpoint para não tentar criar uma constraint que já existe na produção.
-- Adicionada à migração de privacidade a restrição de execução de `private.is_admin()` para utilizadores autenticados, mantendo as políticas RLS administrativas funcionais.
+- Adicionada à migração de privacidade a remoção do EXECUTE herdado de PUBLIC em `private.is_admin()`, com concessão explícita a `anon` e `authenticated`, porque políticas de leitura pública de categorias/planos/promoções também chamam a função e precisam de continuar a funcionar.
 - Security Advisor: 1 aviso de Auth para protecção contra palavras-passe comprometidas desactivada; 7 avisos de políticas permissivas sobrepostas classificados como optimização/performance; 24 índices sem utilização observada (não remover sem análise de carga). Advisor de saúde sem alertas.
 - Logs Edge das últimas 24 horas: 3 eventos observados, incluindo 2 respostas 401 e 1 resposta 405; nenhum POST foi observado. Não existe ainda prova de envio push ponta a ponta.
 - Nenhuma migração foi aplicada à produção, nenhuma Edge Function foi publicada nesta revisão e nenhuma alteração foi feita na branch `main`/GitHub Pages.
-- Pendência de segurança: `private.is_admin()` ainda concede EXECUTE a `anon` na base actual por herança de PUBLIC. A branch prepara a revogação desse acesso e mantém EXECUTE para `authenticated`; aplicar apenas com a migração revista e aprovada.
+- Pendência de segurança: `private.is_admin()` ainda concede EXECUTE a `anon` na base actual por herança de PUBLIC. A branch prepara a substituição do grant amplo de PUBLIC por grants explícitos a `anon` e `authenticated`, preservando as políticas públicas que dependem da função; aplicar apenas com a migração revista e aprovada.
