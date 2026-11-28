@@ -5,7 +5,7 @@ alter table public.push_subscriptions
 alter table public.push_subscriptions
   add constraint push_subscriptions_endpoint_unique unique (endpoint);
 
-revoke insert, update, delete on table public.push_subscriptions from anon, authenticated;
+revoke insert, update, delete on table public.push_subscriptions from anon, public, authenticated;
 grant select on table public.push_subscriptions to authenticated;
 
 drop policy if exists push_subscriptions_insert_own on public.push_subscriptions;
