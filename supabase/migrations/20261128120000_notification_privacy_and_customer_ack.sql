@@ -3,6 +3,8 @@
 -- RLS policies for public catalogue rows also call this helper as anon; remove the broad PUBLIC grant and grant only the two API roles explicitly.
 revoke all on function private.is_admin() from public;
 grant execute on function private.is_admin() to anon, authenticated;
+-- This SECURITY DEFINER routine is trigger-only; callers must not invoke it directly.
+revoke all on function private.mark_profile_as_owner_after_salon_insert() from public;
 -- Users may read their own messages and update only read_at; they cannot rewrite/delete message content.
 
 -- Remove both table-level and any legacy column-level grants before restoring the minimum required access.
