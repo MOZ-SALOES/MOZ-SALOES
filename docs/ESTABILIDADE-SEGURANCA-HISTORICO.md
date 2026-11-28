@@ -101,3 +101,18 @@ Para cada alteração, acrescentar:
 - Anomalias observadas e hipótese/commit que as introduziu.
 
 **Estado actual:** trabalho de segurança/notificações em desenvolvimento isolado. Não está aprovado para merge nem publicação. A produção deve permanecer na última versão estável até concluir a revisão e os testes.
+
+
+### Continuação — segurança de notificações (branch isolada)
+- Removido o contador visível do centro de notificações do proprietário; as mensagens ficam apresentadas como histórico.
+- Mensagens de cliente/proprietário agora mantêm a acção de abrir novamente mesmo depois de lidas; o centro administrativo também permite reabrir mensagens já lidas.
+- Criada migração `20261128120000_notification_privacy_and_customer_ack.sql`: reduz permissões de UPDATE para apenas `read_at`, remove permissões/políticas de apagar notificações e passa a criar confirmação persistente para o cliente quando submete uma marcação.
+- Criada migração `20261128130000_lock_push_subscription_writes.sql`: endpoint push único por dispositivo; escrita/transferência de subscrições reservada ao servidor; utilizador autenticado apenas consulta a sua própria subscrição.
+- Criada Edge Function `manage-push-subscription`: valida JWT, valida HTTPS e hosts de push permitidos e reassocia endpoint à conta autenticada, reduzindo risco de notificações da conta anterior em dispositivo partilhado.
+- Criada Edge Function `send-notification-push`: valida segredo webhook, consulta a notificação pelo ID no servidor, envia conteúdo push genérico e desactiva subscrições expiradas (HTTP 404/410).
+- Adicionado `push-config.js` como configuração exclusivamente pública para futura chave pública VAPID; está vazio de propósito até a chave pública ser gerada e a privada guardada no cofre de segredos.
+- Ligação do painel comum (clientes/proprietários) e painel administrativo ao fluxo de registo de subscrição; sincronização automática apenas se o utilizador já concedeu permissão e a chave pública estiver configurada; remoção da subscrição antes do logout.
+- Service Worker avançado para `moz-saloes-shell-v9` e inclui o ficheiro público de configuração na cache.
+- Criado `docs/PUSH-SETUP-E-TESTES.md` com segredos necessários, webhooks e matriz de testes.
+- Ainda pendente: gerar/guardar VAPID e segredo webhook no Supabase Dashboard; inserir chave pública no ficheiro de configuração; aplicar migrações apenas num ambiente isolado de teste; publicar Edge Functions e webhooks; executar testes reais com contas e dispositivos separados.
+- Limitação operacional: as ferramentas disponíveis nesta sessão permitem preparar o código e migrações no GitHub, mas não disponibilizam gestão de Edge Function Secrets. Não colocar segredos em commits ou mensagens. Por isso, não activar nem declarar push de ponta a ponta antes dessa configuração.
