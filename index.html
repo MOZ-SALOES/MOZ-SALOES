@@ -382,6 +382,11 @@ body.owner-workspace .owner-auth-switch{display:none!important}
   <div id="adminDashboard" hidden>
    <div class="status"><span class="dot ok"></span><strong>Sessão administrativa autenticada</strong></div>
    <p id="adminWelcome">A identidade foi confirmada pelo Supabase.</p>
+   <div class="owner-card owner-notification-center" id="adminNotificationCenter">
+    <div class="owner-notification-heading"><div><span class="owner-notification-kicker">CENTRO ADMINISTRATIVO</span><h3>Notificações da administração</h3><p class="owner-muted">Avisos privados sobre novos registos, salões, serviços e marcações.</p></div><span class="owner-notification-badge" id="adminNotificationCount" aria-live="polite">0 por ler</span></div>
+    <div class="owner-notification-actions"><button class="btn" type="button" id="adminEnableNotifications">Activar notificações neste dispositivo</button><button class="btn" type="button" id="adminMarkAllNotificationsRead" style="background:#64748b">Marcar todas como lidas</button><span class="owner-muted" id="adminNotificationState" role="status">Avisos dentro do painel activos.</span></div>
+    <div id="adminNotificationList" class="owner-notification-list" aria-live="polite"><div class="user-notification-empty">A carregar notificações administrativas…</div></div>
+   </div>
    <div id="adminApp"></div><button id="adminLogout" type="button" hidden>Terminar sessão</button>
   </div>
  </section>
@@ -583,6 +588,8 @@ async function verifyAdminSession(session){
  window.mozAdminReady=true;
  $('adminWelcome').textContent='Bem-vinda, '+(data.full_name||ADMIN_NAME)+'. A identidade foi confirmada pelo Supabase.';
  window.dispatchEvent(new Event('moz-admin-ready'));
+ startAdminNotificationSync(data.id);
+ refreshAdminNotificationPermissionState();
  $('adminSection').hidden=false;
  if(location.hash!=='#silda-acesso')history.replaceState(null,'',location.pathname+location.search+'#silda-acesso');
 }
@@ -637,7 +644,7 @@ $('adminLogout').addEventListener('click',async()=>{
  adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();adminMessage('Sessão terminada com segurança. Para voltar, selecciona «Entrar como administrador».','success');
 });
 supabaseClient.auth.onAuthStateChange((event,session)=>{
- if(event==='SIGNED_OUT'){$('ownerNav').hidden=false;$('ownerAccountNav').hidden=true;stopAppointmentPolling();stopUserNotificationSync();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');window.setTimeout(()=>{if(!ownerSession)init();},0);}
+ if(event==='SIGNED_OUT'){stopAdminNotificationSync();$('ownerNav').hidden=false;$('ownerAccountNav').hidden=true;stopAppointmentPolling();stopUserNotificationSync();adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();ownerSession=null;leaveOwnerWorkspace();$('ownerMessage').hidden=true;history.replaceState(null,'',location.pathname+location.search+'#saloes');window.setTimeout(()=>{if(!ownerSession)init();},0);}
  if(event==='PASSWORD_RECOVERY'){
   if(new URLSearchParams(location.search).get('admin-recovery')==='1'||location.hash==='#silda-acesso'){
    $('adminSection').hidden=false;adminLoginVisible=false;showAdminSession(false);$('adminRecoveryForm').hidden=false;$('adminAccessToggle').hidden=true;
@@ -1279,6 +1286,74 @@ async function markUserNotificationRead(id){
  if(error){ownerMessage('Não foi possível marcar a notificação como lida: '+error.message,'error');return;}
  await loadUserNotifications(userId);
 }
+let adminNotificationUserId=null,adminNotificationRows=[],adminNotificationChannel=null,adminNotificationPollTimer=null,adminNotificationLoading=false;
+function renderAdminNotifications(){
+ const list=$('adminNotificationList'),badge=$('adminNotificationCount');if(!list||!badge)return;
+ const unread=adminNotificationRows.filter(n=>!n.read_at).length;
+ badge.textContent=unread+' por ler';
+ if(!adminNotificationRows.length){list.innerHTML='<div class="user-notification-empty">Ainda não existem notificações administrativas.</div>';return;}
+ list.innerHTML=adminNotificationRows.map(n=>'<article class="user-notification-item '+(n.read_at?'is-read':'is-unread')+'"><div class="user-notification-copy"><strong>'+safe(n.title||'Aviso administrativo')+'</strong><p>'+safe(n.message||'Existe uma actualização na plataforma.')+'</p><small>'+safe(new Date(n.created_at).toLocaleString('pt-MZ'))+'</small></div>'+(n.read_at?'':'<button type="button" data-admin-notification-read="'+safe(n.id)+'">Marcar como lida</button>')+'</article>').join('');
+}
+async function loadAdminNotifications(userId=adminNotificationUserId){
+ if(!userId||!navigator.onLine||adminNotificationLoading)return;
+ adminNotificationLoading=true;
+ try{
+  const {data,error}=await supabaseClient.from('admin_notifications').select('id,notification_type,title,message,entity_type,entity_id,metadata,read_at,created_at').eq('recipient_id',userId).order('created_at',{ascending:false}).limit(50);
+  if(error)throw error;
+  if(adminNotificationUserId!==userId||!window.mozAdminReady)return;
+  adminNotificationRows=data||[];renderAdminNotifications();
+ }catch(error){console.warn('Não foi possível actualizar as notificações administrativas:',error);}
+ finally{adminNotificationLoading=false;}
+}
+function stopAdminNotificationSync(){
+ if(adminNotificationPollTimer){clearInterval(adminNotificationPollTimer);adminNotificationPollTimer=null;}
+ if(adminNotificationChannel){supabaseClient.removeChannel(adminNotificationChannel);adminNotificationChannel=null;}
+ adminNotificationUserId=null;adminNotificationRows=[];adminNotificationLoading=false;
+}
+function startAdminNotificationSync(userId){
+ if(!userId)return;
+ if(adminNotificationUserId===userId&&adminNotificationChannel){loadAdminNotifications(userId);return;}
+ stopAdminNotificationSync();adminNotificationUserId=userId;loadAdminNotifications(userId);
+ adminNotificationChannel=supabaseClient.channel('moz-saloes-admin-notifications-'+userId)
+  .on('postgres_changes',{event:'*',schema:'public',table:'admin_notifications',filter:'recipient_id=eq.'+userId},payload=>{
+   if(payload.eventType==='INSERT'&&payload.new?.recipient_id===userId)showAdminSystemNotification(payload.new);
+   loadAdminNotifications(userId);
+  }).subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Notificações administrativas em tempo real indisponíveis; a actualização automática continuará activa.');});
+ adminNotificationPollTimer=setInterval(()=>loadAdminNotifications(userId),45000);
+}
+function showAdminSystemNotification(n){
+ if(!n||!('Notification' in window)||Notification.permission!=='granted'||!document.hidden)return;
+ if(!('serviceWorker' in navigator))return;
+ navigator.serviceWorker.ready.then(reg=>reg.showNotification(n.title||'MOZ SALÕES — Administração',{body:n.message||'Existe um novo aviso administrativo.',icon:'./favicon.svg',badge:'./favicon.svg',tag:'moz-saloes-admin-'+n.id,data:{url:'./#silda-acesso'}})).catch(()=>{});
+}
+function refreshAdminNotificationPermissionState(){
+ const button=$('adminEnableNotifications'),state=$('adminNotificationState');if(!button||!state)return;
+ if(!('Notification' in window)){button.disabled=true;state.textContent='Este navegador não suporta notificações do sistema.';return;}
+ button.textContent=Notification.permission==='granted'?'Notificações activadas ✓':'Activar notificações neste dispositivo';
+ state.textContent=Notification.permission==='granted'?'Este dispositivo autorizou avisos do sistema.':'A autorização do dispositivo é necessária para avisos fora do painel.';
+}
+$('adminEnableNotifications').addEventListener('click',async()=>{
+ if(!('Notification' in window)){refreshAdminNotificationPermissionState();return;}
+ try{await Notification.requestPermission();refreshAdminNotificationPermissionState();}
+ catch(error){$('adminNotificationState').textContent='Não foi possível solicitar autorização neste navegador.';}
+});
+$('adminMarkAllNotificationsRead').addEventListener('click',async()=>{
+ const userId=adminNotificationUserId;if(!userId||!window.mozAdminReady)return;
+ const button=$('adminMarkAllNotificationsRead');button.disabled=true;
+ try{
+  const {error}=await supabaseClient.from('admin_notifications').update({read_at:new Date().toISOString()}).eq('recipient_id',userId).is('read_at',null);
+  if(error)throw error;await loadAdminNotifications(userId);
+ }catch(error){adminMessage('Não foi possível actualizar os avisos administrativos: '+error.message,'error');}
+ finally{button.disabled=false;}
+});
+$('adminNotificationList').addEventListener('click',async event=>{
+ const button=event.target.closest('[data-admin-notification-read]');if(!button)return;
+ const userId=adminNotificationUserId,id=button.dataset.adminNotificationRead;if(!userId||!window.mozAdminReady)return;
+ button.disabled=true;
+ const {error}=await supabaseClient.from('admin_notifications').update({read_at:new Date().toISOString()}).eq('id',id).eq('recipient_id',userId).is('read_at',null);
+ if(error){adminMessage('Não foi possível marcar o aviso como lido: '+error.message,'error');button.disabled=false;return;}
+ await loadAdminNotifications(userId);
+});
 function showUserSystemNotification(n){
  if(!n||!('Notification' in window)||Notification.permission!=='granted'||!document.hidden)return;
  const options={body:n.message||'Tens uma nova notificação no MOZ SALÕES.',icon:'./favicon.svg',badge:'./favicon.svg',tag:'moz-saloes-'+n.id,data:{url:'./#owner'}};
