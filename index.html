@@ -1946,9 +1946,20 @@ $('ownerGrowthNativeShare').addEventListener('click',async()=>{
  document.body.append(tray,modal);
  const byId=id=>document.getElementById(id);
  function update(){
-  tray.hidden=selected.size===0;
-  byId('mozCompareCount').textContent=selected.size+' de 3 salões seleccionados';
-  document.querySelectorAll('[data-compare-salon]').forEach(button=>{const active=selected.has(String(button.dataset.compareSalon));button.setAttribute('aria-pressed',String(active));button.textContent=active?'✓ A comparar':'＋ Comparar';});
+  const isEmpty=selected.size===0;
+  if(tray.hidden!==isEmpty)tray.hidden=isEmpty;
+  const countText=selected.size+' de 3 salões seleccionados';
+  const countNode=byId('mozCompareCount');
+  if(countNode&&countNode.textContent!==countText)countNode.textContent=countText;
+  document.querySelectorAll('[data-compare-salon]').forEach(button=>{
+   const active=selected.has(String(button.dataset.compareSalon));
+   const pressed=String(active);
+   const label=active?'✓ A comparar':'＋ Comparar';
+   if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);
+   // O MutationObserver vigia a lista de resultados. Só alterar o texto quando
+   // necessário impede que a própria actualização volte a disparar o observador.
+   if(button.textContent!==label)button.textContent=label;
+  });
  }
  function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
  function close(){modal.classList.remove('is-open');document.body.style.overflow='';}
