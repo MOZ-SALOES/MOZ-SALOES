@@ -383,7 +383,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
    <div class="status"><span class="dot ok"></span><strong>Sessão administrativa autenticada</strong></div>
    <p id="adminWelcome">A identidade foi confirmada pelo Supabase.</p>
    <div class="owner-card owner-notification-center" id="adminNotificationCenter">
-    <div class="owner-notification-heading"><div><span class="owner-notification-kicker">CENTRO ADMINISTRATIVO</span><h3>Notificações da administração</h3><p class="owner-muted">Avisos privados sobre novos registos, salões, serviços e marcações.</p></div><span class="owner-notification-badge" id="adminNotificationCount" aria-live="polite">0 por ler</span></div>
+    <div class="owner-notification-heading"><div><span class="owner-notification-kicker">CENTRO ADMINISTRATIVO</span><h3>Notificações da administração</h3><p class="owner-muted">Avisos privados sobre novos registos, salões, serviços e marcações.</p></div></div>
     <div class="owner-notification-actions"><button class="btn" type="button" id="adminEnableNotifications">Activar notificações neste dispositivo</button><button class="btn" type="button" id="adminMarkAllNotificationsRead" style="background:#64748b">Marcar todas como lidas</button><span class="owner-muted" id="adminNotificationState" role="status">Avisos dentro do painel activos.</span></div>
     <div id="adminNotificationList" class="owner-notification-list" aria-live="polite"><div class="user-notification-empty">A carregar notificações administrativas…</div></div>
    </div>
@@ -1288,9 +1288,7 @@ async function markUserNotificationRead(id){
 }
 let adminNotificationUserId=null,adminNotificationRows=[],adminNotificationChannel=null,adminNotificationPollTimer=null,adminNotificationLoading=false;
 function renderAdminNotifications(){
- const list=$('adminNotificationList'),badge=$('adminNotificationCount');if(!list||!badge)return;
- const unread=adminNotificationRows.filter(n=>!n.read_at).length;
- badge.textContent=unread+' por ler';
+ const list=$('adminNotificationList');if(!list)return;
  if(!adminNotificationRows.length){list.innerHTML='<div class="user-notification-empty">Ainda não existem notificações administrativas.</div>';return;}
  list.innerHTML=adminNotificationRows.map(n=>'<article class="user-notification-item '+(n.read_at?'is-read':'is-unread')+'"><div class="user-notification-copy"><strong>'+safe(n.title||'Aviso administrativo')+'</strong><p>'+safe(n.message||'Existe uma actualização na plataforma.')+'</p><small>'+safe(new Date(n.created_at).toLocaleString('pt-MZ'))+'</small></div>'+(n.read_at?'':'<button type="button" data-admin-notification-read="'+safe(n.id)+'">Marcar como lida</button>')+'</article>').join('');
 }
