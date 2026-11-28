@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
   const pushPayload = JSON.stringify({
     title: "MOZ SALÕES",
     body: "Tens uma nova mensagem. Entra na tua conta para consultar.",
-    url: "./#owner",
+    url: table === "admin_notifications" ? "./#admin" : "./#owner",
     tag: "moz-saloes-message-" + notification.id,
   });
 
