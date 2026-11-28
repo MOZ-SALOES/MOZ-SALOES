@@ -1322,7 +1322,7 @@ function startAdminNotificationSync(userId){
 function showAdminSystemNotification(n){
  if(!n||!('Notification' in window)||Notification.permission!=='granted'||!document.hidden)return;
  if(!('serviceWorker' in navigator))return;
- navigator.serviceWorker.ready.then(reg=>reg.showNotification(n.title||'MOZ SALÕES — Administração',{body:n.message||'Existe um novo aviso administrativo.',icon:'./favicon.svg',badge:'./favicon.svg',tag:'moz-saloes-admin-'+n.id,data:{url:'./#silda-acesso'}})).catch(()=>{});
+ navigator.serviceWorker.ready.then(reg=>reg.showNotification(n.title||'MOZ SALÕES — Administração',{body:n.message||'Existe um novo aviso administrativo.',icon:'./favicon.svg',badge:'./favicon.svg',tag:'moz-saloes-message-'+n.id,data:{url:'./#silda-acesso'}})).catch(()=>{});
 }
 function refreshAdminNotificationPermissionState(){
  const button=$('adminEnableNotifications'),state=$('adminNotificationState');if(!button||!state)return;
@@ -1391,7 +1391,7 @@ function syncExistingPushSubscription(userId,stateId){
 }
 function showUserSystemNotification(n){
  if(!n||!('Notification' in window)||Notification.permission!=='granted'||!document.hidden)return;
- const options={body:n.message||'Tens uma nova notificação no MOZ SALÕES.',icon:'./favicon.svg',badge:'./favicon.svg',tag:'moz-saloes-'+n.id,data:{url:'./#owner'}};
+ const options={body:n.message||'Tens uma nova notificação no MOZ SALÕES.',icon:'./favicon.svg',badge:'./favicon.svg',tag:'moz-saloes-message-'+n.id,data:{url:'./#owner'}};
  if('serviceWorker' in navigator){navigator.serviceWorker.ready.then(reg=>reg.showNotification(n.title||'MOZ SALÕES',options)).catch(()=>{});}
  else{try{new Notification(n.title||'MOZ SALÕES',options);}catch{}}
 }
