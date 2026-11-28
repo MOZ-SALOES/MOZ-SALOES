@@ -32,15 +32,15 @@ self.addEventListener('push',event=>{
  try{payload=event.data?event.data.json():{};}catch{payload={body:event.data?.text?.()||''};}
  const title=String(payload.title||'MOZ SALÕES').slice(0,100);
  const body=String(payload.body||payload.message||'Tens uma nova notificação.').slice(0,240);
- const rawUrl=typeof payload.url==='string'?payload.url:'./';
- let target='./';
+ const rawUrl=typeof payload.url==='string'?payload.url:'./#saloes';
+ let target='./#saloes';
  try{const parsed=new URL(rawUrl,self.registration.scope);if(parsed.origin===self.location.origin&&parsed.pathname.startsWith(new URL('./',self.registration.scope).pathname))target=parsed.href;}catch{}
  const options={body,icon:'./favicon.svg',badge:'./favicon.svg',tag:String(payload.tag||'moz-saloes-notification').slice(0,100),data:{url:target}};
  event.waitUntil(self.registration.showNotification(title,options));
 });
 self.addEventListener('notificationclick',event=>{
  event.notification.close();
- const target=new URL(event.notification.data?.url||'./#owner',self.registration.scope).href;
+ const target=new URL(event.notification.data?.url||'./#saloes',self.registration.scope).href;
  event.waitUntil((async()=>{
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
   for(const client of windows){if('focus' in client){if('navigate' in client)await client.navigate(target);return client.focus();}}
