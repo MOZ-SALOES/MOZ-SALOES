@@ -5,11 +5,18 @@ revoke all on function private.is_admin() from public;
 grant execute on function private.is_admin() to anon, authenticated;
 -- Users may read their own messages and update only read_at; they cannot rewrite/delete message content.
 
-revoke update, delete on table public.user_notifications from anon, public, authenticated;
+-- Remove both table-level and any legacy column-level grants before restoring the minimum required access.
+revoke all privileges on table public.user_notifications from anon, public, authenticated;
+revoke all privileges (id, recipient_id, notification_type, title, message, entity_type, entity_id, metadata, read_at, created_at)
+  on table public.user_notifications from anon, public, authenticated;
+grant select on table public.user_notifications to authenticated;
 grant update (read_at) on table public.user_notifications to authenticated;
 drop policy if exists user_notifications_delete_own on public.user_notifications;
 
-revoke update, delete on table public.admin_notifications from anon, public, authenticated;
+revoke all privileges on table public.admin_notifications from anon, public, authenticated;
+revoke all privileges (id, recipient_id, notification_type, title, message, actor_id, entity_type, entity_id, metadata, read_at, created_at)
+  on table public.admin_notifications from anon, public, authenticated;
+grant select on table public.admin_notifications to authenticated;
 grant update (read_at) on table public.admin_notifications to authenticated;
 drop policy if exists admin_notifications_admin_delete on public.admin_notifications;
 
