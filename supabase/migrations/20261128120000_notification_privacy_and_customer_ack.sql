@@ -1,4 +1,8 @@
 -- Tighten notification data permissions and ensure customers receive a persistent acknowledgement.
+
+-- The admin helper is used only by authenticated RLS policies; do not expose it to anonymous roles.
+revoke all on function private.is_admin() from public, anon;
+grant execute on function private.is_admin() to authenticated;
 -- Users may read their own messages and update only read_at; they cannot rewrite/delete message content.
 
 revoke update, delete on table public.user_notifications from anon, public, authenticated;
