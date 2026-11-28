@@ -423,7 +423,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
      <label>Cidade<input name="city" placeholder="Cidade"></label><label>Bairro<input name="neighborhood" placeholder="Bairro"></label>
      <label class="wide" id="mainAddressWrap">Morada / referência do salão<input name="address" id="providerAddress" placeholder="Rua, avenida ou ponto de referência"></label>
      <div class="wide" id="independentOptions" hidden><strong>Modalidade e serviços</strong>
-      <label class="wide">Onde atendes?<select name="serviceMode" id="serviceMode"><option value="at_location">No meu próprio local</option><option value="home">Ao domicílio</option><option value="both">No meu local e ao domicílio</option></select></label>
+      <label class="wide">Onde atendes?<select name="serviceMode" id="providerServiceMode"><option value="at_location">No meu próprio local</option><option value="home">Ao domicílio</option><option value="both">No meu local e ao domicílio</option></select></label>
       <label class="wide" id="serviceAddressWrap">Endereço do teu posto de serviços<input name="serviceAddress" id="serviceAddress" placeholder="Rua, bairro ou referência"></label>
       <label class="wide" id="serviceAreasWrap">Bairros ou zonas onde te deslocas<input name="serviceAreas" id="serviceAreas" placeholder="Ex.: Matola, Machava, T3"></label>
       <p class="owner-muted">Indica a tua localização. Não precisas de possuir um salão.</p>
@@ -1152,12 +1152,12 @@ function updateRegistrationType(){
  if(independent)updateServiceModeFields();else{$('serviceAddress').required=false;$('serviceAreas').required=false;}
 }
 function updateServiceModeFields(){
- const mode=$('serviceMode').value;
+ const mode=$('providerServiceMode').value;
  $('serviceAddressWrap').hidden=mode==='home';$('serviceAreasWrap').hidden=mode==='at_location';
  $('serviceAddress').required=mode!=='home';$('serviceAreas').required=mode!=='at_location';
 }
 $('providerType').addEventListener('change',updateRegistrationType);
-$('serviceMode').addEventListener('change',updateServiceModeFields);
+$('providerServiceMode').addEventListener('change',updateServiceModeFields);
 function populateInitialServiceCategories(){
  const select=$('firstServiceCategory');if(!select||select.options.length>1)return;
  (state.categories||[]).forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;select.appendChild(o);});
@@ -1368,7 +1368,7 @@ function populate(select,items){
 function uniquePublishedServices(items){
  const seen=new Set();
  return (items||[]).filter(service=>{
-  const name=String(service.name||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt').trim();
+  const name=String(service.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt').trim();
   const price=service.price_mzn===null||service.price_mzn===undefined?'sem-preco':Number(service.price_mzn).toFixed(2);
   const key=String(service.salon_id||'')+'|'+name+'|'+price;
   if(seen.has(key))return false;
