@@ -1,6 +1,6 @@
-const CACHE_NAME='moz-saloes-shell-v8';
+const CACHE_NAME='moz-saloes-shell-v9';
 const OFFLINE_URL='./offline.html';
-const CORE_FILES=['./','./index.html','./manifest.webmanifest','./favicon.svg',OFFLINE_URL];
+const CORE_FILES=['./','./index.html','./manifest.webmanifest','./favicon.svg','./push-config.js',OFFLINE_URL];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(CORE_FILES)).then(()=>self.skipWaiting()));
 });
@@ -19,7 +19,7 @@ self.addEventListener('fetch',event=>{
   }).catch(async()=>{const cache=await caches.open(CACHE_NAME);return (await cache.match(request))||(await cache.match('./index.html'))||(await cache.match(OFFLINE_URL));}));
   return;
  }
- if(url.pathname.endsWith('.webmanifest')||url.pathname.endsWith('.svg')||url.pathname.endsWith('.png')||url.pathname.endsWith('.jpg')||url.pathname.endsWith('.webp')){
+ if(url.pathname.endsWith('.js')||url.pathname.endsWith('.webmanifest')||url.pathname.endsWith('.svg')||url.pathname.endsWith('.png')||url.pathname.endsWith('.jpg')||url.pathname.endsWith('.webp')){
   event.respondWith(fetch(request,{cache:'no-store'}).then(response=>{
    if(response.ok){const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put(request,copy));}
    return response;
