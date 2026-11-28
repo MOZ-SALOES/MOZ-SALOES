@@ -116,3 +116,16 @@ Para cada alteração, acrescentar:
 - Criado `docs/PUSH-SETUP-E-TESTES.md` com segredos necessários, webhooks e matriz de testes.
 - Ainda pendente: gerar/guardar VAPID e segredo webhook no Supabase Dashboard; inserir chave pública no ficheiro de configuração; aplicar migrações apenas num ambiente isolado de teste; publicar Edge Functions e webhooks; executar testes reais com contas e dispositivos separados.
 - Limitação operacional: as ferramentas disponíveis nesta sessão permitem preparar o código e migrações no GitHub, mas não disponibilizam gestão de Edge Function Secrets. Não colocar segredos em commits ou mensagens. Por isso, não activar nem declarar push de ponta a ponta antes dessa configuração.
+
+
+### Verificação estática da branch (última revisão)
+- 7/7 scripts JavaScript inline em `index.html` passaram a análise de sintaxe.
+- `sw.js` passou a análise de sintaxe.
+- Nenhum ID HTML duplicado e nenhum ID em falta nos listeners `addEventListener` verificados.
+- Verificado que não existe referência/elemento `ownerNotificationCount` ou `adminNotificationCount`; removidos também os estilos CSS de badge numérico.
+- Confirmado que as mensagens lidas continuam com acção “Abrir novamente” nos centros comum e administrativo.
+- Confirmado que o push não é tentado sem chave pública VAPID e que a sincronização automática só ocorre quando a permissão do sistema já foi concedida.
+- Confirmado que o Service Worker está em `moz-saloes-shell-v9` e inclui `push-config.js`.
+- O Supabase de produção continua sem as três migrações novas e sem as duas funções push publicadas; só permanecem as funções de pagamentos já existentes. Nenhuma alteração de esquema/Edge Function desta branch foi aplicada à produção.
+- O Security Advisor de produção ainda reporta a protecção contra palavras-passe comprometidas desactivada. É uma configuração de Auth a tratar separadamente no Dashboard, conforme o plano disponível.
+- Os testes end-to-end ainda não foram executados porque exigem ambiente isolado de base de dados, segredos VAPID/webhook e dispositivos/contas de teste. Não declarar push concluído antes desses testes.
