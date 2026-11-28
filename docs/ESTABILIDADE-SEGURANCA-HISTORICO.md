@@ -129,3 +129,7 @@ Para cada alteração, acrescentar:
 - O Supabase de produção continua sem as três migrações novas e sem as duas funções push publicadas; só permanecem as funções de pagamentos já existentes. Nenhuma alteração de esquema/Edge Function desta branch foi aplicada à produção.
 - O Security Advisor de produção ainda reporta a protecção contra palavras-passe comprometidas desactivada. É uma configuração de Auth a tratar separadamente no Dashboard, conforme o plano disponível.
 - Os testes end-to-end ainda não foram executados porque exigem ambiente isolado de base de dados, segredos VAPID/webhook e dispositivos/contas de teste. Não declarar push concluído antes desses testes.
+
+- Revisão adicional do sender push: se a notificação já tiver sido lida antes do webhook ser processado, o envio é ignorado; o push continua sem detalhes pessoais.
+- Revisão final após as últimas alterações: 7/7 scripts inline válidos, Service Worker válido, zero IDs duplicados, zero IDs em falta nos listeners, zero contadores/badges de notificações.
+- A chave pública VAPID permanece intencionalmente vazia em `push-config.js`; por isso, o botão não afirma que o push está activo. A activação real depende de segredos e configuração no Supabase.
