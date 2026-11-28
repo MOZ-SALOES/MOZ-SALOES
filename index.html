@@ -260,6 +260,7 @@ body.owner-workspace .owner-auth-switch{display:none!important}
 
 </style>
 <meta name="google-site-verification" content="jJiRy8TwcHnRaLS71cvnFGQlY7TaxPSs7dK4Y-Etd_E" />
+<script src="./push-config.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main-content">Saltar para o conteúdo principal</a>
@@ -639,6 +640,7 @@ $('adminRecoveryForm').addEventListener('submit',async event=>{
  finally{button.disabled=false;button.textContent='Guardar nova palavra-passe';}
 });
 $('adminLogout').addEventListener('click',async()=>{
+ await removeCurrentPushSubscription();
  const {error}=await supabaseClient.auth.signOut();
  if(error){adminMessage('Não foi possível terminar a sessão: '+error.message,'error');return;}
  adminLoginVisible=false;showAdminSession(false);$('adminLoginForm').reset();adminMessage('Sessão terminada com segurança. Para voltar, selecciona «Entrar como administrador».','success');
@@ -854,6 +856,7 @@ $('ownerBrowseSalonsBtn').addEventListener('click',browsePublicDirectory);
 $('ownerLogoutBtn').addEventListener('click',async()=>{
  const button=$('ownerLogoutBtn');button.disabled=true;button.textContent='A terminar sessão…';
  try{
+  await removeCurrentPushSubscription();
   const {error}=await supabaseClient.auth.signOut();
   if(error)throw error;
   // Fecha imediatamente a área privada; o directório público volta a ficar disponível.
@@ -954,7 +957,7 @@ function refreshOwnerNotificationPermissionState(){
 }
 $('ownerEnableNotifications').addEventListener('click',async()=>{
  if(!('Notification' in window)){$('ownerNotificationState').textContent='Este navegador não suporta notificações do sistema.';return;}
- try{const permission=await Notification.requestPermission();refreshOwnerNotificationPermissionState();if(permission==='granted')$('ownerNotificationState').textContent=document.documentElement.lang==='en'?'Notifications are allowed on this device. Available alerts will appear while the app is active.':'Notificações autorizadas neste dispositivo. Os alertas disponíveis serão apresentados quando a aplicação estiver activa.';else $('ownerNotificationState').textContent=document.documentElement.lang==='en'?'Permission not granted. You can still check dashboard notices and enable notifications later.':'Permissão não concedida. Podes continuar a consultar os avisos dentro do painel e activar mais tarde.';}catch{$('ownerNotificationState').textContent='Não foi possível activar notificações neste dispositivo.';}
+ try{if(!ownerSession?.user){$('ownerNotificationState').textContent='Entra na tua conta para activar notificações.';return;}await registerCurrentPushSubscription(ownerSession.user.id,true,'ownerNotificationState');refreshOwnerNotificationPermissionState();}catch(error){$('ownerNotificationState').textContent='Não foi possível activar as notificações push. As mensagens continuam guardadas no painel.';console.warn(error);}
 });
 $('ownerOpenNotifications').addEventListener('click',()=>{
  $('ownerAppointmentsCard').scrollIntoView({behavior:'smooth',block:'start'});
@@ -1308,7 +1311,7 @@ function stopAdminNotificationSync(){
 function startAdminNotificationSync(userId){
  if(!userId)return;
  if(adminNotificationUserId===userId&&adminNotificationChannel){loadAdminNotifications(userId);return;}
- stopAdminNotificationSync();adminNotificationUserId=userId;loadAdminNotifications(userId);
+ stopAdminNotificationSync();adminNotificationUserId=userId;syncExistingPushSubscription(userId,'adminNotificationState');loadAdminNotifications(userId);
  adminNotificationChannel=supabaseClient.channel('moz-saloes-admin-notifications-'+userId)
   .on('postgres_changes',{event:'*',schema:'public',table:'admin_notifications',filter:'recipient_id=eq.'+userId},payload=>{
    if(payload.eventType==='INSERT'&&payload.new?.recipient_id===userId)showAdminSystemNotification(payload.new);
@@ -1329,8 +1332,8 @@ function refreshAdminNotificationPermissionState(){
 }
 $('adminEnableNotifications').addEventListener('click',async()=>{
  if(!('Notification' in window)){refreshAdminNotificationPermissionState();return;}
- try{await Notification.requestPermission();refreshAdminNotificationPermissionState();}
- catch(error){$('adminNotificationState').textContent='Não foi possível solicitar autorização neste navegador.';}
+ try{if(!adminNotificationUserId||!window.mozAdminReady)return;await registerCurrentPushSubscription(adminNotificationUserId,true,'adminNotificationState');refreshAdminNotificationPermissionState();}
+ catch(error){$('adminNotificationState').textContent='Não foi possível activar as notificações push. As mensagens continuam guardadas no painel.';console.warn(error);}
 });
 $('adminMarkAllNotificationsRead').addEventListener('click',async()=>{
  const userId=adminNotificationUserId;if(!userId||!window.mozAdminReady)return;
@@ -1352,6 +1355,40 @@ $('adminNotificationList').addEventListener('click',async event=>{
   await loadAdminNotifications(userId);
  }else{button.closest('.user-notification-item')?.classList.add('notification-opened');}
 });
+function pushApplicationServerKey(value){
+ const padding='='.repeat((4-value.length%4)%4),base64=(value+padding).replace(/-/g,'+').replace(/_/g,'/');
+ const raw=atob(base64);return Uint8Array.from(raw,char=>char.charCodeAt(0));
+}
+async function registerCurrentPushSubscription(userId,requestPermission=false,stateId='ownerNotificationState'){
+ const state=$(stateId);
+ const publicKey=String(window.MOZ_PUSH_VAPID_PUBLIC_KEY||'').trim();
+ if(!publicKey){if(state)state.textContent='O serviço de notificações fora da aplicação ainda está a ser configurado. As mensagens continuam guardadas no painel.';return false;}
+ if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window)){if(state)state.textContent='Este dispositivo não suporta notificações push. As mensagens continuam disponíveis no painel.';return false;}
+ if(!userId)return false;
+ let permission=Notification.permission;
+ if(permission!=='granted'&&requestPermission)permission=await Notification.requestPermission();
+ if(permission!=='granted'){if(state)state.textContent=permission==='denied'?'A autorização foi recusada nas definições do dispositivo.':'Autoriza as notificações para receber avisos fora da aplicação.';return false;}
+ const registration=await navigator.serviceWorker.ready;
+ let subscription=await registration.pushManager.getSubscription();
+ if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushApplicationServerKey(publicKey)});
+ const {error}=await supabaseClient.functions.invoke('manage-push-subscription',{body:{action:'register',subscription:subscription.toJSON()}});
+ if(error)throw error;
+ if(state)state.textContent='Notificações push activadas neste dispositivo. As mensagens continuam guardadas no histórico.';
+ return true;
+}
+async function removeCurrentPushSubscription(){
+ if(!('serviceWorker'in navigator)||!('PushManager'in window))return;
+ try{
+  const registration=await navigator.serviceWorker.ready,subscription=await registration.pushManager.getSubscription();
+  if(!subscription)return;
+  await supabaseClient.functions.invoke('manage-push-subscription',{body:{action:'remove',subscription:{endpoint:subscription.endpoint}}});
+  await subscription.unsubscribe();
+ }catch(error){console.warn('Não foi possível remover a subscrição push deste dispositivo:',error);}
+}
+function syncExistingPushSubscription(userId,stateId){
+ if(!userId||!window.MOZ_PUSH_VAPID_PUBLIC_KEY||!('Notification'in window)||Notification.permission!=='granted')return;
+ registerCurrentPushSubscription(userId,false,stateId).catch(error=>console.warn('Não foi possível sincronizar notificações push:',error));
+}
 function showUserSystemNotification(n){
  if(!n||!('Notification' in window)||Notification.permission!=='granted'||!document.hidden)return;
  const options={body:n.message||'Tens uma nova notificação no MOZ SALÕES.',icon:'./favicon.svg',badge:'./favicon.svg',tag:'moz-saloes-'+n.id,data:{url:'./#owner'}};
@@ -1367,6 +1404,7 @@ function startUserNotificationSync(userId){
  if(!userId)return;
  if(userNotificationUserId===userId&&userNotificationChannel){loadUserNotifications(userId);return;}
  stopUserNotificationSync();userNotificationUserId=userId;
+ syncExistingPushSubscription(userId,'ownerNotificationState');
  loadUserNotifications(userId);
  userNotificationChannel=supabaseClient.channel('moz-saloes-user-notifications-'+userId)
   .on('postgres_changes',{event:'*',schema:'public',table:'user_notifications',filter:'recipient_id=eq.'+userId},payload=>{
