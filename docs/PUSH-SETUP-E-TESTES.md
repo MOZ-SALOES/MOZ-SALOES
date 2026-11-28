@@ -66,6 +66,15 @@ Usar o payload padrão do Database Webhook, que inclui `table` e `record`. Não 
 - Testar endpoint expirado (404/410), revogação de permissão, duplicados e falhas temporárias de rede.
 - Confirmar que o push é genérico e não revela telefone, email, nome do cliente, detalhes da marcação ou dados administrativos no ecrã bloqueado.
 
-## Estado actual
+## Estado verificado em 28/11/2026
 
-Código preparado na branch `security-notifications-hardening`. As migrações ainda não foram aplicadas, as funções ainda não foram publicadas e os segredos VAPID/webhook ainda não estão configurados. Portanto, push de ponta a ponta ainda não está activo. A produção permanece inalterada até concluir os testes e a revisão.
+- Produção já contém `push_subscriptions`, `user_notifications` e `admin_notifications`, com RLS activo nas três tabelas.
+- Produção já tem dois Database Webhooks AFTER INSERT, um para cada tabela de notificações, apontados para `send-notification-push`.
+- Produção tem as Edge Functions `send-notification-push` e `manage-push-subscription` ACTIVE (versão 1). O código remoto ainda não foi actualizado para coincidir integralmente com a branch.
+- O código de gestão de subscrições valida o utilizador com `auth.getUser(token)`, embora a opção `verify_jwt` apresentada no Dashboard esteja desligada; a branch mantém `verify_jwt=true` em `supabase/config.toml` para a próxima publicação.
+- A chave pública VAPID está presente em `push-config.js`; a chave privada e o segredo do webhook permanecem apenas no cofre do Supabase. Não copiar valores secretos para documentação, GitHub ou mensagens.
+- A branch `security-notifications-hardening` contém as correcções de destino do clique, prevenção de notificações duplicadas e endurecimento das migrações. Estas alterações ainda não foram publicadas.
+- Os logs consultados nas últimas 24 horas mostram apenas chamadas GET/401/405 às funções; não foi observado nenhum POST bem-sucedido. Isso não prova entrega push.
+- Ainda falta um teste ponta a ponta controlado com contas e dispositivos separados, incluindo aplicação fechada, clique na notificação, logout/troca de conta e revogação de permissão.
+
+**Conclusão:** a infraestrutura existe em produção, mas o envio push real ainda não está confirmado. Não declarar a funcionalidade concluída até executar a matriz de testes. A produção permanece sem as alterações desta revisão até aprovação e publicação explícitas.
