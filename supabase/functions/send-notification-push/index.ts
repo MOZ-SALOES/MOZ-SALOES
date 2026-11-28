@@ -78,10 +78,11 @@ Deno.serve(async (req: Request) => {
 
   const { data: notification, error: notificationError } = await supabase
     .from(table)
-    .select("id,recipient_id")
+    .select("id,recipient_id,read_at")
     .eq("id", notificationId)
     .maybeSingle();
   if (notificationError || !notification) return json(404, { error: "notification_not_found" });
+  if (notification.read_at) return json(200, { sent: 0, skipped: "already_read" });
 
   const { data: subscriptions, error: subscriptionError } = await supabase
     .from("push_subscriptions")
